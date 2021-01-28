@@ -145,6 +145,12 @@ if [ ! -f $STORAGE_ROOT/www/default/index.html ]; then
 fi
 chown -R $STORAGE_USER $STORAGE_ROOT/www
 
+# Do some stuff to implement geoblocking
+cp conf/nginx/conf.d/*.conf /etc/nginx/conf.d/
+
+# touch logfiles that might not exist
+sudo -u www-data touch /var/log/nginx/geoipblock.log
+
 # Start services.
 restart_service nginx
 restart_service php7.2-fpm

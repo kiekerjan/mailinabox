@@ -353,9 +353,6 @@ cat conf/fail2ban/jails.conf \
 cp -f conf/fail2ban/filter.d/* /etc/fail2ban/filter.d/
 cp -f conf/fail2ban/jail.d/* /etc/fail2ban/jail.d/
 
-# touch logfiles that might not exist
-sudo -u www-data touch /var/log/nginx/geoipblock.log
-
 # On first installation, the log files that the jails look at don't all exist.
 # e.g., The roundcube error log isn't normally created until someone logs into
 # Roundcube for the first time. This causes fail2ban to fail to start. Later
