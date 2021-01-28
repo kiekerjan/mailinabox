@@ -1,0 +1,5 @@
+#!/bin/bash 
+cd /home/user-data/mail/mailboxes
+find -wholename "./*/*/.Spam/*/*.PRIMARY_HOSTNAME*" -mtime +120 -exec rm {} \;
+find -wholename "./*/*/.Trash/*/*.PRIMARY_HOSTNAME*" -mtime +120 -exec rm {} \;
+
