@@ -353,6 +353,9 @@ cat conf/fail2ban/jails.conf \
 cp -f conf/fail2ban/filter.d/* /etc/fail2ban/filter.d/
 cp -f conf/fail2ban/jail.d/* /etc/fail2ban/jail.d/
 
+# fail2ban should be able to look back far enough because we increased findtime of recidive jail
+tools/editconf.py /etc/fail2ban/fail2ban.conf dbpurgeage=7d
+
 # On first installation, the log files that the jails look at don't all exist.
 # e.g., The roundcube error log isn't normally created until someone logs into
 # Roundcube for the first time. This causes fail2ban to fail to start. Later

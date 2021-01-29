@@ -100,7 +100,7 @@ EOF
 
 # Start service configuration.
 source setup/system.sh
-source setup/geoiptools.sh
+source setup/geoiptoolssetup.sh
 source setup/ssl.sh
 source setup/dns.sh
 source setup/mail-postfix.sh
