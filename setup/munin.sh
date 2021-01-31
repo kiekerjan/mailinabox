@@ -71,6 +71,11 @@ hide_output systemctl daemon-reload
 hide_output systemctl unmask munin.service
 hide_output systemctl enable munin.service
 
+# Some more munin plugins
+ln -s /usr/share/munin/plugins/postfix_mailstats /etc/munin/plugins/
+ln -s /usr/share/munin/plugins/spamstats /etc/munin/plugins
+ln -s /usr/share/munin/plugins/df_abs /etc/munin/plugins
+
 # Restart services.
 restart_service munin
 restart_service munin-node
