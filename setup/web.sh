@@ -149,7 +149,8 @@ chown -R $STORAGE_USER $STORAGE_ROOT/www
 cp conf/nginx/conf.d/*.conf /etc/nginx/conf.d/
 
 # touch logfiles that might not exist
-sudo -u www-data touch /var/log/nginx/geoipblock.log
+touch /var/log/nginx/geoipblock.log
+chown www-data /var/log/nginx/geoipblock.log
 
 # Start services.
 restart_service nginx

@@ -14,14 +14,14 @@ goiplookup db-update
 
 # Install geo ip filter script
 cp -f setup/geoipfilter.sh /usr/local/bin/
-cp -f setup/geoiplookup.conf /etc/
+cp -f conf/geoiplookup.conf /etc/
 
 # Add sshd entries for hosts.deny and hosts.allow
 if grep -Fxq "sshd: ALL" /etc/hosts.deny
 then
     echo hosts.deny already configured
 else
-    sed -i '/sshd: /d' hosts.deny
+    sed -i '/sshd: /d' /etc/hosts.deny
     echo "sshd: ALL" >> /etc/hosts.deny
 fi
 
@@ -30,7 +30,7 @@ then
     echo hosts.allow already configured
 else
     # Make sure all sshd lines are removed
-    sed -i '/sshd: /d' hosts.allow
+    sed -i '/sshd: /d' /etc/hosts.allow
     echo "sshd: ALL: aclexec /usr/local/bin/geoipfilter.sh %a %s" >> /etc/hosts.allow
 fi
 

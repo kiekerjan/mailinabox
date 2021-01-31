@@ -119,19 +119,21 @@ if [ -z "${PUBLIC_IP:-}" ]; then
 	fi
 fi
 
-DEFAULT_ADMIN_HOME_IP=""
 
 if [ -z "${ADMIN_HOME_IP:-}" ]; then
-	input_box "Admin Home IP Address" \
-		"Enter the public IP address of the admin home, as given to you by your ISP.
-		\n\nAdmin Home IP address:" \
-		${DEFAULT_ADMIN_HOME_IP:-} \
-		ADMIN_HOME_IP
-		
+        if [ -z "${DEFAULT_ADMIN_HOME_IP:-}" ]; then
+                input_box "Admin Home IP Address" \
+		        "Enter the public IP address of the admin home, as given to you by your ISP.
+            		\n\nAdmin Home IP address:" \
+	   		"" \
+			ADMIN_HOME_IP
+	else
+		ADMIN_HOME_IP=$DEFAULT_ADMIN_HOME_IP
+        fi
 fi
 
 if [ -z "${ADMIN_HOME_IP:-}" ]; then
-	ADMIN_HOME_IP=DEFAULT_ADMIN_HOME_IP
+	ADMIN_HOME_IP=""
 fi
 
 # Same for IPv6. But it's optional. Also, if it looks like the system
