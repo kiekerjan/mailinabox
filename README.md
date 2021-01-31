@@ -1,7 +1,14 @@
+This is not the original Mail-in-a-Box. See https://github.com/mail-in-a-box/mailinabox for the real deal! I made a number of modifications to to:
+- add geoipblocking on the admin web console
+- add geoipblocking for ssh access
+- make fail2ban a more stricter
+- add fail2ban filter for web scanners
+- other small stuff
+
+Original mailinabox content starts here:
+
 Mail-in-a-Box
 =============
-
-This is not the original Mail-in-a-Box. See https://github.com/mail-in-a-box/mailinabox for the real deal!
 
 By [@JoshData](https://github.com/JoshData) and [contributors](https://github.com/mail-in-a-box/mailinabox/graphs/contributors).
 
