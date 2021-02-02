@@ -107,7 +107,8 @@ if [ -z "${PUBLIC_IP:-}" ]; then
 
 	if [ -z "${PUBLIC_IP:-}" ]; then
 		input_box "Public IP Address" \
-			"Enter the public IP address of this machine, as given to you by your ISP.
+			"Enter the public IP address of this machine, as given to you by your ISP. 
+            This will be used to prevent banning of the administrator IP address.
 			\n\nPublic IP address:" \
 			${DEFAULT_PUBLIC_IP:-} \
 			PUBLIC_IP
@@ -222,6 +223,9 @@ if [ "$PRIVATE_IP" != "$PUBLIC_IP" ]; then
 fi
 if [ "$PRIVATE_IPV6" != "$PUBLIC_IPV6" ]; then
 	echo "Private IPv6 Address: $PRIVATE_IPV6"
+fi
+if [ -n "$ADMIN_HOME_IP" ]; then
+    echo "Admin Home IP Address: $ADMIN_HOME_IP"
 fi
 if [ -f /usr/bin/git ] && [ -d .git ]; then
 	echo "Mail-in-a-Box Version: " $(git describe)
