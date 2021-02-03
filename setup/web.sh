@@ -145,8 +145,10 @@ if [ ! -f $STORAGE_ROOT/www/default/index.html ]; then
 fi
 chown -R $STORAGE_USER $STORAGE_ROOT/www
 
-# Do some stuff to implement geoblocking
-cp conf/nginx/conf.d/*.conf /etc/nginx/conf.d/
+# Copy geoblock config file, but only if it does not exist to keep user config
+if [ ! -f /etc/nginx/conf.d/10-geoblock.conf ]; then
+    cp -f conf/nginx/conf.d/10-geoblock.conf /etc/nginx/conf.d/
+fi
 
 # touch logfiles that might not exist
 touch /var/log/nginx/geoipblock.log
