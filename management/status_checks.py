@@ -857,16 +857,16 @@ def check_miab_version(env, output):
 		this_ver = "Unknown"
 
 	if config.get("privacy", True):
-		output.print_warning("You are running version Mail-in-a-Box %s. Mail-in-a-Box version check disabled by privacy setting." % this_ver)
+		output.print_warning("You are running version Mail-in-a-Box %s Kiekerjan Edition. Mail-in-a-Box version check disabled by privacy setting." % this_ver)
 	else:
 		latest_ver = get_latest_miab_version()
 
 		if this_ver == latest_ver:
-			output.print_ok("Mail-in-a-Box is up to date. You are running version %s." % this_ver)
+			output.print_ok("Mail-in-a-Box is up to date. You are running version %s Kiekerjan Edition." % this_ver)
 		elif latest_ver is None:
-			output.print_error("Latest Mail-in-a-Box version could not be determined. You are running version %s." % this_ver)
+			output.print_error("Latest Mail-in-a-Box version could not be determined. You are running version %s Kiekerjan Edition." % this_ver)
 		else:
-			output.print_error("A new version of Mail-in-a-Box is available. You are running version %s. The latest version is %s. For upgrade instructions, see https://mailinabox.email. "
+			output.print_error("A new version of Mail-in-a-Box is available. You are running version %s Kiekerjan Edition. The latest version is %s. For upgrade instructions, see https://mailinabox.email. "
 				% (this_ver, latest_ver))
 
 def run_and_output_changes(env, pool):
