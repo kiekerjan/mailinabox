@@ -8,6 +8,7 @@ from mailconfig import get_mail_domains
 from dns_update import get_custom_dns_config, get_dns_zones
 from ssl_certificates import get_ssl_certificates, get_domain_ssl_files, check_certificate
 from utils import shell, safe_domain_name, sort_domains
+from wwwconfig import get_www_domains
 
 def get_web_domains(env, include_www_redirects=True, exclude_dns_elsewhere=True):
 	# What domains should we serve HTTP(S) for?
@@ -18,11 +19,15 @@ def get_web_domains(env, include_www_redirects=True, exclude_dns_elsewhere=True)
 	# if the user wants to make one.
 	domains |= get_mail_domains(env)
 
+	# Add domains for which we only server www
+	domains |= get_www_domains()
+
 	if include_www_redirects:
 		# Add 'www.' subdomains that we want to provide default redirects
 		# to the main domain for. We'll add 'www.' to any DNS zones, i.e.
 		# the topmost of each domain we serve.
 		domains |= set('www.' + zone for zone, zonefile in get_dns_zones(env))
+		domains |= set('www.' + wwwdomain for wwwdomain in get_www_domains())
 
 	# Add Autoconfiguration domains for domains that there are user accounts at:
 	# 'autoconfig.' for Mozilla Thunderbird auto setup.
@@ -45,7 +50,7 @@ def get_web_domains(env, include_www_redirects=True, exclude_dns_elsewhere=True)
 
 	# Sort the list so the nginx conf gets written in a stable order.
 	domains = sort_domains(domains, env)
-
+	
 	return domains
 
 def get_domains_with_a_records(env):
@@ -82,6 +87,7 @@ def do_web_update(env):
 	template1 = open(os.path.join(os.path.dirname(__file__), "../conf/nginx-alldomains.conf")).read()
 	template2 = open(os.path.join(os.path.dirname(__file__), "../conf/nginx-primaryonly.conf")).read()
 	template3 = "\trewrite ^(.*) https://$REDIRECT_DOMAIN$1 permanent;\n"
+	template4 = open(os.path.join(os.path.dirname(__file__), "../conf/nginx-webonlydomains.conf")).read()
 
 	# Add the PRIMARY_HOST configuration first so it becomes nginx's default server.
 	nginx_conf += make_domain_config(env['PRIMARY_HOSTNAME'], [template0, template1, template2], ssl_certificates, env)
@@ -89,6 +95,7 @@ def do_web_update(env):
 	# Add configuration all other web domains.
 	has_root_proxy_or_redirect = get_web_domains_with_root_overrides(env)
 	web_domains_not_redirect = get_web_domains(env, include_www_redirects=False)
+	
 	for domain in get_web_domains(env):
 		if domain == env['PRIMARY_HOSTNAME']:
 			# PRIMARY_HOSTNAME is handled above.
