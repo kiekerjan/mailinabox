@@ -1,6 +1,6 @@
 import os.path, idna, sys, collections
 
-def get_www_domains():
+def get_www_domains(domains_to_skip):
     # Returns the domain names (IDNA-encoded) of all of the domains that are configured to serve www
     # on the system. 
     domains = []
@@ -12,7 +12,9 @@ def get_www_domains():
                 # Valid domain check future extention: use validators module
                 # Only one dot allowed
                 if line.count('.') == 1:
-                    domains.append(get_domain(line, as_unicode=False))
+                    www_domain = get_domain(line, as_unicode=False)
+                    if www_domain not in domains_to_skip:
+                        domains.append(www_domain)
     except:
         # ignore failures
         pass

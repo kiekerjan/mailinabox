@@ -19,15 +19,15 @@ def get_web_domains(env, include_www_redirects=True, exclude_dns_elsewhere=True)
 	# if the user wants to make one.
 	domains |= get_mail_domains(env)
 
-	# Add domains for which we only server www
-	domains |= get_www_domains()
+	# Add domains for which we only serve www
+	domains |= get_www_domains(domains)
 
 	if include_www_redirects:
 		# Add 'www.' subdomains that we want to provide default redirects
 		# to the main domain for. We'll add 'www.' to any DNS zones, i.e.
 		# the topmost of each domain we serve.
 		domains |= set('www.' + zone for zone, zonefile in get_dns_zones(env))
-		domains |= set('www.' + wwwdomain for wwwdomain in get_www_domains())
+		domains |= set('www.' + wwwdomain for wwwdomain in get_www_domains(get_mail_domains(env)))
 
 	# Add Autoconfiguration domains for domains that there are user accounts at:
 	# 'autoconfig.' for Mozilla Thunderbird auto setup.
@@ -95,6 +95,7 @@ def do_web_update(env):
 	# Add configuration all other web domains.
 	has_root_proxy_or_redirect = get_web_domains_with_root_overrides(env)
 	web_domains_not_redirect = get_web_domains(env, include_www_redirects=False)
+	web_only_domains = get_www_domains(get_mail_domains(env))
 	
 	for domain in get_web_domains(env):
 		if domain == env['PRIMARY_HOSTNAME']:
@@ -103,7 +104,10 @@ def do_web_update(env):
 		if domain in web_domains_not_redirect:
 			# This is a regular domain.
 			if domain not in has_root_proxy_or_redirect:
-				nginx_conf += make_domain_config(domain, [template0, template1], ssl_certificates, env)
+				if domain in web_only_domains:
+					nginx_conf += make_domain_config(domain, [template0, template4], ssl_certificates, env)
+				else:
+					nginx_conf += make_domain_config(domain, [template0, template1], ssl_certificates, env)
 			else:
 				nginx_conf += make_domain_config(domain, [template0], ssl_certificates, env)
 		else:
