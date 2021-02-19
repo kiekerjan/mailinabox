@@ -1,5 +1,5 @@
-#!/bin/bash 
-cd /home/user-data/mail/mailboxes
-find -wholename "./*/*/.Spam/*/*.PRIMARY_HOSTNAME*" -mtime +120 -exec rm {} \;
-find -wholename "./*/*/.Trash/*/*.PRIMARY_HOSTNAME*" -mtime +120 -exec rm {} \;
+#!/bin/bash
+#
+doveadm expunge -A mailbox Trash savedbefore 120d
+doveadm expunge -A mailbox Junk  savedbefore 120d
 
