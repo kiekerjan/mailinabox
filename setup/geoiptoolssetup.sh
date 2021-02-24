@@ -10,7 +10,14 @@ apt_install geoip-database-extra libgeoip1 libnginx-mod-http-geoip
 # Install geo ip lookup tool
 gunzip -c tools/goiplookup.gz > /usr/local/bin/goiplookup
 chmod +x /usr/local/bin/goiplookup
-goiplookup db-update
+
+# check that geoipdb is older then 2 months, to not hit the server too often 
+if [[ ! -d /usr/share/GeoIP || ! -f /usr/share/GeoIP/GeoIP.dat || $(find "/usr/share/GeoIP/GeoIP.dat" -mtime +60 -print) ]]; then
+  echo updating goiplookup database
+  goiplookup db-update
+else
+  echo skipping goiplookup database update
+fi
 
 # Install geo ip filter script
 cp -f setup/geoipfilter.sh /usr/local/bin/
