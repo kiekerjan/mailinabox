@@ -5,9 +5,6 @@ source setup/functions.sh
 cp -f conf/local_clean_mail /etc/cron.weekly/
 chmod +x /etc/cron.weekly/local_clean_mail
 
-# rootkit hunter
-apt_install rkhunter
-
 # Reduce logs by not logging mail output in syslog
 sed -i "s/\*\.\*;auth,authpriv.none.*\-\/var\/log\/syslog/\*\.\*;mail,auth,authpriv.none    \-\/var\/log\/syslog/g" /etc/rsyslog.d/50-default.conf
 
