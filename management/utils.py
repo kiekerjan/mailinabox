@@ -182,7 +182,10 @@ def fix_boto():
 	import os
 	os.environ["BOTO_CONFIG"] = "/etc/boto3.cfg"
 
-
+def get_php_version():
+	# Gets the version of PHP installed in the system.
+	return shell("check_output", ["/usr/bin/php", "-v"])[4:7]
+    
 if __name__ == "__main__":
 	from web_update import get_web_domains
 	env = load_environment()

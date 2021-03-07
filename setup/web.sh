@@ -64,7 +64,7 @@ tools/editconf.py /etc/php/7.4/fpm/pool.d/www.conf -c ';' \
 TOTAL_PHYSICAL_MEM=$(head -n 1 /proc/meminfo | awk '{print $2}' || /bin/true)
 if [ $TOTAL_PHYSICAL_MEM -lt 1000000 ]
 then
-        tools/editconf.py /etc/php/7.4/fpm/pool.d/www.conf -c ';' \
+        tools/editconf.py /etc/php/$(php_version)/fpm/pool.d/www.conf -c ';' \
                 pm=ondemand \
                 pm.max_children=8 \
                 pm.start_servers=2 \
@@ -72,7 +72,7 @@ then
                 pm.max_spare_servers=3
 elif [ $TOTAL_PHYSICAL_MEM -lt 2000000 ]
 then
-        tools/editconf.py /etc/php/7.4/fpm/pool.d/www.conf -c ';' \
+        tools/editconf.py /etc/php/$(php_version)/fpm/pool.d/www.conf -c ';' \
                 pm=ondemand \
                 pm.max_children=16 \
                 pm.start_servers=4 \
@@ -80,14 +80,14 @@ then
                 pm.max_spare_servers=6
 elif [ $TOTAL_PHYSICAL_MEM -lt 3000000 ]
 then
-        tools/editconf.py /etc/php/7.4/fpm/pool.d/www.conf -c ';' \
+        tools/editconf.py /etc/php/$(php_version)/fpm/pool.d/www.conf -c ';' \
                 pm=dynamic \
                 pm.max_children=60 \
                 pm.start_servers=6 \
                 pm.min_spare_servers=3 \
                 pm.max_spare_servers=9
 else
-        tools/editconf.py /etc/php/7.4/fpm/pool.d/www.conf -c ';' \
+        tools/editconf.py /etc/php/$(php_version)/fpm/pool.d/www.conf -c ';' \
                 pm=dynamic \
                 pm.max_children=120 \
                 pm.start_servers=12 \
@@ -147,7 +147,7 @@ chown -R $STORAGE_USER $STORAGE_ROOT/www
 
 # Start services.
 restart_service nginx
-restart_service php7.4-fpm
+restart_service php$(php_version)-fpm
 
 # Open ports.
 ufw_allow http

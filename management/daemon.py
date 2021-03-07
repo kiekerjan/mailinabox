@@ -119,9 +119,12 @@ def index():
 	utils.fix_boto() # must call prior to importing boto
 	import boto.s3
 	backup_s3_hosts = [(r.name, r.endpoint) for r in boto.s3.regions()]
+	lsb=utils.shell("check_output", ["/usr/bin/lsb_release", "-d"])
 
 	return render_template('index.html',
 		hostname=env['PRIMARY_HOSTNAME'],
+		distname=lsb[lsb.find("\t")+1:-1],
+		
 		storage_root=env['STORAGE_ROOT'],
 
 		no_users_exist=no_users_exist,
@@ -479,7 +482,10 @@ def web_get_domains():
 @authorized_personnel_only
 def web_update():
 	from web_update import do_web_update
+	try:
 	return do_web_update(env)
+	except Exception as e:
+		return (str(e), 500)
 
 # System
 
