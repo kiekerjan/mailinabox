@@ -71,3 +71,6 @@ if [ ! -f "/usr/share/GeoIP/GeoIP.dat" ]; then
         mv /usr/share/GeoIP/GeoIP.dat.bak /usr/share/GeoIP/GeoIP.dat
     fi
 fi
+
+# Restart nginx
+restart_service nginx
