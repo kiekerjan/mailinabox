@@ -5,10 +5,6 @@ source setup/functions.sh
 cp -f conf/cron/local_clean_mail /etc/cron.weekly/
 chmod +x /etc/cron.weekly/local_clean_mail
 
-# Explicitly reopen dovecot logfiles after logrotate has run
-cp -f conf/cron/logrotate_post_dovecot /etc/cron.daily/
-chmod +x /etc/cron.daily/logrotate_post_dovecot
-
 # Reduce logs by not logging mail output in syslog
 sed -i "s/\*\.\*;auth,authpriv.none.*\-\/var\/log\/syslog/\*\.\*;mail,auth,authpriv.none    \-\/var\/log\/syslog/g" /etc/rsyslog.d/50-default.conf
 
