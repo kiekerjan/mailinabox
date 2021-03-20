@@ -316,6 +316,13 @@ def perform_backup(full_backup):
 	if get_target_type(config) == 'file':
 		shell('check_call', ["/bin/chown", "-R", env["STORAGE_USER"], backup_dir])
 
+	# Our nightly cron job executes system status checks immediately after this
+	# backup. Since it checks that dovecot and postfix are running, block for a
+	# bit (maximum of 10 seconds each) to give each a chance to finish restarting
+	# before the status checks might catch them down. See #381.
+	wait_for_service(25, True, env, 10)
+	wait_for_service(993, True, env, 10)
+	
 	# Execute a post-backup script that does the copying to a remote server.
 	# Run as the STORAGE_USER user, not as root. Pass our settings in
 	# environment variables so the script has access to STORAGE_ROOT.
@@ -324,13 +331,6 @@ def perform_backup(full_backup):
 		shell('check_call',
 			['su', env['STORAGE_USER'], '-c', post_script, config["target"]],
 			env=env)
-
-	# Our nightly cron job executes system status checks immediately after this
-	# backup. Since it checks that dovecot and postfix are running, block for a
-	# bit (maximum of 10 seconds each) to give each a chance to finish restarting
-	# before the status checks might catch them down. See #381.
-	wait_for_service(25, True, env, 10)
-	wait_for_service(993, True, env, 10)
 
 def run_duplicity_verification():
 	env = load_environment()
