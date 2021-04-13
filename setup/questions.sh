@@ -107,8 +107,7 @@ if [ -z "${PUBLIC_IP:-}" ]; then
 
 	if [ -z "${PUBLIC_IP:-}" ]; then
 		input_box "Public IP Address" \
-			"Enter the public IP address of this machine, as given to you by your ISP. 
-            This will be used to prevent banning of the administrator IP address.
+			"Enter the public IP address of this machine, as given to you by your ISP.
 			\n\nPublic IP address:" \
 			${DEFAULT_PUBLIC_IP:-} \
 			PUBLIC_IP
@@ -125,6 +124,7 @@ if [ -z "${ADMIN_HOME_IP:-}" ]; then
         if [ -z "${DEFAULT_ADMIN_HOME_IP:-}" ]; then
                 input_box "Admin Home IP Address" \
 		        "Enter the public IP address of the admin home, as given to you by your ISP.
+                 This will be used to prevent banning of the administrator IP address.
             		\n\nAdmin Home IP address:" \
 	   		"" \
 			ADMIN_HOME_IP
