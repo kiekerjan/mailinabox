@@ -24,6 +24,9 @@ if [ ! -f $db_path ]; then
 	echo "CREATE TABLE aliases (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT NOT NULL UNIQUE, destination TEXT NOT NULL, permitted_senders TEXT);" | sqlite3 $db_path;
 	echo "CREATE TABLE mfa (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type TEXT NOT NULL, secret TEXT NOT NULL, mru_token TEXT, label TEXT, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE);" | sqlite3 $db_path;
 	echo "CREATE TABLE auto_aliases (id INTEGER PRIMARY KEY AUTOINCREMENT, source TEXT NOT NULL UNIQUE, destination TEXT NOT NULL, permitted_senders TEXT);" | sqlite3 $db_path;
+else
+	# Add database fields if they do not exist
+	python3 -c 'from setup/install_tools.py import add_cols_sqlite; add_cols_sqlite()'
 fi
 
 # ### User Authentication
@@ -50,7 +53,7 @@ cat > /etc/dovecot/dovecot-sql.conf.ext << EOF;
 driver = sqlite
 connect = $db_path
 default_pass_scheme = SHA512-CRYPT
-password_query = SELECT email as user, password FROM users WHERE email='%u';
+password_query = SELECT email as user, password FROM users WHERE email='%u' AND NOT (imap_allowed = 0 AND '%s' = 'imap') AND NOT (smtp_allowed = 0 AND '%s' = 'smtp') AND NOT (pop_allowed = 0 AND '%s' = 'pop3');
 user_query = SELECT email AS user, "mail" as uid, "mail" as gid, "$STORAGE_ROOT/mail/homes/%d/%n" as home FROM users WHERE email='%u';
 iterate_query = SELECT email AS user FROM users;
 EOF
