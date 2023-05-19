@@ -6,7 +6,7 @@ In Development
 
 Package updates:
 
-* Nextcloud updated to 23.0.12 (and its apps also updated).
+* Nextcloud updated to 25.0.6 (and its apps also updated).
 * Roundcube updated to 1.6.1.
 
 Control panel:
