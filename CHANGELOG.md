@@ -1,13 +1,17 @@
 CHANGELOG
 =========
 
-In Development
---------------
+Version 62 (May 20, 2023)
+-------------------------
 
 Package updates:
 
 * Nextcloud updated to 25.0.6 (and its apps also updated).
 * Roundcube updated to 1.6.1.
+
+Mail:
+
+* Roundcube's password change page is now working again.
 
 Control panel:
 
