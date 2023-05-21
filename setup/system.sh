@@ -388,9 +388,9 @@ else
 fi
 
 cat conf/fail2ban/jails.conf \
-	| sed "s/PUBLIC_IPV6/$PUBLIC_IPV6_FB/g" \
+	| sed "s#PUBLIC_IPV6#$PUBLIC_IPV6_FB#" \
 	| sed "s/PUBLIC_IP/$PUBLIC_IP/g" \
-	| sed "s/ADMIN_HOME_IPV6/$ADMIN_HOME_IPV6_FB/g" \
+	| sed "s#ADMIN_HOME_IPV6#$ADMIN_HOME_IPV6_FB#" \
 	| sed "s/ADMIN_HOME_IP/$ADMIN_HOME_IP/g" \
 	| sed "s#STORAGE_ROOT#$STORAGE_ROOT#" \
 	> /etc/fail2ban/jail.d/00-mailinabox.conf

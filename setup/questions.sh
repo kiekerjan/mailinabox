@@ -137,6 +137,14 @@ if [ -z "${ADMIN_HOME_IP:-}" ]; then
 	ADMIN_HOME_IP=""
 fi
 
+if [ -z "${ADMIN_HOME_IPV6:-}" ]; then
+	if [ -z "${DEFAULT_ADMIN_HOME_IPV6:-}" ]; then
+		ADMIN_HOME_IPV6=""
+	else
+		ADMIN_HOME_IPV6=$DEFAULT_ADMIN_HOME_IPV6
+	fi
+fi
+
 # Same for IPv6. But it's optional. Also, if it looks like the system
 # doesn't have an IPv6, don't ask for one.
 if [ -z "${PUBLIC_IPV6:-}" ]; then
@@ -231,6 +239,9 @@ if [ "$PRIVATE_IPV6" != "$PUBLIC_IPV6" ]; then
 fi
 if [ -n "$ADMIN_HOME_IP" ]; then
     echo "Admin Home IP Address: $ADMIN_HOME_IP"
+fi
+if [ -n "$ADMIN_HOME_IPV6" ]; then
+    echo "Admin Home IPv6 Address: $ADMIN_HOME_IPV6"
 fi
 if [ -f /usr/bin/git ] && [ -d .git ]; then
 	echo "Mail-in-a-Box Version: " $(git describe --tags)
