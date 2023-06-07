@@ -261,12 +261,15 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 # 22                - 7.3, 7.4, 8.0
 # 23                - 7.3, 7.4, 8.0
 # 24                - 7.4, 8.0, 8.1
+# 25		    - 7.4, 8.0, 8.1
+# 26		    - 8.0, 8.1, 8.2
 #
 # ubuntu 18.04 has php 7.2
 # ubuntu 22.04 has php 8.1
 #
 # user_external 2.1.0 supports version 21-22
-# user_external 2.1.0 supports version 22-24
+# user_external 3.0.0 supports version 22-24
+# user_external 3.1.0 supports version 22-25
 #
 # upgrade path
 # - install ppa: sudo add-apt-repository ppa:ondrej/php
