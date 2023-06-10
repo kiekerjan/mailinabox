@@ -31,7 +31,7 @@ COUNTRY=`$GEOIPLOOKUP $1 | awk -F ": " '{ print $2 }' | awk -F "," '{ print $1 }
 
 [[ $COUNTRY = "IP Address not found" || $ALLOW_COUNTRIES =~ $COUNTRY ]] && RESPONSE="ALLOW" || RESPONSE="DENY"
 
-logger "$RESPONSE geoipblocked connection from $1 ($COUNTRY) $2"
+logger "$RESPONSE geoipblocked connection from $1 ($COUNTRY)"
 
 if [ $RESPONSE = "ALLOW" ]
 then
