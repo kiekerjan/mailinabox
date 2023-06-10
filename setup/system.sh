@@ -393,7 +393,7 @@ cat conf/fail2ban/jails.conf \
 	| sed "s#ADMIN_HOME_IPV6#$ADMIN_HOME_IPV6_FB#" \
 	| sed "s/ADMIN_HOME_IP/$ADMIN_HOME_IP/g" \
 	| sed "s#STORAGE_ROOT#$STORAGE_ROOT#" \
-	> /etc/fail2ban/jail.d/00-mailinabox.conf
+	> /etc/fail2ban/jail.d/10-mailinabox.conf
 cp -f conf/fail2ban/filter.d/* /etc/fail2ban/filter.d/
 cp -f conf/fail2ban/jail.d/* /etc/fail2ban/jail.d/
 
@@ -405,11 +405,11 @@ if [ ! -z "$SSH_PORT" ]; then
 	if [ "$SSH_PORT" != "22" ]; then
 		# Add alternative SSH port
 		sed -i "s/port[ ]\+=[ ]\+ssh$/port = ssh,$SSH_PORT/g" /etc/fail2ban/jail.conf
-		sed -i "s/port[ ]\+=[ ]\+ssh$/port = ssh,$SSH_PORT/g" /etc/fail2ban/jail.d/geoipblock.conf
+		sed -i "s/port[ ]\+=[ ]\+ssh$/port = ssh,$SSH_PORT/g" /etc/fail2ban/jail.d/20-geoipblock.conf
 	else
 		# Set SSH port to default
 		sed -i "s/port[ ]\+=[ ]\+ssh/port = ssh/g" /etc/fail2ban/jail.conf
-		sed -i "s/port[ ]\+=[ ]\+ssh/port = ssh/g" /etc/fail2ban/jail.d/geoipblock.conf
+		sed -i "s/port[ ]\+=[ ]\+ssh/port = ssh/g" /etc/fail2ban/jail.d/20-geoipblock.conf
 	fi
 fi
 
