@@ -28,8 +28,8 @@ nextcloud_hash=3b34da553e3dd8f977c49144bc4fbf90dba789c2
 # --------------
 # * Find the most recent tag that is compatible with the Nextcloud version above by
 #   consulting the <dependencies>...<nextcloud> node at:
-#   https://github.com/nextcloud-releases/contacts/blob/master/appinfo/info.xml
-#   https://github.com/nextcloud-releases/calendar/blob/master/appinfo/info.xml
+#   https://github.com/nextcloud-releases/contacts/blob/main/appinfo/info.xml
+#   https://github.com/nextcloud-releases/calendar/blob/main/appinfo/info.xml
 #   https://github.com/nextcloud/user_external/blob/master/appinfo/info.xml
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
@@ -48,9 +48,9 @@ user_external_hash=67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 
 apt-get purge -qq -y owncloud* # we used to use the package manager
 
-apt_install php php-fpm \
-	php-cli php-sqlite3 php-gd php-imap php-curl php-pear curl \
-	php-dev php-xml php-mbstring php-zip php-apcu php-json \
+apt_install curl php php-fpm \
+	php-cli php-sqlite3 php-gd php-imap php-curl \
+	php-dev php-xml php-mbstring php-zip php-apcu \
 	php-intl php-imagick php-gmp php-bcmath
 
 # Enable APC before Nextcloud tools are run.
@@ -470,20 +470,8 @@ hide_output sudo -u www-data php$PHP_VER -f /usr/local/lib/owncloud/occ config:a
 # Do this only at the very bottom when no further occ commands are needed.
 sed -i'' "s/'config_is_read_only'\s*=>\s*false/'config_is_read_only' => true/" $STORAGE_ROOT/owncloud/config.php
 
-# Rotate the nextcloud.log file
-cat > /etc/logrotate.d/nextcloud <<EOF
-# Nextcloud logs
-$STORAGE_ROOT/owncloud/nextcloud.log {
-		rotate 4
-        weekly
-        missingok
-        notifempty
-        compress
-        delaycompress
-        sharedscripts
-        size 10M
-}
-EOF
+# Create nextcloud log in /var/log
+hide_output install -m 644 conf/rsyslog/20-nextcloud.conf /etc/rsyslog.d/
 
 # There's nothing much of interest that a user could do as an admin for Nextcloud,
 # and there's a lot they could mess up, so we don't make any users admins of Nextcloud.
