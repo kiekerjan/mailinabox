@@ -21,8 +21,8 @@ echo "Installing Nextcloud (contacts/calendar)..."
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=25.0.7
-nextcloud_hash=a5a565c916355005c7b408dd41a1e53505e1a080
+nextcloud_ver=26.0.3
+nextcloud_hash=3b34da553e3dd8f977c49144bc4fbf90dba789c2
 
 # Nextcloud apps
 # --------------
@@ -33,12 +33,12 @@ nextcloud_hash=a5a565c916355005c7b408dd41a1e53505e1a080
 #   https://github.com/nextcloud/user_external/blob/master/appinfo/info.xml
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-contacts_ver=5.3.0
-contacts_hash=4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c
+contacts_ver=5.3.2
+contacts_hash=4c7db8ef6d5d1e06535b7a84021404f84df808e1
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=4.4.2
-calendar_hash=21a42e15806adc9b2618760ef94f1797ef399e2f
+calendar_ver=4.4.3
+calendar_hash=c324587b036195c6fb28b47423d1d698f8c3b7dc
 
 # And https://apps.nextcloud.com/apps/user_external
 user_external_ver=3.2.0
@@ -245,6 +245,10 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 			InstallNextcloud 24.0.12 7aa5d61632c1ccf4ca3ff00fb6b295d318c05599 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.1.0 399fe1150b28a69aaf5bfcad3227e85706604a44
 			CURRENT_NEXTCLOUD_VER="24.0.12"
 		fi
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^24 ]]; then
+			InstallNextcloud 25.0.7 a5a565c916355005c7b408dd41a1e53505e1a080 5.3.0 4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c 4.4.2 21a42e15806adc9b2618760ef94f1797ef399e2f 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
+			CURRENT_NEXTCLOUD_VER="25.0.7"
+		fi
 	fi
 
 # nextcloud version - supported php versions
@@ -255,6 +259,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 # 24                - 7.4, 8.0, 8.1
 # 25		    - 7.4, 8.0, 8.1
 # 26		    - 8.0, 8.1, 8.2
+# 27                - 8.0, 8.1, 8.2
 #
 # ubuntu 18.04 has php 7.2
 # ubuntu 22.04 has php 8.1
@@ -262,14 +267,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 # user_external 2.1.0 supports version 21-22
 # user_external 3.0.0 supports version 22-24
 # user_external 3.1.0 supports version 22-25
-#
-# upgrade path
-# - install ppa: sudo add-apt-repository ppa:ondrej/php
-# - upgrade php to version 8.0 (nextcloud will no longer function)
-# - upgrade nextcloud to 21 and user_external to 2.1.0
-# - upgrade nextcloud to 22
-# - upgrade nextcloud to 23 and user_external to 3.0.0
-# - upgrade nextcloud to 24
+# user_external 3.2.0 supports version 25-27
 
 	InstallNextcloud $nextcloud_ver $nextcloud_hash $contacts_ver $contacts_hash $calendar_ver $calendar_hash $user_external_ver $user_external_hash
 fi
