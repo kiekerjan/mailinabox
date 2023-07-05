@@ -42,7 +42,7 @@ calendar_hash=21a42e15806adc9b2618760ef94f1797ef399e2f
 
 # And https://apps.nextcloud.com/apps/user_external
 user_external_ver=3.2.0
-user_external_hash=a494073dcdecbbbc79a9c77f72524ac9994d2eec
+user_external_hash=67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 
 # Clear prior packages and install dependencies from apt.
 
@@ -357,6 +357,7 @@ fi
 #   the correct domain name if the domain is being change from the previous setup.
 # Use PHP to read the settings file, modify it, and write out the new settings array.
 TIMEZONE=$(cat /etc/timezone)
+CONFIG_TEMP=$(/bin/mktemp)
 php <<EOF > $CONFIG_TEMP && mv $CONFIG_TEMP $STORAGE_ROOT/owncloud/config.php;
 <?php
 include("$STORAGE_ROOT/owncloud/config.php");
