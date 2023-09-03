@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+Version 64 (September 2, 2023)
+------------------------------
+
+* Fixed broken installation when upgrading from Mail-in-a-Box version 56 (Nextcloud 22) and earlier because of an upstream packaging issue.
+* Fixed backups to work with the latest duplicity package which was not backwards compatible.
+* Fixed setting B2 as a backup target with a slash in the application key.
+* Turned off OpenDMARC diagnostic reports sent in response to incoming mail.
+* Fixed some crashes when using an unreleased version of Mail-in-a-Box.
+
+Version 63 (July 27, 2023)
+--------------------------
+
+* Nextcloud updated to 26.0.3.
+
 Version 62 (May 20, 2023)
 -------------------------
 

@@ -244,6 +244,6 @@ if [ -n "$ADMIN_HOME_IPV6" ]; then
     echo "Admin Home IPv6 Address: $ADMIN_HOME_IPV6"
 fi
 if [ -f /usr/bin/git ] && [ -d .git ]; then
-	echo "Mail-in-a-Box Version: " $(git describe --tags)
+	echo "Mail-in-a-Box Version: " $(git describe --always)
 fi
 echo

@@ -25,7 +25,7 @@ if [ -z "$TAG" ]; then
 	if [ "$UBUNTU_VERSION" == "Ubuntu 22.04 LTS" ]; then
 		# This machine is running Ubuntu 22.04, which is supported by
 		# Mail-in-a-Box versions 60 and later.
-		TAG=v62
+		TAG=v64
 	elif [ "$UBUNTU_VERSION" == "Ubuntu 18.04 LTS" ]; then
 		# This machine is running Ubuntu 18.04, which is supported by
 		# Mail-in-a-Box versions 0.40 through 5x.
@@ -84,7 +84,7 @@ fi
 cd $HOME/mailinabox
 
 # Update it.
-if [ "$TAG" != $(git describe --tags) ]; then
+if [ "$TAG" != $(git describe --always) ]; then
 	echo Updating Mail-in-a-Box to $TAG . . .
 	git fetch --depth 1 --force --prune origin tag $TAG
 	if ! git checkout -q $TAG; then
