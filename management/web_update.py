@@ -166,6 +166,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 
 	# Add in any user customizations in YAML format.
 	hsts = "yes"
+	
 	nginx_conf_custom_fn = os.path.join(env["STORAGE_ROOT"], "www/custom.yaml")
 	if os.path.exists(nginx_conf_custom_fn):
 		with open(nginx_conf_custom_fn, 'r') as f:
@@ -192,6 +193,27 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 
 				nginx_conf_extra += "\tlocation %s {" % path
 				nginx_conf_extra += "\n\t\tproxy_pass %s;" % url
+				
+				proxy_for_photoprism = False
+				proxy_for_immich = False
+				for ptpath, pttype in yaml.get("proxytypes", {}).items():
+					if ptpath == path:
+						if pttype == "photoprism":
+							proxy_for_photoprism = True
+						elif pttype == "immich":
+							proxy_for_immich = True
+				
+				if proxy_for_photoprism:
+					nginx_conf_extra += "\n\t\tproxy_buffering off;"
+					nginx_conf_extra += "\n\t\tproxy_http_version 1.1;"
+					nginx_conf_extra += "\n\t\tproxy_set_header Upgrade $http_upgrade;"
+					nginx_conf_extra += "\n\t\tproxy_set_header Connection \"upgrade\";"
+					nginx_conf_extra += "\n\t\tclient_max_body_size 500M;"
+				if proxy_for_immich:
+					nginx_conf_extra += "\n\t\tproxy_http_version 1.1;"
+					nginx_conf_extra += "\n\t\tproxy_set_header Upgrade $http_upgrade;"
+					nginx_conf_extra += "\n\t\tproxy_set_header Connection \"upgrade\";"
+					nginx_conf_extra += "\n\t\tclient_max_body_size 500M;"
 				if proxy_redirect_off:
 					nginx_conf_extra += "\n\t\tproxy_redirect off;"
 				if pass_http_host_header:
