@@ -611,7 +611,11 @@ def check_dnssec(domain, env, output, dns_zonefiles, is_checking_primary=False):
 	with open(ds_file) as f:
 		for rr_ds in f:
 			rr_ds = rr_ds.rstrip()
-			ds_keytag, ds_alg, ds_digalg, ds_digest = rr_ds.split("\t")[4].split(" ")
+			rr_ds_tmp = rr_ds.split("\t")
+			if len(rr_ds_tmp) < 4:
+				logging.debug('Invalid line in ' + ds_file + ': ' + rr_ds)
+				continue
+			ds_keytag, ds_alg, ds_digalg, ds_digest = rr_ds_tmp[4].split(" ")
 
 			# Some registrars may want the public key so they can compute the digest. The DS
 			# record that we suggest using is for the KSK (and that's how the DS records were generated).
@@ -1002,6 +1006,7 @@ def run_and_output_changes(env, pool):
 			try:
 				prev = json.load(f)
 			except json.JSONDecodeError:
+				logging.debug('Could not decode previous status checks JSON file')
 				prev = []
 
 		# Group the serial output into categories by the headings.
