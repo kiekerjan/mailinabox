@@ -26,6 +26,8 @@ apt_install \
 	php-gd php-pspell libjs-jquery libjs-jquery-mousewheel libmagic1 php-mbstring \
   sqlite3
 
+PHP_VER=$(php_version)
+
 # Install Roundcube from source if it is not already present or if it is out of date.
 # Combine the Roundcube version number with the commit hash of plugins to track
 # whether we have the latest version of everything.

@@ -53,6 +53,8 @@ apt_install curl php php-fpm \
 	php-dev php-xml php-mbstring php-zip php-apcu \
 	php-intl php-imagick php-gmp php-bcmath
 
+PHP_VER=$(php_version)
+
 # Enable APC before Nextcloud tools are run.
 tools/editconf.py /etc/php/$PHP_VER/mods-available/apcu.ini -c ';' \
     apc.enabled=1 \
@@ -215,6 +217,8 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 			# set older php version as default
 			update-alternatives --set php /usr/bin/php8.0
 			
+			PHP_VER=$(php_version)
+			
 			tools/editconf.py /etc/php/$(php_version)/mods-available/apcu.ini -c ';' \
 				apc.enabled=1	\
 				apc.enable_cli=1
@@ -238,6 +242,8 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
 				php8.0-common php8.0-opcache php8.0-readline
 	
+			PHP_VER=$(php_version)
+			
 			# Remove the ppa
 			add-apt-repository --yes --remove ppa:ondrej/php
 		fi

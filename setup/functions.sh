@@ -225,5 +225,3 @@ function git_clone {
 function php_version {
 	php --version | head -n 1 | cut -d " " -f 2 | cut -c 1-3
 }
-
-PHP_VER=$(php_version)
