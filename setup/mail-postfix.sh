@@ -124,28 +124,23 @@ sed -i "s/PUBLIC_IP/$PUBLIC_IP/" /etc/postfix/outgoing_mail_header_filters
 #   the world are very far behind and if we disable too much, they may not be able to use TLS and
 #   won't fall back to cleartext. So we don't disable too much. smtpd_tls_exclude_ciphers applies to
 #   both port 25 and port 587, but because we override the cipher list for both, it probably isn't used.
-#   Use Mozilla's "Old" recommendations at https://ssl-config.mozilla.org/#server=postfix&server-version=3.4.13&config=old&openssl-version=1.1.1
 tools/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_security_level=may\
 	smtpd_tls_auth_only=yes \
 	smtpd_tls_cert_file=$STORAGE_ROOT/ssl/ssl_certificate.pem \
 	smtpd_tls_key_file=$STORAGE_ROOT/ssl/ssl_private_key.pem \
 	smtpd_tls_dh1024_param_file=$STORAGE_ROOT/ssl/dh4096.pem \
-	smtpd_tls_protocols="!SSLv2,!SSLv3,!TLSv1,!TLSv1.1" \
-	smtpd_tls_ciphers=medium \
-	tls_medium_cipherlist=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384 \
-	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL" \
+	smtpd_tls_protocols=">TLSv1.2" \
+	smtpd_tls_ciphers=high \
+	smtpd_tls_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA" \
 	tls_preempt_cipherlist=yes \
 	smtpd_tls_received_header=yes
 
 # For ports 465/587 (via the 'mandatory' settings):
-# * Use Mozilla's "Intermediate" TLS recommendations from https://ssl-config.mozilla.org/#server=postfix&server-version=3.3.0&config=intermediate&openssl-version=1.1.1
-#   using and overriding the "high" cipher list so we don't conflict with the more permissive settings for port 25.
 tools/editconf.py /etc/postfix/main.cf \
-	smtpd_tls_mandatory_protocols="!SSLv2,!SSLv3,!TLSv1,!TLSv1.1" \
+	smtpd_tls_mandatory_protocols=">TLSv1.2" \
 	smtpd_tls_mandatory_ciphers=high \
-	tls_high_cipherlist=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384 \
-	smtpd_tls_mandatory_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL"
+	smtpd_tls_mandatory_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA"
 
 # Add block_root_external to block mail send to root@PRIMARY_HOSTNAME. This mail address is only supposed to be used for local
 # mail delivery (cron etc)
@@ -192,13 +187,13 @@ tools/editconf.py /etc/postfix/main.cf \
 # even if we don't know if it's to the right party, than to not encrypt at all. Instead we'll
 # now see notices about trusted certs. The CA file is provided by the package `ca-certificates`.
 tools/editconf.py /etc/postfix/main.cf \
-	smtp_tls_protocols="!SSLv2,!SSLv3,!TLSv1,!TLSv1.1" \
-	smtp_tls_ciphers=medium \
-	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL" \
-	smtp_tls_mandatory_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL" \
+	smtp_tls_protocols=">=TLSv1.2" \
+	smtp_tls_ciphers=high \
+	smtp_tls_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA" \
+	smtp_tls_mandatory_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA" \
 	smtp_tls_security_level=dane \
 	smtp_dns_support_level=dnssec \
-	smtp_tls_mandatory_protocols="!SSLv2,!SSLv3,!TLSv1,!TLSv1.1" \
+	smtp_tls_mandatory_protocols=">=TLSv1.2" \
 	smtp_tls_mandatory_ciphers=high \
 	smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt \
 	smtp_tls_loglevel=2
