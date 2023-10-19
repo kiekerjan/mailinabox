@@ -19,7 +19,7 @@ from web_update import get_web_domains, get_domains_with_a_records
 from ssl_certificates import get_ssl_certificates, get_domain_ssl_files, check_certificate
 from mailconfig import get_mail_domains, get_mail_aliases
 
-from utils import shell, sort_domains, load_env_vars_from_file, load_settings
+from utils import shell, sort_domains, load_env_vars_from_file, load_settings, get_ssh_port, get_ssh_config_value
 from backup import get_backup_root
 
 def get_services():
@@ -67,29 +67,29 @@ def run_checks(rounded_values, env, output, pool, domains_to_check=None):
 	run_network_checks(env, output)
 	run_domain_checks(rounded_values, env, output, pool, domains_to_check=domains_to_check)
 
-def get_ssh_port():
-	return int(get_ssh_config_value("port"))
+#def get_ssh_port():
+#	return int(get_ssh_config_value("port"))
 
-def get_ssh_config_value(parameter_name):
-	# Returns ssh port
-	try:
-		output = shell('check_output', ['sshd', '-T'])
-	except FileNotFoundError:
-		# sshd is not installed. That's ok.
-		return None
-	except subprocess.CalledProcessError:
-		# error while calling shell command
-		return None
-
-	returnNext = False
-	for e in output.split():
-		if returnNext:
-			return e
-		if e == parameter_name:
-			returnNext = True
-
-	# Did not find port!
-	return None
+#def get_ssh_config_value(parameter_name):
+#	# Returns ssh port
+#	try:
+#		output = shell('check_output', ['sshd', '-T'])
+#	except FileNotFoundError:
+#		# sshd is not installed. That's ok.
+#		return None
+#	except subprocess.CalledProcessError:
+#		# error while calling shell command
+#		return None
+#
+#	returnNext = False
+#	for e in output.split():
+#		if returnNext:
+#			return e
+#		if e == parameter_name:
+#			returnNext = True
+#
+#	# Did not find port!
+#	return None
 
 def run_services_checks(env, output, pool):
 	# Check that system services are running.
