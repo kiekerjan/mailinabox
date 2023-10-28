@@ -167,6 +167,7 @@ cat > ${RCM_PLUGIN_DIR}/carddav/config.inc.php <<EOF;
 \$prefs['_GLOBAL']['hide_preferences'] = false;
 \$prefs['_GLOBAL']['pwstore_scheme'] = 'plain';
 \$prefs['nextcloud'] = array(
+	 'name'		    =>  'nextcloud (%N)',
 	 'accountname'      =>  'nextcloud',
 	 'username'         =>  '%u', // login username
 	 'password'         =>  '%p', // login password
