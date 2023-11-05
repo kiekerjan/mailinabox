@@ -199,7 +199,7 @@ def check_ssh_password(env, output):
 			output.print_ok("SSH disallows password-based login.")
 		else:
 			output.print_error("""The SSH server on this machine permits password-based login. A more secure
-        	                way to log in is using a public key. Add your SSH public key to $HOME/.ssh/authorized_keys, chec
+        	                way to log in is using a public key. Add your SSH public key to $HOME/.ssh/authorized_keys, check
                 	        that you can log in without a password, set the option 'PasswordAuthentication no' in
                 	        /etc/ssh/sshd_config, and then restart the openssh via 'sudo service ssh restart'.""")
 
