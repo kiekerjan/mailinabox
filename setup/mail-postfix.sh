@@ -130,7 +130,7 @@ tools/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_cert_file=$STORAGE_ROOT/ssl/ssl_certificate.pem \
 	smtpd_tls_key_file=$STORAGE_ROOT/ssl/ssl_private_key.pem \
 	smtpd_tls_dh1024_param_file=$STORAGE_ROOT/ssl/dh4096.pem \
-	smtpd_tls_protocols=">TLSv1.2" \
+	smtpd_tls_protocols=">=TLSv1.2" \
 	smtpd_tls_ciphers=high \
 	smtpd_tls_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA" \
 	tls_preempt_cipherlist=yes \
@@ -138,7 +138,7 @@ tools/editconf.py /etc/postfix/main.cf \
 
 # For ports 465/587 (via the 'mandatory' settings):
 tools/editconf.py /etc/postfix/main.cf \
-	smtpd_tls_mandatory_protocols=">TLSv1.2" \
+	smtpd_tls_mandatory_protocols=">=TLSv1.2" \
 	smtpd_tls_mandatory_ciphers=high \
 	smtpd_tls_mandatory_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA"
 
