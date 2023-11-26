@@ -2,7 +2,7 @@ Modifications are go
 ====================
 
 This is not the original Mail-in-a-Box. See https://github.com/mail-in-a-box/mailinabox for the real deal! Many thanks to [@JoshData](https://github.com/JoshData) and other  [contributors](https://github.com/mail-in-a-box/mailinabox/graphs/contributors).
-I made a number of modifications to the original Mail-in-a-Box, some to fix bugs, some to ease maintenance for my personal installation, to learn and to add functionality. 
+I made a number of modifications to the original Mail-in-a-Box, some to fix bugs, some to ease maintenance for my personal installation, to learn and to be used as a statging aread for adding functionality.
 
 Functionality changes and additions
 * Add geoipblocking on the admin web console  
@@ -15,13 +15,14 @@ Functionality changes and additions
 * Add fail2ban jails for both above mentioned geoipblocking filters
 * Add fail2ban filters for web scanners and badbots
 * Add xapian full text searching to dovecot (from https://github.com/grosjo/fts-xapian)
-* Add rkhunter
+* Add rkhunter for malware scanning
 * Configure domain names for which only www will be hosted  
   Edit /etc/miabwwwdomains.conf to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider! If you want this box to handle the DNS entries, simply add a mail alias. (existing functionality of the vanilla Mail-in-a-Box)
 * Add some munin plugins
-* Update nextcloud to 26.0.3
-  And updated apps
+* Update nextcloud to 26.0.8
+  And updated calendar and contacts apps
 * Add nextcloud notes app
+* Update roundcube to 1.6.5
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
 * Use shorter TTL values in the DNS server  
@@ -31,16 +32,17 @@ Functionality changes and additions
 * Daily ip blacklist check  
   Using check-dnsbl.py from https://github.com/gsauthof/utility
 * Updated ssl security for web and email  
-  Removed older cryptos following internet.nl recommendations
+  Removed older cryptos following internet.nl recommendations, this installation has 100% score on the mail test on internet.nl
 * Replace opendkim with dkimpy (https://launchpad.net/dkimpy-milter)
   Added support for Ed25519 signing
-* Replace bind9 with unbound DNS resolver
+* Replace bind9 with unbound DNS resolver https://www.nlnetlabs.nl/projects/unbound/about/
 * Make backup target folder configurable
   set BACKUP_ROOT to the backup target folder (default is same as STORAGE_ROOT)
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
 * Correct nextcloud carddav url [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1918)
+* Take into account non-standard spamhaus return codes
 
 Maintenance (personal)
 * Automatically clean spam and trash folders after 120 days
@@ -49,6 +51,7 @@ Maintenance (personal)
 * Add weekly pflogsumm log analysis
 * Enable mail delivery to root, forwarded to administrator
 * Remove nextcloud skeleton to save disk space
+* Use actual configuration as reported by sshd instead of parsing the config file, for more robust configuration extraction.
 
 Fun
 * Add option to define ADMIN_IP_ADDRESS  
