@@ -21,8 +21,8 @@ echo "Installing Nextcloud (contacts/calendar)..."
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=26.0.8
-nextcloud_hash=a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8
+nextcloud_ver=27.1.4
+nextcloud_hash=3abb58d556985a66a55e540157f9daa01d997199
 
 # Nextcloud apps
 # --------------
@@ -33,12 +33,12 @@ nextcloud_hash=a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8
 #   https://github.com/nextcloud/user_external/blob/master/appinfo/info.xml
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-contacts_ver=5.4.2
-contacts_hash=d38c9e16b377c05b5114e70b3b0c3d3f1f1d10f6
+contacts_ver=5.5.0
+contacts_hash=39ef62727e9b5129401389651cf484f66e387638
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=4.5.3
-calendar_hash=7c974d4f092886e8932c6c3ae34532c30a3fcea9
+calendar_ver=4.6.0
+calendar_hash=98da84432183ca4aa7e611bd464ebcf1d5045390
 
 # And https://apps.nextcloud.com/apps/user_external
 user_external_ver=3.2.0
@@ -255,6 +255,10 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 			InstallNextcloud 25.0.7 a5a565c916355005c7b408dd41a1e53505e1a080 5.3.0 4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c 4.4.2 21a42e15806adc9b2618760ef94f1797ef399e2f 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 			CURRENT_NEXTCLOUD_VER="25.0.7"
 		fi
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^25 ]]; then
+			InstallNextcloud 26.0.8 a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8 5.4.2 d38c9e16b377c05b5114e70b3b0c3d3f1f1d10f6 4.5.3 7c974d4f092886e8932c6c3ae34532c30a3fcea9 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
+			CURRENT_NEXTCLOUD_VER="26.0.8"
+		fi
 	fi
 
 # nextcloud version - supported php versions
@@ -265,7 +269,8 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 # 24                - 7.4, 8.0, 8.1
 # 25		    - 7.4, 8.0, 8.1
 # 26		    - 8.0, 8.1, 8.2
-# 27                - 8.0, 8.1, 8.2
+# 27                - 8.0 (d), 8.1, 8.2 (r)
+# 28		    - 8.0 (d), 8.1, 8.2 (r), 8.3
 #
 # ubuntu 18.04 has php 7.2
 # ubuntu 22.04 has php 8.1
@@ -317,6 +322,7 @@ if [ ! -f $STORAGE_ROOT/owncloud/owncloud.db ]; then
   'mail_smtpname' => '',
   'mail_smtppassword' => '',
   'mail_from_address' => 'owncloud',
+  'system_addressbook_exposed' => 'no',
 );
 ?>
 EOF
@@ -380,7 +386,7 @@ include("$STORAGE_ROOT/owncloud/config.php");
 \$CONFIG['syslog_tag'] = 'Nextcloud';
 
 \$CONFIG['mail_domain'] = '$PRIMARY_HOSTNAME';
-
+\$CONFIG['system_addressbook_exposed'] = 'no';
 \$CONFIG['user_backends'] = array(
   array(
     'class' => '\OCA\UserExternal\IMAP',
