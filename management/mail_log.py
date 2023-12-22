@@ -317,7 +317,7 @@ def scan_mail_log(env):
             latest=[u["latest"] for u in data.values()],
         )
 
-    if collector["other-services"] and VERBOSE and False:
+    if collector["other-services"] and False:
         print_header("Other services")
         print("The following unkown services were found in the log file.")
         print(" ", *sorted(list(collector["other-services"])), sep='\n│ ')
