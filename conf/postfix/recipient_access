@@ -1,0 +1,7 @@
+# /etc/postfix/recipient_access
+#
+# Black/Whitelist for senders matching the 'MAIL TO' field. Examples...
+# Don't forget to run postmap recipient_access after changing this file
+#
+# Examples
+#spam@domain.com	REJECT

@@ -1,0 +1,11 @@
+# /etc/postfix/sender_access
+#
+# Black/Whitelist for senders matching the 'MAIL FROM' field. Examples...
+# Don't forget to run postmap sender_access after changing
+#
+#myfriend@example.com    OK
+#junk@spam.com           REJECT
+#marketing@              REJECT
+#theboss@                OK
+#deals.marketing.com     REJECT
+#somedomain.com          OK
