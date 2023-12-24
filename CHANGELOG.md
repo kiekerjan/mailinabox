@@ -4,6 +4,11 @@ CHANGELOG
 * Roundcube updated to 1.6.5 fixing a security vulnerability.
 * Nextcloud updated to 26.0.8 (and its apps also updated).
 
+Version 67 (December 22, 2023)
+------------------------------
+
+* Guard against a newly published vulnerability called SMTP Smuggling. See https://sec-consult.com/blog/detail/smtp-smuggling-spoofing-e-mails-worldwide/.
+
 Version 66 (December 17, 2023)
 ------------------------------
 
