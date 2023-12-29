@@ -49,3 +49,8 @@ tools/editconf.py /etc/default/rkhunter \
 
 # Should be last, update expected output
 rkhunter --propupd
+
+# Install subnetblocker.
+hide_output install -m 755 tools/fail2ban-block-ip-range.py /usr/local/bin
+cp -f conf/cron/miab-fail2ban-subnet-blocker /etc/cron.d/
+# Logrotation is done via generic mail in a box logrotate config
