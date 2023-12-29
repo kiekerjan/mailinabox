@@ -75,6 +75,10 @@ tools/editconf.py /etc/postfix/main.cf \
 	smtpd_data_restrictions=reject_unauth_pipelining \
 	smtpd_discard_ehlo_keywords=chunking
 
+# Hardening: disable the VERIFY command
+tools/editconf.py /etc/postfix/main.cf \
+	disable_vrfy_command=yes
+
 # ### Outgoing Mail
 
 # Enable the 'submission' ports 465 and 587 and tweak their settings.
