@@ -545,6 +545,8 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 	# Check that each custom secondary nameserver resolves the IP address.
 
 	if custom_secondary_ns and not probably_external_dns:
+		SOARecord = query_dns(domain, "SOA")
+		
 		for ns in custom_secondary_ns:
 			# We must first resolve the nameserver to an IP address so we can query it.
 			ns_ips = query_dns(ns, "A")
@@ -554,14 +556,27 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 			# Choose the first IP if nameserver returns multiple
 			ns_ip = ns_ips.split('; ')[0]
 
+			checkSOA = True
+
 			# Now query it to see what it says about this domain.
 			ip = query_dns(domain, "A", at=ns_ip, nxdomain=None)
 			if ip == correct_ip:
 				output.print_ok("Secondary nameserver %s resolved the domain correctly." % ns)
 			elif ip is None:
 				output.print_error("Secondary nameserver %s is not configured to resolve this domain." % ns)
+				# No need to check SOA record if not configured as nameserver
+				checkSOA = False
 			else:
 				output.print_error("Secondary nameserver %s is not configured correctly. (It resolved this domain as %s. It should be %s.)" % (ns, ip, correct_ip))
+			
+			if checkSOA:
+				# Query the secondary dns server to check SOA consistency
+				SOASecondary = query_dns(domain, "SOA", at=ns_ip)
+				
+				if SOARecord == SOASecondary:
+					output.print_ok("Secondary nameserver %s has consistent SOA record." % ns)
+				else:
+					output.print_error("Secondary nameserver %s has inconsistent SOA record (local: %s versus remote: %s)" % (ns, SOARecord, SOASecondary))
 
 def check_dns_zone_suggestions(domain, env, output, dns_zonefiles, domains_with_a_records):
 	# Warn if a custom DNS record is preventing this or the automatic www redirect from
