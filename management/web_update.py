@@ -27,7 +27,7 @@ def get_web_domains(env, include_www_redirects=True, include_auto=True, exclude_
 		# to the main domain for. We'll add 'www.' to any DNS zones, i.e.
 		# the topmost of each domain we serve.
 		domains |= {'www.' + zone for zone, zonefile in get_dns_zones(env)}
-		domains |= {'www.' + wwwdomain for wwwdomain in get_www_domains(get_mail_domains(env)}
+		domains |= {'www.' + wwwdomain for wwwdomain in get_www_domains(get_mail_domains(env))}
 
 	if include_auto:
 		# Add Autoconfiguration domains for domains that there are user accounts at:
