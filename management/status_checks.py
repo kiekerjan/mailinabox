@@ -570,13 +570,14 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				output.print_error("Secondary nameserver %s is not configured correctly. (It resolved this domain as %s. It should be %s.)" % (ns, ip, correct_ip))
 			
 			if checkSOA:
-				# Query the secondary dns server to check SOA consistency
+				# Check that secondary DNS server is synchronized with our primary DNS server. Simplified by checking the SOA record which has a version number
 				SOASecondary = query_dns(domain, "SOA", at=ns_ip)
 				
 				if SOARecord == SOASecondary:
 					output.print_ok("Secondary nameserver %s has consistent SOA record." % ns)
 				else:
-					output.print_error("Secondary nameserver %s has inconsistent SOA record (local: %s versus remote: %s)" % (ns, SOARecord, SOASecondary))
+					output.print_error("""Secondary nameserver %s has inconsistent SOA record (primary: %s versus secondary: %s). Check that synchronization.
+					between secondary and primary DNS servers is properly set-up.""" % (ns, SOARecord, SOASecondary))
 
 def check_dns_zone_suggestions(domain, env, output, dns_zonefiles, domains_with_a_records):
 	# Warn if a custom DNS record is preventing this or the automatic www redirect from
