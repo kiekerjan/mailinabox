@@ -697,7 +697,7 @@ def print_user_table(users, data=None, sub_data=None, activity=None, latest=None
                     temp = " │ {:%H:%M} - {:%H:%M}"
                     line += temp.format(e, l)
 
-        except KeyError:
+        except (KeyError, TypeError):
             pass
 
         lines.append(line.rstrip())
@@ -732,8 +732,11 @@ def print_user_table(users, data=None, sub_data=None, activity=None, latest=None
         else:
             header += l.rjust(max(5, len(l) + 1, col_widths[col]))
 
-    if None not in {latest, earliest}:
-        header += " │ timespan   "
+    try:
+        if None not in {latest, earliest}:
+            header += " │ timespan   "
+    except TypeError:
+        pass
 
     lines.insert(0, header.rstrip())
 
@@ -771,7 +774,7 @@ def print_user_table(users, data=None, sub_data=None, activity=None, latest=None
                 temp = " │ {:%H:%M} - {:%H:%M}"
                 footer += temp.format(min_e, max_l)
 
-    except KeyError:
+    except (KeyError, TypeError):
         pass
 
     lines.append(footer)
