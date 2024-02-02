@@ -70,10 +70,9 @@ tools/editconf.py /etc/postfix/main.cf \
 	bounce_queue_lifetime=1d
 
 # Guard against SMTP smuggling
-# This short-term workaround is recommended at https://www.postfix.org/smtp-smuggling.html
+# This setting works starting version 3.6.4-1ubuntu1.3 of postfix. See also https://www.postfix.org/smtp-smuggling.html
 tools/editconf.py /etc/postfix/main.cf \
-	smtpd_data_restrictions=reject_unauth_pipelining \
-	smtpd_discard_ehlo_keywords=chunking
+	smtpd_forbid_bare_newline=normalize
 
 # Hardening: disable the VERIFY command
 tools/editconf.py /etc/postfix/main.cf \
