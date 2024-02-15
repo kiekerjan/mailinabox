@@ -21,8 +21,8 @@ echo "Installing Nextcloud (contacts/calendar)..."
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=27.1.5
-nextcloud_hash=f7dee21f10d43ac5030023615772f95cfca544c7
+nextcloud_ver=27.1.6
+nextcloud_hash=3869f55b9d2ba186e214dcb7729f1684d39fb759
 
 # Nextcloud apps
 # --------------
@@ -33,12 +33,12 @@ nextcloud_hash=f7dee21f10d43ac5030023615772f95cfca544c7
 #   https://github.com/nextcloud/user_external/blob/master/appinfo/info.xml
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-contacts_ver=5.5.0
-contacts_hash=39ef62727e9b5129401389651cf484f66e387638
+contacts_ver=5.5.1
+contacts_hash=546f53f65f54b8b3f356afd6150715fcd20ffd31
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=4.6.1
-calendar_hash=97ce52414532946d3e10b1fd941221fd4a3794fb
+calendar_ver=4.6.5
+calendar_hash=b9c6039286e53fd816aeea7ca8a733407b91d881
 
 # And https://apps.nextcloud.com/apps/user_external
 user_external_ver=3.2.0
