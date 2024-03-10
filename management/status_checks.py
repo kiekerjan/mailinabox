@@ -534,8 +534,11 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 	# Check that each custom secondary nameserver resolves the IP address.
 
 	if custom_secondary_ns and not probably_external_dns:
-		SOARecord = query_dns(domain, "SOA")
-		
+		SOARecordTwo = query_dns(domain, "SOA") # This has caching?
+		SOARecord = query_dns(domain, "SOA", at=env['PUBLIC_IP'])# Explicitly ask the local dns server. But does it end up at Unbound or NSD?
+		if not SOARecord == SOARecordTwo:
+			output.print_error(f"Different SOA records {SOARecord} vs {SOARecordTwo}")
+
 		for ns in custom_secondary_ns:
 			# We must first resolve the nameserver to an IP address so we can query it.
 			ns_ips = query_dns(ns, "A")
@@ -550,10 +553,13 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 			# Now query it to see what it says about this domain.
 			ip = query_dns(domain, "A", at=ns_ip, nxdomain=None)
 			if ip == correct_ip:
-				output.print_ok("Secondary nameserver %s resolved the domain correctly." % ns)
+				output.print_ok(f"Secondary nameserver {ns} resolved the domain correctly.")
 			elif ip is None:
-				output.print_error("Secondary nameserver %s is not configured to resolve this domain." % ns)
+				output.print_error(f"Secondary nameserver {ns} is not configured to resolve this domain.")
 				# No need to check SOA record if not configured as nameserver
+				checkSOA = False
+			elif ip == '[timeout]':
+				output.print_error(f"Secondary nameserver {ns} did not resolve this domain, result: {ip}")
 				checkSOA = False
 			else:
 				output.print_error(f"Secondary nameserver {ns} is not configured correctly. (It resolved this domain as {ip}. It should be {correct_ip}.)")
@@ -564,6 +570,10 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				
 				if SOARecord == SOASecondary:
 					output.print_ok(f"Secondary nameserver {ns} has consistent SOA record.")
+				elif SOARecord == '[Not Set]':
+					output.print_error(f"Secondary nameserver {ns} has no SOA record configured.")
+				elif SOARecord == '[timeout]':
+					output.print_error(f"Secondary nameserver {ns} did not return SOA record but: {SOASecondary}.")
 				else:
 					output.print_error(f"""Secondary nameserver {ns} has inconsistent SOA record (primary: {SOARecord} versus secondary: {SOASecondary}). 
 					Check that synchronization between secondary and primary DNS servers is properly set-up.""")
