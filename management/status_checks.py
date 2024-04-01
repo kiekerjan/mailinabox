@@ -534,10 +534,7 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 	# Check that each custom secondary nameserver resolves the IP address.
 
 	if custom_secondary_ns and not probably_external_dns:
-		SOARecordTwo = query_dns(domain, "SOA") # This has caching?
-		SOARecord = query_dns(domain, "SOA", at=env['PUBLIC_IP'])# Explicitly ask the local dns server. But does it end up at Unbound or NSD?
-		if not SOARecord == SOARecordTwo:
-			output.print_error(f"Different SOA records {SOARecord} vs {SOARecordTwo}")
+		SOARecord = query_dns(domain, "SOA", at=env['PUBLIC_IP'])# Explicitly ask the local dns server.
 
 		for ns in custom_secondary_ns:
 			# We must first resolve the nameserver to an IP address so we can query it.
@@ -573,7 +570,7 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				elif SOARecord == '[Not Set]':
 					output.print_error(f"Secondary nameserver {ns} has no SOA record configured.")
 				elif SOARecord == '[timeout]':
-					output.print_error(f"Secondary nameserver {ns} did not return SOA record but: {SOASecondary}.")
+					output.print_error(f"Secondary nameserver {ns} timed out on checking SOA record.")
 				else:
 					output.print_error(f"""Secondary nameserver {ns} has inconsistent SOA record (primary: {SOARecord} versus secondary: {SOASecondary}). 
 					Check that synchronization between secondary and primary DNS servers is properly set-up.""")
