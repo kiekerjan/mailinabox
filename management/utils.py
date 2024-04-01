@@ -181,7 +181,7 @@ def wait_for_service(port, public, env, timeout):
 
 def get_ssh_port():
 	port_value = get_ssh_config_value("port")
-	
+
 	if port_value:
 		return int(port_value)
 
