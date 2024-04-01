@@ -198,13 +198,12 @@ def get_ssh_config_value(parameter_name):
 		# error while calling shell command
 		return None
 
-	returnNext = False
-	for e in output.split():
-		if returnNext:
-			return e
-		if e == parameter_name.lower():
-			returnNext = True
-
+	for line in output.split("\n"):
+		if " " not in line: continue # there's a blank line at the end
+		key, values = line.split(" ", 1)
+		if key == parameter_name:
+			return values # space-delimited if there are multiple values
+	
 	# Did not find the parameter!
 	return None
 

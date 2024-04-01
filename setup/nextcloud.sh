@@ -26,13 +26,16 @@ nextcloud_hash=3869f55b9d2ba186e214dcb7729f1684d39fb759
 
 # Nextcloud apps
 # --------------
-# * Find the most recent tag that is compatible with the Nextcloud version above by
-#   consulting the <dependencies>...<nextcloud> node at:
-#   https://github.com/nextcloud-releases/contacts/blob/main/appinfo/info.xml
-#   https://github.com/nextcloud-releases/calendar/blob/main/appinfo/info.xml
-#   https://github.com/nextcloud/user_external/blob/master/appinfo/info.xml
-# * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
-#   copying it from the error message when it doesn't match what is below.
+# * Find the most recent tag that is compatible with the Nextcloud version above by:
+#   https://github.com/nextcloud-releases/contacts/tags
+#   https://github.com/nextcloud-releases/calendar/tags
+#   https://github.com/nextcloud/user_external/tags
+#
+# * For these three packages, contact, calendar and user_external, the hash is the SHA1 hash of
+# the ZIP package, which you can find by just running this script and copying it from
+# the error message when it doesn't match what is below:
+
+# Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
 contacts_ver=5.5.1
 contacts_hash=546f53f65f54b8b3f356afd6150715fcd20ffd31
 
@@ -40,12 +43,26 @@ contacts_hash=546f53f65f54b8b3f356afd6150715fcd20ffd31
 calendar_ver=4.6.5
 calendar_hash=b9c6039286e53fd816aeea7ca8a733407b91d881
 
-# And https://apps.nextcloud.com/apps/user_external
+# Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
 user_external_ver=3.2.0
 user_external_hash=67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 
-# Clear prior packages and install dependencies from apt.
+# Developer advice (test plan)
+# ----------------------------
+# When upgrading above versions, how to test?
+#
+# 1. Enter your server instance (or on the Vagrant image)
+# 1. Git clone <your fork>
+# 2. Git checkout <your fork>
+# 3. Run `sudo ./setup/nextcloud.sh`
+# 4. Ensure the installation completes. If any hashes mismatch, correct them.
+# 5. Enter nextcloud web, run following tests:
+# 5.1 You still can create, edit and delete contacts
+# 5.2 You still can create, edit and delete calendar events
+# 5.3 You still can create, edit and delete users
+# 5.4 Go to Administration > Logs and ensure no new errors are shown
 
+# Clear prior packages and install dependencies from apt.
 apt-get purge -qq -y owncloud* # we used to use the package manager
 
 apt_install curl php php-fpm \
@@ -146,7 +163,7 @@ InstallNextcloud() {
 
 # Current Nextcloud Version, #1623
 # Checking /usr/local/lib/owncloud/version.php shows version of the Nextcloud application, not the DB
-# $STORAGE_ROOT/owncloud is kept together even during a backup.  It is better to rely on config.php than
+# $STORAGE_ROOT/owncloud is kept together even during a backup. It is better to rely on config.php than
 # version.php since the restore procedure can leave the system in a state where you have a newer Nextcloud
 # application version than the database.
 
@@ -199,6 +216,11 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 			echo "Upgrades from Mail-in-a-Box prior to v60 with Nextcloud 19 or earlier are not supported. Upgrade to the latest Mail-in-a-Box version supported on your machine first. Setup will continue, but skip the Nextcloud migration."
 			return 0
 		fi
+
+		# Hint: whenever you bump, remember this:
+		# - Run a server with the previous version
+		# - On a new if-else block, copy the versions/hashes from the previous version
+		# - Run sudo ./setup/start.sh on the new machine. Upon completion, test its basic functionalities.
 
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^20 ]]; then
 			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
