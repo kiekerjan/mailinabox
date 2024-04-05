@@ -266,7 +266,7 @@ mkdir -p /etc/systemd/system/apt-daily-upgrade.timer.d
 cat > /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf <<EOF;
 [Timer]
 OnCalendar=
-OnCalendar=*-*-* 23:30
+OnCalendar=*-*-* 1:30
 EOF
 
 # ### Firewall
