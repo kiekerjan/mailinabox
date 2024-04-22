@@ -19,8 +19,9 @@ if [ `date "+%u"` -eq 1 ]; then
     /usr/sbin/pflogsumm -u 5 -h 5 --problems_first /var/log/mail.log.1 | management/email_administrator.py "Postfix log analysis summary"
 fi
 
-# Take a backup.
-management/backup.py 2>&1 | management/email_administrator.py "Backup Status"
+# Take a backup (ignoring informational output from duplicity for some backends).
+export DUPLICITY_VALIDATION_INFO="File size can't be validated, because of missing capabilities of the backend. Please verify the backup separately."
+management/backup.py 2>&1 | sed 's/'"$DUPLICITY_VALIDATION_INFO"'//g' | management/email_administrator.py "Backup Status"
 
 # Provision any new certificates for new domains or domains with expiring certificates.
 management/ssl_certificates.py -q  2>&1 | management/email_administrator.py "TLS Certificate Provisioning Result"
