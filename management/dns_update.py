@@ -482,7 +482,8 @@ def build_sshfp_records():
 	# specify that port to sshkeyscan.
 
 	port = get_ssh_port()
-	# If nothing returned, assume ssh not installed
+
+	# If nothing returned, SSH is probably not installed.
 	if not port:
 		return
 

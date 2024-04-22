@@ -70,7 +70,11 @@ tools/editconf.py /etc/postfix/main.cf \
 	bounce_queue_lifetime=1d
 
 # Guard against SMTP smuggling
-# This setting works starting version 3.6.4-1ubuntu1.3 of postfix. See also https://www.postfix.org/smtp-smuggling.html
+# This "long-term" fix is recommended at https://www.postfix.org/smtp-smuggling.html.
+# This became supported in a backported fix in package version 3.6.4-1ubuntu1.3. It is
+# unnecessary in Postfix 3.9+ where this is the default. The "short-term" workarounds
+# that we previously had are reverted to postfix defaults (though smtpd_discard_ehlo_keywords
+# was never included in a released version of Mail-in-a-Box).
 tools/editconf.py /etc/postfix/main.cf \
 	smtpd_forbid_bare_newline=normalize
 
