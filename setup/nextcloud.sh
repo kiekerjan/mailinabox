@@ -21,8 +21,8 @@ echo "Installing Nextcloud (contacts/calendar)..."
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=27.1.9
-nextcloud_hash=4797a2f1f7ffcedca7c0917f913d983b75ed22fd
+nextcloud_ver=28.0.5
+nextcloud_hash=0ce477938eb19cbdbbe32c73c7bd96778376c8a8
 
 # Nextcloud apps
 # --------------
@@ -293,6 +293,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 # 26		    - 8.0, 8.1, 8.2
 # 27                - 8.0 (d), 8.1, 8.2 (r)
 # 28		    - 8.0 (d), 8.1, 8.2 (r), 8.3
+# 29		    - 8.0 (d), 8.1, 8.2 (r), 8.3
 #
 # ubuntu 18.04 has php 7.2
 # ubuntu 22.04 has php 8.1
@@ -301,6 +302,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 # user_external 3.0.0 supports version 22-24
 # user_external 3.1.0 supports version 22-25
 # user_external 3.2.0 supports version 25-27
+# user_external 3.3.0 supports version 25-28
 
 	InstallNextcloud $nextcloud_ver $nextcloud_hash $contacts_ver $contacts_hash $calendar_ver $calendar_hash $user_external_ver $user_external_hash
 fi
