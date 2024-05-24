@@ -40,8 +40,8 @@ PHP_VER=$(php_version)
 #   https://github.com/alexandregz/twofactor_gauthenticator
 # The easiest way to get the package hashes is to run this script and get the hash from
 # the error message.
-VERSION=1.6.6
-HASH=7705d2736890c49e7ae3ac75e3ae00ba56187056
+VERSION=1.6.7
+HASH=80d882b52510673f295c540f8d4761d028654433
 PERSISTENT_LOGIN_VERSION=bde7b6840c7d91de627ea14e81cf4133cbb3c07a # version 5.3
 HTML5_NOTIFIER_VERSION=68d9ca194212e15b3c7225eb6085dbcf02fd13d7   # version 0.6.4+
 CARDDAV_VERSION=5.1.0
