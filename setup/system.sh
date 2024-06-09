@@ -101,6 +101,13 @@ hide_output add-apt-repository -y universe
 
 # Install the duplicity PPA.
 hide_output add-apt-repository -y ppa:duplicity-team/duplicity-release-git
+
+# ### Minimize installations
+cat > /etc/apt/apt.conf.d/90norecommends <<EOF;
+APT::Install-Recommends "false";
+APT::Install-Suggests "false";
+EOF
+
 # ### Update Packages
 
 # Update system packages to make sure we have the latest upstream versions
