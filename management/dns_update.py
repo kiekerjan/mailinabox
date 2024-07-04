@@ -487,7 +487,15 @@ def build_sshfp_records():
 	if not port:
 		return
 
-	keys = shell("check_output", ["ssh-keyscan", "-4", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
+
+	try:
+		keys = shell("check_output", ["ssh-keyscan", "-4", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
+	except:
+		try:
+			keys = shell("check_output", ["ssh-keyscan", "-6", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
+		except:
+			return
+			
 	keys = sorted(keys.split("\n"))
 
 	for key in keys:
