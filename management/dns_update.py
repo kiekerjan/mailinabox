@@ -488,21 +488,43 @@ def build_sshfp_records():
 		return
 
 	# Determine where sshd is listening
-	listenaddress = shell("check_output", ["sshd", "-T", "|", "grep", "listenaddress"])
-	listenaddress = listenaddress.split("\n")
+	sshd_config = shell("check_output", ["sshd", "-T"])
+	sshd_config = sshd_config.split("\n")
 
-	# Nothing to do on empty listenaddress
-	if len(listenaddress) == 0:
+	# Nothing to do on empty sshd config
+	if len(sshd_config) == 0:
 		return
 
-	try:
-		# If there's a [ and ], it's an ipv6 address
-		if listenaddress[0].find("[") >= 0 and listenaddress[0].find("]") >= 0:
-			keys = shell("check_output", ["ssh-keyscan", "-6", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
-		else:
-			keys = shell("check_output", ["ssh-keyscan", "-4", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
-	except:
-		return
+	keys = ""
+	for line in sshd_config:
+		if line.startswith("listenaddress "):
+			line = line.replace("listenaddress ", "")
+			
+			if line[0] == "[":
+				# ipv6 is of form [ab:cd::]:<port>
+				leftpos = 1
+				rightpos = line.find("]")
+				iptype = "-6"
+			else:
+				# ipv4 is of form 1.2.3.4:<port>
+				leftpos = 0
+				rightpos = line.find(":")
+				iptype = "-4"
+				
+			ipaddr = line[leftpos:rightpos]
+			
+			if ipaddr == "0.0.0.0" or ipaddr == "::":
+				ipaddr = "localhost"
+			
+			try:
+				keys = shell("check_output", ["ssh-keyscan", iptype, "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), ipaddr])
+				if len(keys) > 0:
+					# Found something, assume it's ok and do early exit
+					break
+			except:
+				# Something went wrong executing the shell command, but continue looking in the sshd
+				# config
+				continue
 
 	keys = sorted(keys.split("\n"))
 
