@@ -7,3 +7,4 @@ externals/
 .vagrant
 api/docs/api-docs.html
 *.code-workspace
+.idea/
