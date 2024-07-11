@@ -116,7 +116,7 @@ def do_dns_update(env, force=False):
 
 	# Write the DKIM configuration tables for all of the mail domains.
 	from mailconfig import get_mail_domains
-	
+
 	if write_dkim_tables(get_mail_domains(env), env):
 		# Settings changed. Kick dkimpy.
 		shell('check_call', ["/usr/sbin/service", "dkimpy-milter", "restart"])
@@ -195,8 +195,8 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 	if is_zone:
 		# Define ns2.PRIMARY_HOSTNAME or whatever the user overrides.
 		# User may provide one or more additional nameservers
-		secondary_ns_list = get_secondary_dns(additional_records, mode="NS") 
-		
+		secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
+
 		# Need at least two nameservers in the secondary dns list
 		useHiddenMaster = False
 		if os.path.exists("/etc/usehiddenmasterdns") and len(secondary_ns_list) > 1:
@@ -205,11 +205,11 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 					if line.strip() == domain or line.strip() == "usehiddenmasterdns":
 						useHiddenMaster = True
 						break
-		
+
 		if not useHiddenMaster:
 			# Obligatory definition of ns1.PRIMARY_HOSTNAME.
 			records.append((None,  "NS",  "ns1.%s." % env["PRIMARY_HOSTNAME"], False))
-			
+
 			if len(secondary_ns_list) == 0:
 				secondary_ns_list = ["ns2." + env["PRIMARY_HOSTNAME"]]
 
@@ -217,7 +217,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 			records.append((None,  "NS", secondary_ns+'.', False))
 
 	tlsa_record = build_tlsa_record(env)
-	
+
 	# In PRIMARY_HOSTNAME...
 	if domain == env["PRIMARY_HOSTNAME"]:
 		# Set the A/AAAA records. Do this early for the PRIMARY_HOSTNAME so that the user cannot override them
@@ -317,7 +317,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 			val = "".join(re.findall(r'"([^"]+)"', m.group(2)))
 			if not has_rec(m.group(1), "TXT", prefix="v=DKIM1; "):
 				records.append((m.group(1), "TXT", val, "Recommended. Provides a way for recipients to verify that this machine sent @%s mail." % domain))
-		
+
 		# Also add a ed25519 DKIM record
 		dkim_record_file = os.path.join(env['STORAGE_ROOT'], 'mail/dkim/box-ed25519.dns')
 		with open(dkim_record_file) as orf:
@@ -340,12 +340,12 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 				qname = "_" + dav + "davs._tcp"
 				if not has_rec(qname, "SRV"):
 					records.append((qname, "SRV", "0 0 443 " + env["PRIMARY_HOSTNAME"] + ".", "Recommended. Specifies the hostname of the server that handles CardDAV/CalDAV services for email addresses on this domain."))
-	
+
 	if domain_properties[domain]["web"]:
 		# Add a DANE TLSA record for HTTPS, which some browser extensions might make use of.
 		records.append(("_443._tcp", "TLSA", tlsa_record, "Optional. When DNSSEC is enabled, provides out-of-band HTTPS certificate validation for a few web clients that support it."))
 
-	
+
 	# If this is a domain name that there are email addresses configured for, i.e. "something@"
 	# this domain name, then the domain name is a MTA-STS (https://tools.ietf.org/html/rfc8461)
 	# Policy Domain.
@@ -487,14 +487,23 @@ def build_sshfp_records():
 	if not port:
 		return
 
+	# Determine where sshd is listening
+	listenaddress = shell("check_output", ["sshd", "-T", "|", "grep", "listenaddress"])
+	listenaddress = listenaddress.split("\n")
+
+	# Nothing to do on empty listenaddress
+	if len(listenaddress) == 0:
+		return
+
 	try:
-		keys = shell("check_output", ["ssh-keyscan", "-4", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
-	except:
-		try:
+		# If there's a [ and ], it's an ipv6 address
+		if listenaddress[0].find("[") >= 0 and listenaddress[0].find("]") >= 0:
 			keys = shell("check_output", ["ssh-keyscan", "-6", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
-		except:
-			return
-			
+		else:
+			keys = shell("check_output", ["ssh-keyscan", "-4", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), "localhost"])
+	except:
+		return
+
 	keys = sorted(keys.split("\n"))
 
 	for key in keys:
@@ -523,8 +532,8 @@ def write_nsd_zone(domain, zonefile, records, env, force):
 	#
 	# For the refresh through TTL fields, a good reference is:
 	# https://www.ripe.net/publications/docs/ripe-203
-	
-	# Time To Refresh – How long in seconds a nameserver should wait prior to checking for a Serial Number 
+
+	# Time To Refresh – How long in seconds a nameserver should wait prior to checking for a Serial Number
 	#     increase within the primary zone file. An increased Serial Number means a transfer is needed to sync
 	#     your records. Only applies to zones using secondary DNS.
 	# Time To Retry – How long in seconds a nameserver should wait prior to retrying to update a zone after
@@ -532,7 +541,7 @@ def write_nsd_zone(domain, zonefile, records, env, force):
 	# Time To Expire – How long in seconds a nameserver should wait prior to considering data from a secondary
 	#     zone invalid and stop answering queries for that zone. Only applies to zones using secondary DNS.
 	# Minimum TTL – How long in seconds that a nameserver or resolver should cache a negative response.
-	
+
 	# To make use of hidden master initialize the DNS to be used as secondary DNS. Then change the following
 	# in the zone file:
 	#  - Name the secondary DNS server as primary DNS in the SOA record
@@ -548,7 +557,7 @@ $TTL {defttl}          ; default time to live
 
 @ IN SOA {primary_dns}. hostmaster.{primary_domain}. (
 		   __SERIAL__     ; serial number
-		   {refresh}     ; Refresh (secondary nameserver update interval) 
+		   {refresh}     ; Refresh (secondary nameserver update interval)
 		   {retry}    ; Retry (when refresh fails, how often to try again)
 		   {expire}  ; Expire (when refresh fails, how long secondary nameserver will keep records around anyway)
 		   {negttl}    ; Negative TTL (how long negative responses are cached)
@@ -574,13 +583,13 @@ $TTL {defttl}          ; default time to live
 					p_expire = "1d"
 					p_negttl = "5m"
 					break
-	
+
 	primary_dns = "ns1." + env["PRIMARY_HOSTNAME"]
-	
+
 	# Obtain the secondary nameserver list
 	additional_records = list(get_custom_dns_config(env))
 	secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
-	
+
 	# Using hidden master for a domain if it is configured
 	if os.path.exists("/etc/usehiddenmasterdns") and len(secondary_ns_list) > 1:
 		with open("/etc/usehiddenmasterdns") as f:
@@ -588,7 +597,7 @@ $TTL {defttl}          ; default time to live
 				if line.strip() == domain or line.strip() == "usehiddenmasterdns":
 					primary_dns = secondary_ns_list[0]
 					break
-	
+
 	# Replace replacement strings.
 	zone = zone.format(domain=domain, primary_dns=primary_dns, primary_domain=env["PRIMARY_HOSTNAME"], defttl=p_defttl,
 				refresh=p_refresh, retry=p_retry, expire=p_expire, negttl=p_negttl)
@@ -1129,7 +1138,7 @@ def set_secondary_dns(hostnames, env):
 			if not item.startswith("xfr:"):
 				# Resolve hostname.
 				tries = 2
-				
+
 				while tries > 0:
 					tries = tries - 1
 					try:
