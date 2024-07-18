@@ -654,7 +654,7 @@ def get_ssh_key_file():
 	# default to rsa key
 	ssh_file = 'id_rsa_miab'
 	
-	if not os.path.exists(os.path.join(ssh_path, rsa_file)):
+	if not os.path.exists(os.path.join(ssh_path, ssh_file)):
 		ssh_file = 'id_ed25519_miab'
 	
 	return ssh_path, ssh_file
