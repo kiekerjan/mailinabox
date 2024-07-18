@@ -231,9 +231,12 @@ def get_duplicity_additional_args(env):
 		if port is None:
 			port = 22
 		
+		ssh_path, ssh_file = get_ssh_key_file()
+		ssh_file_path = os.path.join(ssh_path, ssh_file)
+		
 		return [
-			f"--ssh-options='-i /root/.ssh/id_rsa_miab -p {port}'",
-			f"--rsync-options='-e \"/usr/bin/ssh -oStrictHostKeyChecking=no -oBatchMode=yes -p {port} -i /root/.ssh/id_rsa_miab\"'",
+			f"--ssh-options='-i {ssh_file_path} -p {port}'",
+			f"--rsync-options='-e \"/usr/bin/ssh -oStrictHostKeyChecking=no -oBatchMode=yes -p {port} -i {ssh_file_path}\"'",
 		]
 	elif get_target_type(config) == 's3':
 		# See note about hostname in get_duplicity_target_url.
@@ -467,9 +470,12 @@ def list_target_files(config):
 		if target_path.startswith('/'):
 			target_path = target_path[1:]
 
+		ssh_path, ssh_file = get_ssh_key_file()
+		ssh_file_path = os.path.join(ssh_path, ssh_file)
+		
 		rsync_command = [ 'rsync',
 					'-e',
-					f'/usr/bin/ssh -i /root/.ssh/id_rsa_miab -oStrictHostKeyChecking=no -oBatchMode=yes -p {port}',
+					f'/usr/bin/ssh -i {ssh_file_path} -oStrictHostKeyChecking=no -oBatchMode=yes -p {port}',
 					'--list-only',
 					'-r',
 					rsync_target.format(
@@ -611,7 +617,9 @@ def get_backup_config(env, for_save=False, for_ui=False):
 	if config["target"] == "local":
 		# Expand to the full URL.
 		config["target"] = "file://" + config["file_target_directory"]
-	ssh_pub_key = os.path.join('/root', '.ssh', 'id_rsa_miab.pub')
+	
+	ssh_path, ssh_file = get_ssh_key_file()
+	ssh_pub_key = os.path.join(ssh_path, f'{ssh_file}.pub')
 	if os.path.exists(ssh_pub_key):
 		with open(ssh_pub_key, encoding="utf-8") as f:
 			config["ssh_pub_key"] = f.read()
@@ -639,6 +647,17 @@ def get_backup_root(env):
 	backup_root = os.path.join(backup_root, 'backup')
 	
 	return backup_root
+
+def get_ssh_key_file():
+	ssh_path = os.path.join('/root', '.ssh')
+	
+	# default to rsa key
+	ssh_file = 'id_rsa_miab'
+	
+	if not os.path.exists(os.path.join(ssh_path, rsa_file)):
+		ssh_file = 'id_ed25519_miab'
+	
+	return ssh_path, ssh_file
 
 if __name__ == "__main__":
 	if sys.argv[-1] == "--verify":

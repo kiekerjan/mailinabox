@@ -245,9 +245,14 @@ pollinate  -q -r
 # Between these two, we really ought to be all set.
 
 # We need an ssh key to store backups via rsync, if it doesn't exist create one
-if [ ! -f /root/.ssh/id_rsa_miab ]; then
+if [ ! -f /root/.ssh/id_ed25519_miab ]; then
 	echo 'Creating SSH key for backup…'
-	ssh-keygen -t rsa -b 2048 -a 100 -f /root/.ssh/id_rsa_miab -N '' -q
+	ssh-keygen -t ed25519 -a 100 -f /root/.ssh/id_ed25519_miab -N '' -q
+	# Note that for upgrades, we leave the id_rsa_miab key in place. It's up to the user
+	# to delete the RSA key. The MiaB backup code will use the RSA key if it's there
+	# and only switch to the ed25519 key when the RSA key is non-existent.
+	# We do this because the user still needs to configure the target server that uses
+	# the SSH public key.
 fi
 
 # ### Package maintenance
