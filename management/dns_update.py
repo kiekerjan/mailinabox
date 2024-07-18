@@ -590,18 +590,16 @@ $TTL {defttl}          ; default time to live
 	p_expire = "14d"
 	p_negttl = "12h"
 
+	config = utils.load_settings(env)
+	
 	# Shorten dns ttl if file exists. Use before moving domains, changing secondary dns servers etc
-	if os.path.exists("/etc/forceshortdnsttl"):
-		with open("/etc/forceshortdnsttl") as f:
-			for line in f:
-				if line.strip() == domain or line.strip() == "forceshortdnsttl":
-					# Override the ttl values
-					p_defttl = "5m"
-					p_refresh = "30m"
-					p_retry = "5m"
-					p_expire = "1d"
-					p_negttl = "5m"
-					break
+	if config.get("dns", {}).get("TTL", "Default").lower() == "short":
+		# Override the ttl values
+		p_defttl = "5m"
+		p_refresh = "30m"
+		p_retry = "5m"
+		p_expire = "1d"
+		p_negttl = "5m"
 
 	primary_dns = "ns1." + env["PRIMARY_HOSTNAME"]
 
@@ -609,8 +607,6 @@ $TTL {defttl}          ; default time to live
 	additional_records = list(get_custom_dns_config(env))
 	secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
 
-	config = load_settings(env)
-	
 	# For DNS hidden master, take the first secondary nameserver as primary dns
 	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1:
 		primary_dns = secondary_ns_list[0]
