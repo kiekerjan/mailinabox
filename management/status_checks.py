@@ -509,12 +509,10 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 	correct_ns = "; ".join(sorted(["ns1." + env["PRIMARY_HOSTNAME"], *secondary_ns]))
 	
 	# Take hidden master dns into account, the mail-in-a-box is not known as nameserver in that case
-	if os.path.exists("/etc/usehiddenmasterdns") and len(secondary_ns) > 1:
-		with open("/etc/usehiddenmasterdns") as f:
-			for line in f:
-				if line.strip() == domain or line.strip() == "usehiddenmasterdns":
-					correct_ns = "; ".join(sorted(secondary_ns))
-					break
+	config = utils.load_settings(env)
+	
+	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1:
+		correct_ns = "; ".join(sorted(secondary_ns))
 	
 	ip = query_dns(domain, "A")
 
