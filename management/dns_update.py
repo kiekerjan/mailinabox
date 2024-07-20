@@ -10,7 +10,7 @@ import rtyaml
 import dns.resolver
 import logging
 
-from utils import shell, load_env_vars_from_file, safe_domain_name, sort_domains, get_ssh_port, load_settings
+from utils import shell, load_env_vars_from_file, safe_domain_name, sort_domains, get_ssh_port, get_ssh_config_value, load_settings, parse_listenaddress
 from ssl_certificates import get_ssl_certificates, check_certificate
 import contextlib
 
@@ -462,7 +462,7 @@ def build_sshfp_records():
 	# include this info in the key verification prompt or 'yes' to trust
 	# the SSHFP record.
 	#
-	# See https://github.com/xelerance/sshfp for inspiriation.
+	# See https://github.com/xelerance/sshfp for inspiration.
 
 	algorithm_number = {
 		"ssh-rsa": 1,
@@ -473,55 +473,42 @@ def build_sshfp_records():
 
 	# Get our local fingerprints by running ssh-keyscan. The output looks
 	# like the known_hosts file: hostname, keytype, fingerprint. The order
-	# of the output is arbitrary, so sort it to prevent spurrious updates
+	# of the output is arbitrary, so sort it to prevent spurious updates
 	# to the zone file (that trigger bumping the serial number). However,
 	# if SSH has been configured to listen on a nonstandard port, we must
-	# specify that port to sshkeyscan.
-
-	port = get_ssh_port()
-
-	# If nothing returned, SSH is probably not installed.
-	if not port:
-		return
-
-	# Determine where sshd is listening
-	sshd_config = shell("check_output", ["sshd", "-T"])
-	sshd_config = sshd_config.split("\n")
-
-	# Nothing to do on empty sshd config
-	if len(sshd_config) == 0:
-		return
+	# specify that port to ssh-keyscan.
 
 	keys = ""
-	for line in sshd_config:
-		if line.startswith("listenaddress "):
-			line = line.replace("listenaddress ", "")
 
-			if line[0] == "[":
-				# ipv6 is of form [ab:cd::]:<port>
-				leftpos = 1
-				rightpos = line.find("]")
-				iptype = "-6"
-			else:
-				# ipv4 is of form 1.2.3.4:<port>
-				leftpos = 0
-				rightpos = line.find(":")
-				iptype = "-4"
+	# Determine where sshd is listening
+	listenaddresses = get_ssh_config_value("listenaddress")
 
-			ipaddr = line[leftpos:rightpos]
+	for la in listenaddresses:
+		ipaddr, port, iptype = parse_listenaddress(la)
 
-			if ipaddr == "0.0.0.0" or ipaddr == "::":
-				ipaddr = "localhost"
+		if not ipaddr:
+			continue
 
-			try:
-				keys = shell("check_output", ["ssh-keyscan", iptype, "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), ipaddr])
-				if len(keys) > 0:
-					# Found something, assume it's ok and do early exit
-					break
-			except:
-				# Something went wrong executing the shell command, but continue looking in the sshd
-				# config
-				continue
+		if not port:
+			port = get_ssh_port()
+
+			# If nothing returned, SSH is probably not installed.
+			if not port:
+				return
+
+		if ipaddr == "0.0.0.0" or ipaddr == "::":
+			ipaddr = "localhost"
+
+		try:
+			keys = shell("check_output",
+						 ["ssh-keyscan", f"-{iptype}", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), ipaddr])
+			if len(keys) > 0:
+				# Found something, assume it's ok and do early exit
+				break
+		except:
+			# Something went wrong executing the shell command, but continue looking in the list of
+			# listenaddresses
+			continue
 
 	keys = sorted(keys.split("\n"))
 

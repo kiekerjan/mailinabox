@@ -183,11 +183,13 @@ def get_ssh_port():
 	port_value = get_ssh_config_value("port")
 
 	if port_value:
-		return int(port_value)
+		return int(port_value[0])
 
 	return None
 
 def get_ssh_config_value(parameter_name):
+	import subprocess
+
 	# Returns ssh configuration value for the provided parameter
 	try:
 		output = shell('check_output', ['sshd', '-T'])
@@ -198,14 +200,39 @@ def get_ssh_config_value(parameter_name):
 		# error while calling shell command
 		return None
 
+	values = []
+
 	for line in output.split("\n"):
-		if " " not in line: continue # there's a blank line at the end
-		key, values = line.split(" ", 1)
+		if " " not in line: continue # there must be a blank value
+		key, value = line.split(" ", 1)
 		if key == parameter_name:
-			return values # space-delimited if there are multiple values
-	
-	# Did not find the parameter!
-	return None
+			values.append(value) # space-delimited if there are multiple values
+
+	return values
+
+
+def parse_listenaddress(la_str):
+	ip = None
+	port = None
+
+	if la_str[0] == "[":
+		# ipv6 is of form [ab:cd::]:<port>
+		leftpos = 1
+		rightpos = la_str.find("]")
+		iptype = "6"
+	else:
+		# ipv4 is of form 1.2.3.4:<port>
+		leftpos = 0
+		rightpos = la_str.find(":")
+		iptype = "4"
+
+	if rightpos >= 0:
+		ip = la_str[leftpos:rightpos]
+		if len(la_str) > rightpos + 1:
+			port = la_str[rightpos + 1:]
+
+	return ip, port, iptype
+
 
 def get_php_version():
 	# Gets the version of PHP installed in the system.

@@ -18,7 +18,7 @@ from web_update import get_web_domains, get_domains_with_a_records
 from ssl_certificates import get_ssl_certificates, get_domain_ssl_files, check_certificate
 from mailconfig import get_mail_domains, get_mail_aliases
 
-from utils import shell, sort_domains, load_env_vars_from_file, load_settings, get_ssh_port, get_ssh_config_value
+from utils import shell, sort_domains, load_env_vars_from_file, load_settings, get_ssh_port, get_ssh_config_value, parse_listenaddress
 from backup import get_backup_root
 
 def get_services():
@@ -97,50 +97,41 @@ def check_service(i, service, env):
 	running = False
 	fatal = False
 
-	# Helper function to make a connection to the service, since we try
-	# up to three ways (localhost, IPv4 address, IPv6 address).
-	def try_connect(ip):
-		# Connect to the given IP address on the service's port with a one-second timeout.
-		import socket
-		s = socket.socket(socket.AF_INET if ":" not in ip else socket.AF_INET6, socket.SOCK_STREAM)
-		s.settimeout(1)
-		try:
-			s.connect((ip, service["port"]))
-			return True
-		except OSError:
-			# timed out or some other odd error
-			return False
-		finally:
-			s.close()
-
 	if service["public"]:
 		# Service should be publicly accessible.
-		if try_connect(env["PUBLIC_IP"]):
+		if try_connect(env["PUBLIC_IP"], service["port"]):
 			# IPv4 ok.
-			if not env.get("PUBLIC_IPV6") or service.get("ipv6") is False or try_connect(env["PUBLIC_IPV6"]):
+			if not env.get("PUBLIC_IPV6") or service.get("ipv6") is False or try_connect(env["PUBLIC_IPV6"], service["port"]):
 				# No IPv6, or service isn't meant to run on IPv6, or IPv6 is good.
 				running = True
-
 			# IPv4 ok but IPv6 failed. Try the PRIVATE_IPV6 address to see if the service is bound to the interface.
-			elif service["port"] != 53 and try_connect(env["PRIVATE_IPV6"]):
+			elif service["port"] != 53 and try_connect(env["PRIVATE_IPV6"], service["port"]):
 				output.print_error("%s is running (and available over IPv4 and the local IPv6 address), but it is not publicly accessible at %s:%d." % (service['name'], env['PUBLIC_IPV6'], service['port']))
 			else:
 				output.print_error("%s is running and available over IPv4 but is not accessible over IPv6 at %s port %d." % (service['name'], env['PUBLIC_IPV6'], service['port']))
 
 		# IPv4 failed. Try the private IP to see if the service is running but not accessible (except DNS because a different service runs on the private IP).
-		elif service["port"] != 53 and try_connect("127.0.0.1"):
+		elif service["port"] != 53 and try_connect("127.0.0.1", service["port"]):
 			output.print_error("%s is running but is not publicly accessible at %s:%d." % (service['name'], env['PUBLIC_IP'], service['port']))
-		elif try_connect(env["PUBLIC_IPV6"]):
+		elif try_connect(env["PUBLIC_IPV6"], service["port"]):
 			output.print_warning("%s is only running on ipv6 (port %d)." % (service['name'], service['port']))
 		else:
-			output.print_error("%s is not running (port %d)." % (service['name'], service['port']))
+			# Make exception for ssh, which might be running at a different ip
+			ssh_msg = None
+			if service['name'] == "SSH Login (ssh)":
+				ssh_msg = check_ssh_running_extended(service['port'], service['name'])
+
+			if ssh_msg:
+				output.print_ok(ssh_msg)
+			else:
+				output.print_error("%s is not running (port %d)." % (service['name'], service['port']))
 
 		# Why is nginx not running?
 		if not running and service["port"] in {80, 443}:
 			output.print_line(shell('check_output', ['nginx', '-t'], capture_stderr=True, trap=True)[1].strip())
 
 	# Service should be running locally.
-	elif try_connect("127.0.0.1"):
+	elif try_connect("127.0.0.1", service["port"]):
 		running = True
 	else:
 		output.print_error("%s is not running (port %d)." % (service['name'], service['port']))
@@ -150,6 +141,46 @@ def check_service(i, service, env):
 		fatal = True
 
 	return (i, running, fatal, output)
+
+
+# Helper function to make a connection to the service, since we try
+# up to three ways (localhost, IPv4 address, IPv6 address).
+def try_connect(ip, port):
+	# Connect to the given IP address on the service's port with a one-second timeout.
+	import socket
+	s = socket.socket(socket.AF_INET if ":" not in ip else socket.AF_INET6, socket.SOCK_STREAM)
+	s.settimeout(1)
+	try:
+		s.connect((ip, port))
+		return True
+	except OSError:
+		# timed out or some other odd error
+		return False
+	finally:
+		s.close()
+
+
+def check_ssh_running_extended(def_port, name):
+	# Find out ssh configuration and see where it is listening
+	listenaddresses = get_ssh_config_value("listenaddress")
+
+	msg = None
+
+	# Check each address, and work with the first one found
+	for la in listenaddresses:
+		ipaddr, port = parse_listenaddress(la)
+
+		if not ipaddr:
+			continue
+
+		if not port:
+			port = def_port
+
+		if try_connect(ipaddr, port):
+			msg = f"{name} is running on alternative {ipaddr} (port {port})."
+			return msg
+
+	return msg
 
 def run_system_checks(rounded_values, env, output):
 	check_ssh_password(env, output)
@@ -193,7 +224,7 @@ def is_port_allowed(ufw, port):
 def check_ssh_password(env, output):
 	config_value = get_ssh_config_value("passwordauthentication")
 	if config_value:
-		if config_value == "no":
+		if config_value[0] == "no":
 			output.print_ok("SSH disallows password-based login.")
 		else:
 			output.print_error("""The SSH server on this machine permits password-based login. A more secure
@@ -285,7 +316,7 @@ def run_network_checks(env, output):
 	# The user might have ended up on an IP address that was previously in use
 	# by a spammer, or the user may be deploying on a residential network. We
 	# will not be able to reliably send mail in these cases.
-	
+
 	# See https://www.spamhaus.org/news/article/807/using-our-public-mirrors-check-your-return-codes-now. for
 	# information on spamhaus return codes
 	rev_ip4 = ".".join(reversed(env['PUBLIC_IP'].split('.')))
@@ -507,13 +538,13 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 	existing_ns = query_dns(domain, "NS")
 
 	correct_ns = "; ".join(sorted(["ns1." + env["PRIMARY_HOSTNAME"], *secondary_ns]))
-	
+
 	# Take hidden master dns into account, the mail-in-a-box is not known as nameserver in that case
 	config = load_settings(env)
-	
+
 	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns) > 1:
 		correct_ns = "; ".join(sorted(secondary_ns))
-	
+
 	ip = query_dns(domain, "A")
 
 	probably_external_dns = False
@@ -558,11 +589,11 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				checkSOA = False
 			else:
 				output.print_error(f"Secondary nameserver {ns} is not configured correctly. (It resolved this domain as {ip}. It should be {correct_ip}.)")
-			
+
 			if checkSOA:
 				# Check that secondary DNS server is synchronized with our primary DNS server. Simplified by checking the SOA record which has a version number
 				SOASecondary = query_dns(domain, "SOA", at=ns_ip)
-				
+
 				if SOARecord == SOASecondary:
 					output.print_ok(f"Secondary nameserver {ns} has consistent SOA record.")
 				elif SOARecord == '[Not Set]':
@@ -570,7 +601,7 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				elif SOARecord == '[timeout]':
 					output.print_error(f"Secondary nameserver {ns} timed out on checking SOA record.")
 				else:
-					output.print_error(f"""Secondary nameserver {ns} has inconsistent SOA record (primary: {SOARecord} versus secondary: {SOASecondary}). 
+					output.print_error(f"""Secondary nameserver {ns} has inconsistent SOA record (primary: {SOARecord} versus secondary: {SOASecondary}).
 					Check that synchronization between secondary and primary DNS servers is properly set-up.""")
 
 def check_dns_zone_suggestions(domain, env, output, dns_zonefiles, domains_with_a_records):
@@ -759,7 +790,7 @@ def check_mail_domain(domain, env, output):
 	# Stop if the domain is listed in the Spamhaus Domain Block List.
 	# The user might have chosen a domain that was previously in use by a spammer
 	# and will not be able to reliably send mail.
-	
+
 	# See https://www.spamhaus.org/news/article/807/using-our-public-mirrors-check-your-return-codes-now. for
 	# information on spamhaus return codes
 	dbl = query_dns(domain+'.dbl.spamhaus.org', "A", nxdomain=None)
@@ -835,7 +866,7 @@ def query_dns(qname, rtype, nxdomain='[Not Set]', at=None, as_list=False, retry=
 		tries = 2
 	else:
 		tries = 1
-	
+
 	# Do the query.
 	while tries > 0:
 		tries = tries - 1
@@ -971,7 +1002,7 @@ def check_miab_version(env, output):
 		output.print_warning("You are running version Mail-in-a-Box %s Kiekerjan Edition. Mail-in-a-Box version check disabled by privacy setting." % this_ver)
 	else:
 		latest_ver = get_latest_miab_version()
-		
+
 		if this_ver[-6:] == "-20.04":
 			this_ver_tag = this_ver[:-6]
 		elif this_ver[-3:] == "-kj":
