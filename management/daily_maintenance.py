@@ -19,14 +19,20 @@ def do_webmail_maintenance(env):
 	logging.debug("Do webmail maintenance")
 	config = load_settings(env)
 
+	# Handle custom front logo of the Roundcube webmail
 	skin_logo = config.get("webmail", {}).get("skin_logo", None)
+	webmail_file = "/usr/local/lib/roundcubemail/config/config.inc.php"
+	remove = True
 
 	if skin_logo:
 		if isinstance(skin_logo, str):
-			do_editconf("/usr/local/lib/roundcubemail/config/config.inc.php",
-			f"$config['skin_logo']='{skin_logo}';")
+			do_editconf([webmail_file, f"$config['skin_logo']='{skin_logo}';"])
+			remove = False
 		else:
 			logging.debug("webmail.skin_logo configured but not a string")
+
+	if remove:
+		do_editconf([webmail_file, "-e", "$config['skin_logo']"])
 
 if __name__ == "__main__":
 	from utils import load_environment
