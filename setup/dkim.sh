@@ -49,16 +49,16 @@ if [ ! -f "$STORAGE_ROOT/mail/dkim/mail.key" ]; then
 	# Check if there is an existing rsa key
 	if [ -f "$STORAGE_ROOT/mail/dkim/mail.private" ]; then
 		# Re-use existing key
-		cp -f $STORAGE_ROOT/mail/dkim/mail.private $STORAGE_ROOT/mail/dkim/mail.key
-		cp -f $STORAGE_ROOT/mail/dkim/mail.txt $STORAGE_ROOT/mail/dkim/mail.dns
+		cp -f "$STORAGE_ROOT/mail/dkim/mail.private" "$STORAGE_ROOT/mail/dkim/mail.key"
+		cp -f "$STORAGE_ROOT/mail/dkim/mail.txt" "$STORAGE_ROOT/mail/dkim/mail.dns"
 	else
 		# All defaults are supposed to be ok, default key for rsa is 2048 bit
-		dknewkey --ktype rsa $STORAGE_ROOT/mail/dkim/mail
+		dknewkey --ktype rsa "$STORAGE_ROOT/mail/dkim/mail"
 		
 		# Force dns entry into the format dns_update.py expects
 		# We use selector mail for the rsa key, to be compatible with earlier installations of Mail-in-a-Box
-		sed -i 's/v=DKIM1;/mail._domainkey IN      TXT      ( "v=DKIM1; s=email;/' $STORAGE_ROOT/mail/dkim/mail.dns
-		echo '" )' >> $STORAGE_ROOT/mail/dkim/mail.dns
+		sed -i 's/v=DKIM1;/mail._domainkey IN      TXT      ( "v=DKIM1; s=email;/' "$STORAGE_ROOT/mail/dkim/mail.dns"
+		echo '" )' >> "$STORAGE_ROOT/mail/dkim/mail.dns"
 	fi
 	
 	# Change format from pkcs#8 to pkcs#1, dkimpy seemingly is not able to handle the #8 format
@@ -66,24 +66,24 @@ if [ ! -f "$STORAGE_ROOT/mail/dkim/mail.key" ]; then
 	line=$(head -n 1 mail.key)
 	if [ ! "$line" = "-----BEGIN RSA PRIVATE KEY-----" ]; then
 		# Generate pkcs#1 key from the pkcs#8 key
-		openssl pkey -in $STORAGE_ROOT/mail/dkim/mail.key -traditional -out $STORAGE_ROOT/mail/dkim/mail.key.1
-		mv -f $STORAGE_ROOT/mail/dkim/mail.key $STORAGE_ROOT/mail/dkim/mail.key.8
-		cp -f $STORAGE_ROOT/mail/dkim/mail.key.1 $STORAGE_ROOT/mail/dkim/mail.key
+		openssl pkey -in "$STORAGE_ROOT/mail/dkim/mail.key" -traditional -out "$STORAGE_ROOT/mail/dkim/mail.key.1"
+		mv -f "$STORAGE_ROOT/mail/dkim/mail.key" "$STORAGE_ROOT/mail/dkim/mail.key.8"
+		cp -f "$STORAGE_ROOT/mail/dkim/mail.key.1" "$STORAGE_ROOT/mail/dkim/mail.key"
 	fi
 fi
 
 if [ ! -f "$STORAGE_ROOT/mail/dkim/box-ed25519.key" ]; then
 	# Generate ed25519 key
-	dknewkey --ktype ed25519 $STORAGE_ROOT/mail/dkim/box-ed25519
+	dknewkey --ktype ed25519 "$STORAGE_ROOT/mail/dkim/box-ed25519"
 	
 	# For the ed25519 dns entry, we use selector box-ed25519
-	sed -i 's/v=DKIM1;/box-ed25519._domainkey IN      TXT      ( "v=DKIM1; s=email;/' $STORAGE_ROOT/mail/dkim/box-ed25519.dns
-	echo '" )' >> $STORAGE_ROOT/mail/dkim/box-ed25519.dns
+	sed -i 's/v=DKIM1;/box-ed25519._domainkey IN      TXT      ( "v=DKIM1; s=email;/' "$STORAGE_ROOT/mail/dkim/box-ed25519.dns"
+	echo '" )' >> "$STORAGE_ROOT/mail/dkim/box-ed25519.dns"
 fi
 
 # Ensure files are owned by the dkimpy-milter user and are private otherwise.
-chown -R dkimpy-milter:dkimpy-milter $STORAGE_ROOT/mail/dkim
-chmod go-rwx $STORAGE_ROOT/mail/dkim
+chown -R dkimpy-milter:dkimpy-milter "$STORAGE_ROOT/mail/dkim"
+chmod go-rwx "$STORAGE_ROOT/mail/dkim"
 
 tools/editconf.py /etc/opendmarc.conf -s \
 	"Syslog=true" \

@@ -19,10 +19,10 @@ Functionality changes and additions
 * Configure domain names for which only www will be hosted  
   Edit /etc/miabwwwdomains.conf to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider! If you want this box to handle the DNS entries, simply add a mail alias. (existing functionality of the vanilla Mail-in-a-Box)
 * Add some munin plugins
-* Update nextcloud to 26.0.8
+* Update nextcloud to 28.0.6
   And updated calendar and contacts apps
 * Add nextcloud notes app
-* Update roundcube to 1.6.5
+* Update roundcube to 1.6.7
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
 * Use shorter TTL values in the DNS server  
@@ -123,7 +123,7 @@ Clone this repository and checkout the tag corresponding to the most recent rele
 
 	$ git clone https://github.com/mail-in-a-box/mailinabox
 	$ cd mailinabox
-	$ git checkout v68
+	$ git checkout v69
 
 Begin the installation.
 

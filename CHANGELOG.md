@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+Version 69 (July 20, 2024)
+--------------------------
+
+Package updates:
+
+* Nextcloud is updated to 28.0.6.
+
+Other updates:
+
+* Fixed an error generating the weekly statistics.
+* Fixed file permissions when setting up Nextcloud.
+* Added an undocumented option to proxy websockets.
+* Internal improvements to the code to make it more reliable and readable.
+
 Version 68 (April 1, 2024)
 --------------------------
 

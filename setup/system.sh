@@ -1,3 +1,4 @@
+#!/bin/bash
 source /etc/mailinabox.conf
 source setup/functions.sh # load our functions
 
@@ -11,8 +12,8 @@ source setup/functions.sh # load our functions
 #
 # First set the hostname in the configuration file, then activate the setting
 
-echo $PRIMARY_HOSTNAME > /etc/hostname
-hostname $PRIMARY_HOSTNAME
+echo "$PRIMARY_HOSTNAME" > /etc/hostname
+hostname "$PRIMARY_HOSTNAME"
 
 # ### Fix permissions
 
@@ -53,14 +54,14 @@ if
 	[ -z "$SWAP_IN_FSTAB" ] &&
 	[ ! -e /swapfile ] &&
 	[ -z "$ROOT_IS_BTRFS" ] &&
-	[ $TOTAL_PHYSICAL_MEM -lt 1900000 ] &&
-	[ $AVAILABLE_DISK_SPACE -gt 5242880 ]
+	[ "$TOTAL_PHYSICAL_MEM" -lt 1900000 ] &&
+	[ "$AVAILABLE_DISK_SPACE" -gt 5242880 ]
 then
 	echo "Adding a swap file to the system..."
 
 	# Allocate and activate the swap file. Allocate in 1KB chuncks
 	# doing it in one go, could fail on low memory systems
-	dd if=/dev/zero of=/swapfile bs=1024 count=$[1024*1024] status=none
+	dd if=/dev/zero of=/swapfile bs=1024 count=$((1024*1024)) status=none
 	if [ -e /swapfile ]; then
 		chmod 600 /swapfile
 		hide_output mkswap /swapfile
@@ -114,7 +115,7 @@ EOF
 # of things from Ubuntu, as well as the directory of packages provide by the
 # PPAs so we can install those packages later.
 
-echo Updating system packages...
+echo "Updating system packages..."
 hide_output apt-get update
 apt_get_quiet upgrade
 
@@ -142,7 +143,7 @@ apt_get_quiet autoremove
 # * bc: allows us to do math to compute sane defaults
 # * openssh-client: provides ssh-keygen
 
-echo Installing system packages...
+echo "Installing system packages..."
 apt_install python3 python3-dev python3-pip python3-setuptools \
 	netcat-openbsd wget curl git sudo coreutils bc \
 	haveged pollinate openssh-client unzip \
@@ -171,7 +172,7 @@ fi
 # not likely the user will want to change this, so we only ask on first
 # setup.
 if [ -z "${NONINTERACTIVE:-}" ]; then
-	if [ ! -f /etc/timezone ] || [ ! -z ${FIRST_TIME_SETUP:-} ]; then
+	if [ ! -f /etc/timezone ] || [ -n "${FIRST_TIME_SETUP:-}" ]; then
 		# If the file is missing or this is the user's first time running
 		# Mail-in-a-Box setup, run the interactive timezone configuration
 		# tool.
@@ -233,7 +234,7 @@ fi
 # hardware entropy to get going, by drawing from /dev/random. haveged makes this
 # less likely to stall for very long.
 
-echo Initializing system random number generator...
+echo "Initializing system random number generator..."
 dd if=/dev/random of=/dev/urandom bs=1 count=32 2> /dev/null
 
 # This is supposedly sufficient. But because we're not sure if hardware entropy
@@ -296,8 +297,8 @@ if [ -z "${DISABLE_FIREWALL:-}" ]; then
 	SSH_PORT=$(sshd -T 2>/dev/null | grep "^port " | sed "s/port //") #NODOC
 	if [ ! -z "$SSH_PORT" ]; then
 		if [ "$SSH_PORT" != "22" ]; then
-			echo Opening alternate SSH port $SSH_PORT. #NODOC
-			ufw_limit $SSH_PORT #NODOC
+			echo "Opening alternate SSH port $SSH_PORT." #NODOC
+			ufw_limit "$SSH_PORT" #NODOC
 		else
 			# Allow incoming connections to SSH.
 			ufw_limit ssh;

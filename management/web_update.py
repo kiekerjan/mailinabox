@@ -179,6 +179,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 				pass_http_host_header = False
 				proxy_redirect_off = False
 				frame_options_header_sameorigin = False
+				web_sockets = False
 				m = re.search("#(.*)$", url)
 				if m:
 					for flag in m.group(1).split(","):
@@ -188,6 +189,8 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 							proxy_redirect_off = True
 						elif flag == "frame-options-sameorigin":
 							frame_options_header_sameorigin = True
+						elif flag == "web-sockets":
+							web_sockets = True
 					url = re.sub("#(.*)$", "", url)
 
 				nginx_conf_extra += "\tlocation %s {" % path
@@ -203,15 +206,11 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 							proxy_for_immich = True
 				
 				if proxy_for_photoprism:
+					web_sockets = True
 					nginx_conf_extra += "\n\t\tproxy_buffering off;"
-					nginx_conf_extra += "\n\t\tproxy_http_version 1.1;"
-					nginx_conf_extra += "\n\t\tproxy_set_header Upgrade $http_upgrade;"
-					nginx_conf_extra += "\n\t\tproxy_set_header Connection \"upgrade\";"
 					nginx_conf_extra += "\n\t\tclient_max_body_size 500M;"
 				if proxy_for_immich:
-					nginx_conf_extra += "\n\t\tproxy_http_version 1.1;"
-					nginx_conf_extra += "\n\t\tproxy_set_header Upgrade $http_upgrade;"
-					nginx_conf_extra += "\n\t\tproxy_set_header Connection \"upgrade\";"
+					web_sockets = True
 					nginx_conf_extra += "\n\t\tclient_max_body_size 500M;"
 				if proxy_redirect_off:
 					nginx_conf_extra += "\n\t\tproxy_redirect off;"
@@ -219,6 +218,10 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 					nginx_conf_extra += "\n\t\tproxy_set_header Host $http_host;"
 				if frame_options_header_sameorigin:
 					nginx_conf_extra += "\n\t\tproxy_set_header X-Frame-Options SAMEORIGIN;"
+				if web_sockets:
+					nginx_conf_extra += "\n\t\tproxy_http_version 1.1;"
+					nginx_conf_extra += "\n\t\tproxy_set_header Upgrade $http_upgrade;"
+					nginx_conf_extra += "\n\t\tproxy_set_header Connection 'Upgrade';"
 				nginx_conf_extra += "\n\t\tproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;"
 				nginx_conf_extra += "\n\t\tproxy_set_header X-Forwarded-Host $http_host;"
 				nginx_conf_extra += "\n\t\tproxy_set_header X-Forwarded-Proto $scheme;"

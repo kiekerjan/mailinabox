@@ -55,9 +55,9 @@ apt_install postfix postfix-sqlite postfix-pcre postgrey ca-certificates
 # * Set the SMTP banner (which must have the hostname first, then anything).
 tools/editconf.py /etc/postfix/main.cf \
 	inet_interfaces=all \
-	smtp_bind_address=$PRIVATE_IP \
-	smtp_bind_address6=$PRIVATE_IPV6 \
-	myhostname=$PRIMARY_HOSTNAME\
+	smtp_bind_address="$PRIVATE_IP" \
+	smtp_bind_address6="$PRIVATE_IPV6" \
+	myhostname="$PRIMARY_HOSTNAME"\
 	smtpd_banner="\$myhostname ESMTP" \
 	mydestination=localhost
 
@@ -140,9 +140,9 @@ sed -i "s/PUBLIC_IP/$PUBLIC_IP/" /etc/postfix/outgoing_mail_header_filters
 tools/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_security_level=may\
 	smtpd_tls_auth_only=yes \
-	smtpd_tls_cert_file=$STORAGE_ROOT/ssl/ssl_certificate.pem \
-	smtpd_tls_key_file=$STORAGE_ROOT/ssl/ssl_private_key.pem \
-	smtpd_tls_dh1024_param_file=$STORAGE_ROOT/ssl/dh4096.pem \
+	smtpd_tls_cert_file="$STORAGE_ROOT/ssl/ssl_certificate.pem" \
+	smtpd_tls_key_file="$STORAGE_ROOT/ssl/ssl_private_key.pem" \
+	smtpd_tls_dh1024_param_file="$STORAGE_ROOT/ssl/dh4096.pem" \
 	smtpd_tls_protocols=">=TLSv1.2" \
 	smtpd_tls_ciphers=high \
 	smtpd_tls_exclude_ciphers="aNULL CAMELLIA AES256-GCM-SHA384 AES128-GCM-SHA256 AES256-SHA256 AES128-SHA256 AES256-SHA AES128-SHA" \
@@ -277,17 +277,17 @@ tools/editconf.py /etc/default/postgrey \
 	POSTGREY_OPTS=\""--inet=127.0.0.1:10023 --delay=150 --max-age=365 --dbdir=$STORAGE_ROOT/mail/postgrey/db"\"
 
 # If the $STORAGE_ROOT/mail/postgrey is empty, copy the postgrey database over from the old location
-if [ ! -d $STORAGE_ROOT/mail/postgrey/db ]; then
+if [ ! -d "$STORAGE_ROOT/mail/postgrey/db" ]; then
 	# Stop the service
 	service postgrey stop
 	# Ensure the new paths for postgrey db exists
-	mkdir -p $STORAGE_ROOT/mail/postgrey/db
+	mkdir -p "$STORAGE_ROOT/mail/postgrey/db"
 	# Move over database files
-	mv /var/lib/postgrey/* $STORAGE_ROOT/mail/postgrey/db/ || true
+	mv /var/lib/postgrey/* "$STORAGE_ROOT/mail/postgrey/db/" || true
 fi
 # Ensure permissions are set
-chown -R postgrey:postgrey $STORAGE_ROOT/mail/postgrey/
-chmod 700 $STORAGE_ROOT/mail/postgrey/{,db}
+chown -R postgrey:postgrey "$STORAGE_ROOT/mail/postgrey/"
+chmod 700 "$STORAGE_ROOT/mail/postgrey/"{,db}
 
 # We are going to setup a newer whitelist for postgrey, the version included in the distribution is old
 cat > /etc/cron.daily/mailinabox-postgrey-whitelist << EOF;
