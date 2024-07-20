@@ -196,14 +196,14 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 		# Define ns2.PRIMARY_HOSTNAME or whatever the user overrides.
 		# User may provide one or more additional nameservers
 		secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
-		
+
 		config = load_settings(env)
-		
+
 		# Need at least two nameservers in the secondary dns list to enable DNS hidden master
-		useHiddenMaster = config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1
-		
+		use_hidden_master = config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1
+
 		# If hidden master is used, no NS records will be produced indicating the MiaB box as nameserver
-		if not useHiddenMaster:
+		if not use_hidden_master:
 			# Obligatory definition of ns1.PRIMARY_HOSTNAME.
 			records.append((None,  "NS",  "ns1.%s." % env["PRIMARY_HOSTNAME"], False))
 
@@ -496,7 +496,7 @@ def build_sshfp_records():
 	for line in sshd_config:
 		if line.startswith("listenaddress "):
 			line = line.replace("listenaddress ", "")
-			
+
 			if line[0] == "[":
 				# ipv6 is of form [ab:cd::]:<port>
 				leftpos = 1
@@ -507,12 +507,12 @@ def build_sshfp_records():
 				leftpos = 0
 				rightpos = line.find(":")
 				iptype = "-4"
-				
+
 			ipaddr = line[leftpos:rightpos]
-			
+
 			if ipaddr == "0.0.0.0" or ipaddr == "::":
 				ipaddr = "localhost"
-			
+
 			try:
 				keys = shell("check_output", ["ssh-keyscan", iptype, "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), ipaddr])
 				if len(keys) > 0:
@@ -591,7 +591,7 @@ $TTL {defttl}          ; default time to live
 	p_negttl = "12h"
 
 	config = load_settings(env)
-	
+
 	# Shorten dns ttl if file exists. Use before moving domains, changing secondary dns servers etc
 	if config.get("dns", {}).get("TTL", "Default").lower() == "short":
 		# Override the ttl values
