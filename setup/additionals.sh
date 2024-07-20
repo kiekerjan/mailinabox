@@ -30,7 +30,7 @@ if [ ! -f /usr/local/bin/mail ]; then
 fi
 
 # Adapt rkhunter configuration
-tools/editconf.py /etc/rkhunter.conf \
+management/editconf.py /etc/rkhunter.conf \
         UPDATE_MIRRORS=1 \
         MIRRORS_MODE=0 \
         WEB_CMD='""' \
@@ -42,7 +42,7 @@ if ! grep -Fxq "SCRIPTWHITELIST=/usr/local/bin/mail" /etc/rkhunter.conf > /dev/n
 	echo "SCRIPTWHITELIST=/usr/local/bin/mail" >> /etc/rkhunter.conf
 fi
 
-tools/editconf.py /etc/default/rkhunter \
+management/editconf.py /etc/default/rkhunter \
         CRON_DAILY_RUN='"true"' \
         CRON_DB_UPDATE='"true"' \
         APT_AUTOGEN='"true"'

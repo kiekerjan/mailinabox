@@ -81,7 +81,7 @@ fi
 # Set the systemd journal log retention from infinite to 10 days,
 # since over time the logs take up a large amount of space.
 # (See https://discourse.mailinabox.email/t/journalctl-reclaim-space-on-small-mailinabox/6728/11.)
-tools/editconf.py /etc/systemd/journald.conf MaxRetentionSec=10day
+management/editconf.py /etc/systemd/journald.conf MaxRetentionSec=10day
 
 hide_output systemctl restart systemd-journald.service
 
@@ -153,7 +153,7 @@ apt_install python3 python3-dev python3-pip python3-setuptools \
 # When Ubuntu 20 comes out, we don't want users to be prompted to upgrade,
 # because we don't yet support it.
 if [ -f /etc/update-manager/release-upgrades ]; then
-	tools/editconf.py /etc/update-manager/release-upgrades Prompt=never
+	management/editconf.py /etc/update-manager/release-upgrades Prompt=never
 	rm -f /var/lib/ubuntu-release-upgrader/release-upgrade-available
 fi
 
@@ -371,7 +371,7 @@ fi
 
 # Modify systemd settings
 rm -f /etc/resolv.conf
-tools/editconf.py /etc/systemd/resolved.conf \
+management/editconf.py /etc/systemd/resolved.conf \
 	DNS=127.0.0.1 \
 	DNSSEC=yes \
 	DNSStubListener=no
@@ -427,7 +427,7 @@ if [ ! -z "$SSH_PORT" ]; then
 fi
 
 # fail2ban should be able to look back far enough because we increased findtime of recidive jail
-tools/editconf.py /etc/fail2ban/fail2ban.conf dbpurgeage=7d
+management/editconf.py /etc/fail2ban/fail2ban.conf dbpurgeage=7d
 
 # On first installation, the log files that the jails look at don't all exist.
 # e.g., The roundcube error log isn't normally created until someone logs into

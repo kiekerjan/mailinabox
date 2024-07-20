@@ -23,7 +23,7 @@ apt_install dovecot-fts-xapian
 #
 # Break-imap-search makes search work the way users expect, rather than the way
 # the IMAP specification expects.
-tools/editconf.py /etc/dovecot/conf.d/10-mail.conf \
+management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
         mail_plugins="fts fts_xapian" \
         mail_home="$STORAGE_ROOT/mail/homes/%d/%n"
 

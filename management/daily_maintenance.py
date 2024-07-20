@@ -3,7 +3,7 @@
 # Run daily maintenance tasks
 ########################################################################
 
-from ..tools.editconf import do_editconf
+from editconf import do_editconf
 from utils import load_settings
 import logging
 

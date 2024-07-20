@@ -211,7 +211,7 @@ class EchoLine(Grammar):
 
 class EditConf(Grammar):
 	grammar = (
-		L('tools/editconf.py '),
+		L('management/editconf.py '),
 		FILENAME,
 		SPACE,
 		OPTIONAL((LIST_OF(

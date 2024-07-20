@@ -72,7 +72,7 @@ EOF
 # does not run DKIM on relayed mail, so outbound mail isn't
 # correct, see #830), but we enable it specifically for the
 # submission port.
-tools/editconf.py /etc/postfix/main.cf \
+management/editconf.py /etc/postfix/main.cf \
 	smtpd_sasl_type=dovecot \
 	smtpd_sasl_path=private/auth \
 	smtpd_sasl_auth_enable=no
@@ -85,7 +85,7 @@ tools/editconf.py /etc/postfix/main.cf \
 # address (aka envelope or return path address) must be "owned" by the user
 # who authenticated. An SQL query will find who are the owners of any given
 # address.
-tools/editconf.py /etc/postfix/main.cf \
+management/editconf.py /etc/postfix/main.cf \
 	smtpd_sender_login_maps=sqlite:/etc/postfix/sender-login-maps.cf
 
 # Postfix will query the exact address first, where the priority will be alias
@@ -105,7 +105,7 @@ EOF
 # SMTPUTF8 because Dovecot's LMTP server that delivers mail to inboxes does
 # not support it, and if a message is received with the SMTPUTF8 flag it will
 # bounce.
-tools/editconf.py /etc/postfix/main.cf \
+management/editconf.py /etc/postfix/main.cf \
 	smtputf8_enable=no \
 	virtual_mailbox_domains=sqlite:/etc/postfix/virtual-mailbox-domains.cf \
 	virtual_mailbox_maps=sqlite:/etc/postfix/virtual-mailbox-maps.cf \

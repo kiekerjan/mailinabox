@@ -73,7 +73,7 @@ apt_install curl php php-fpm \
 PHP_VER=$(php_version)
 
 # Enable APC before Nextcloud tools are run.
-tools/editconf.py /etc/php/$PHP_VER/mods-available/apcu.ini -c ';' \
+management/editconf.py /etc/php/$PHP_VER/mods-available/apcu.ini -c ';' \
     apc.enabled=1 \
     apc.enable_cli=1
 
@@ -243,7 +243,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 			
 			PHP_VER=$(php_version)
 			
-			tools/editconf.py /etc/php/$(php_version)/mods-available/apcu.ini -c ';' \
+			management/editconf.py /etc/php/$(php_version)/mods-available/apcu.ini -c ';' \
 				apc.enabled=1	\
 				apc.enable_cli=1
 
@@ -462,7 +462,7 @@ sudo -u www-data php /usr/local/lib/owncloud/occ app:update --all
 
 # Set PHP FPM values to support large file uploads
 # (semicolon is the comment character in this file, hashes produce deprecation warnings)
-tools/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
+management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 	upload_max_filesize=16G \
 	post_max_size=16G \
 	output_buffering=16384 \
@@ -471,7 +471,7 @@ tools/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 	short_open_tag=On
 
 # Set Nextcloud recommended opcache settings
-tools/editconf.py /etc/php/"$PHP_VER"/cli/conf.d/10-opcache.ini -c ';' \
+management/editconf.py /etc/php/"$PHP_VER"/cli/conf.d/10-opcache.ini -c ';' \
 	opcache.enable=1 \
 	opcache.enable_cli=1 \
 	opcache.interned_strings_buffer=8 \

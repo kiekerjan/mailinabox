@@ -28,7 +28,7 @@ echo "127.0.0.1" > /etc/dkim/TrustedHosts
 touch /etc/dkim/KeyTable
 touch /etc/dkim/SigningTable
 
-tools/editconf.py /etc/dkimpy-milter/dkimpy-milter.conf -s \
+management/editconf.py /etc/dkimpy-milter/dkimpy-milter.conf -s \
     "MacroList=daemon_name|ORIGINATING" \
     "MacroListVerify=daemon_name|VERIFYING" \
     "Canonicalization=relaxed/simple" \
@@ -85,7 +85,7 @@ fi
 chown -R dkimpy-milter:dkimpy-milter "$STORAGE_ROOT/mail/dkim"
 chmod go-rwx "$STORAGE_ROOT/mail/dkim"
 
-tools/editconf.py /etc/opendmarc.conf -s \
+management/editconf.py /etc/opendmarc.conf -s \
 	"Syslog=true" \
 	"Socket=inet:8893@[127.0.0.1]" \
 	"FailureReports=false"
@@ -95,7 +95,7 @@ tools/editconf.py /etc/opendmarc.conf -s \
 # itself, or because you don't trust the arriving header. This added header is
 # used by spamassassin to evaluate the mail for spamminess.
 
-tools/editconf.py /etc/opendmarc.conf -s \
+management/editconf.py /etc/opendmarc.conf -s \
         "SPFIgnoreResults=true"
 
 # SPFSelfValidate causes the filter to perform a fallback SPF check itself
@@ -104,13 +104,13 @@ tools/editconf.py /etc/opendmarc.conf -s \
 # the SPF check itself when this is set. This added header is used by
 # spamassassin to evaluate the mail for spamminess.
 
-tools/editconf.py /etc/opendmarc.conf -s \
+management/editconf.py /etc/opendmarc.conf -s \
         "SPFSelfValidate=true"
 
 # Disables generation of failure reports for sending domains that publish a
 # "none" policy.
 
-tools/editconf.py /etc/opendmarc.conf -s \
+management/editconf.py /etc/opendmarc.conf -s \
         "FailureReportsOnNone=false"
 
 # Add DKIMpy and OpenDMARC as milters to postfix, which is how DKIMpy
@@ -125,7 +125,7 @@ tools/editconf.py /etc/opendmarc.conf -s \
 # The OpenDMARC milter is skipped in the SMTP submission listener by
 # configuring smtpd_milters there to only list the DKIMpy milter
 # (see mail-postfix.sh).
-tools/editconf.py /etc/postfix/main.cf \
+management/editconf.py /etc/postfix/main.cf \
 	"smtpd_milters=inet:127.0.0.1:8892 inet:127.0.0.1:8893"\
 	non_smtpd_milters=\$smtpd_milters \
 	milter_default_action=accept
