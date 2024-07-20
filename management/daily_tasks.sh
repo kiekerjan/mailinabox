@@ -15,7 +15,7 @@ source /etc/mailinabox.conf
 # sent and received so the admin might notice server abuse.
 if [ "$(date "+%u")" -eq 1 ]; then
     management/mail_log.py -t week -r -s -l -g -b | management/email_administrator.py "Mail-in-a-Box Usage Report"
-    
+
     /usr/sbin/pflogsumm -u 5 -h 5 --problems_first /var/log/mail.log.1 | management/email_administrator.py "Postfix log analysis summary"
 fi
 
@@ -25,6 +25,9 @@ management/backup.py 2>&1 | sed 's/'"$DUPLICITY_VALIDATION_INFO"'//g' | manageme
 
 # Provision any new certificates for new domains or domains with expiring certificates.
 management/ssl_certificates.py -q  2>&1 | management/email_administrator.py "TLS Certificate Provisioning Result"
+
+# Daily maintenance tasks
+management/daily_maintenance.py
 
 # Run status checks and email the administrator if anything changed.
 management/status_checks.py --show-changes  2>&1 | management/email_administrator.py "Status Checks Change Notice"
