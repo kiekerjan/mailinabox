@@ -32,7 +32,7 @@ def do_webmail_maintenance(env):
 			logging.debug("webmail.skin_logo configured but not a string")
 
 	if remove:
-		do_editconf([webmail_file, "-e", "$config['skin_logo']"])
+		do_editconf([webmail_file, "-e", "$config['skin_logo']="])
 
 if __name__ == "__main__":
 	from utils import load_environment
