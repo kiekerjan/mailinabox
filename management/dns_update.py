@@ -10,7 +10,7 @@ import rtyaml
 import dns.resolver
 import logging
 
-from utils import shell, load_env_vars_from_file, safe_domain_name, sort_domains, get_ssh_port
+from utils import shell, load_env_vars_from_file, safe_domain_name, sort_domains, get_ssh_port, load_settings
 from ssl_certificates import get_ssl_certificates, check_certificate
 import contextlib
 
@@ -196,16 +196,13 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 		# Define ns2.PRIMARY_HOSTNAME or whatever the user overrides.
 		# User may provide one or more additional nameservers
 		secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
-
-		# Need at least two nameservers in the secondary dns list
-		useHiddenMaster = False
-		if os.path.exists("/etc/usehiddenmasterdns") and len(secondary_ns_list) > 1:
-			with open("/etc/usehiddenmasterdns") as f:
-				for line in f:
-					if line.strip() == domain or line.strip() == "usehiddenmasterdns":
-						useHiddenMaster = True
-						break
-
+		
+		config = load_settings(env)
+		
+		# Need at least two nameservers in the secondary dns list to enable DNS hidden master
+		useHiddenMaster = config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1
+		
+		# If hidden master is used, no NS records will be produced indicating the MiaB box as nameserver
 		if not useHiddenMaster:
 			# Obligatory definition of ns1.PRIMARY_HOSTNAME.
 			records.append((None,  "NS",  "ns1.%s." % env["PRIMARY_HOSTNAME"], False))
@@ -564,9 +561,9 @@ def write_nsd_zone(domain, zonefile, records, env, force):
 	#     zone invalid and stop answering queries for that zone. Only applies to zones using secondary DNS.
 	# Minimum TTL – How long in seconds that a nameserver or resolver should cache a negative response.
 
-	# To make use of hidden master initialize the DNS to be used as secondary DNS. Then change the following
-	# in the zone file:
-	#  - Name the secondary DNS server as primary DNS in the SOA record
+	# To make use of hidden master indicate that the nameservers configured as secondary DNS will be used.
+	# Then change the following in the zone file:
+	#  - Name the first configured secondary DNS server as primary DNS in the SOA record
 	#  - Do not add NS records for the Mail-in-a-Box server
 
 	# A hash of the available DNSSEC keys are added in a comment so that when
@@ -593,18 +590,16 @@ $TTL {defttl}          ; default time to live
 	p_expire = "14d"
 	p_negttl = "12h"
 
+	config = load_settings(env)
+	
 	# Shorten dns ttl if file exists. Use before moving domains, changing secondary dns servers etc
-	if os.path.exists("/etc/forceshortdnsttl"):
-		with open("/etc/forceshortdnsttl") as f:
-			for line in f:
-				if line.strip() == domain or line.strip() == "forceshortdnsttl":
-					# Override the ttl values
-					p_defttl = "5m"
-					p_refresh = "30m"
-					p_retry = "5m"
-					p_expire = "1d"
-					p_negttl = "5m"
-					break
+	if config.get("dns", {}).get("TTL", "Default").lower() == "short":
+		# Override the ttl values
+		p_defttl = "5m"
+		p_refresh = "30m"
+		p_retry = "5m"
+		p_expire = "1d"
+		p_negttl = "5m"
 
 	primary_dns = "ns1." + env["PRIMARY_HOSTNAME"]
 
@@ -612,13 +607,9 @@ $TTL {defttl}          ; default time to live
 	additional_records = list(get_custom_dns_config(env))
 	secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
 
-	# Using hidden master for a domain if it is configured
-	if os.path.exists("/etc/usehiddenmasterdns") and len(secondary_ns_list) > 1:
-		with open("/etc/usehiddenmasterdns") as f:
-			for line in f:
-				if line.strip() == domain or line.strip() == "usehiddenmasterdns":
-					primary_dns = secondary_ns_list[0]
-					break
+	# For DNS hidden master, take the first secondary nameserver as primary dns
+	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1:
+		primary_dns = secondary_ns_list[0]
 
 	# Replace replacement strings.
 	zone = zone.format(domain=domain, primary_dns=primary_dns, primary_domain=env["PRIMARY_HOSTNAME"], defttl=p_defttl,
