@@ -115,18 +115,14 @@
 
 <h4>Short TTL</h4>
 
-<p>This option will shorten the Time To Live (TTL) values configured in the DNS entries. This is usefull when you are moving the domain in the DNS as changes will be taken over more quickly.</p>
-<p>In normal operation it should not be enabled.</p>
+<p>This option will shorten the Time To Live (TTL) values configured in the DNS entries. This is usefull when you are moving the domain in the DNS as changes will be taken over more quickly. In normal operation it should not be enabled.</p>
 
 <form class="form-horizontal" role="form" onsubmit="do_set_advanced_dns(); return false;">
     <div class="form-group">
-    <label for="enableHiddenMaster" class="col-sm-1 control-label">Enable Hidden Master</label>
-    <div class="col-sm-10">
-      <input type="checkbox" class="form-control" id="enableHiddenMaster">
-    </div>
-    <label for="enableShortTTL" class="col-sm-1 control-label">Enable short TTL</label>
-    <div class="col-sm-10">
-      <input type="checkbox" class="form-control" id="enableShortTTL">
+        <label for="enableHiddenMaster" class="col-sm-1 control-label">Enable Hidden Master</label>
+        <input type="checkbox" class="form-control" id="enableHiddenMaster">
+        <label for="enableShortTTL" class="col-sm-1 control-label">Enable short TTL</label>
+        <input type="checkbox" class="form-control" id="enableShortTTL">
     </div>
     <div class="col-sm-offset-1 col-sm-11">
       <button type="submit" class="btn btn-primary">Update</button>
