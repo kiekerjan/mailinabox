@@ -168,12 +168,14 @@ def check_ssh_running_extended(def_port, name):
 
 	# Check each address, and work with the first one found
 	for la in listenaddresses:
-		ipaddr, port = parse_listenaddress(la)
-
+		ipaddr, port, t = parse_listenaddress(la)
+		
 		if not ipaddr:
 			continue
 
-		if not port:
+		if port:
+			port = int(port)
+		else:
 			port = def_port
 
 		if try_connect(ipaddr, port):

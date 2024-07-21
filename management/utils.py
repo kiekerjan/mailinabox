@@ -228,8 +228,13 @@ def parse_listenaddress(la_str):
 
 	if rightpos >= 0:
 		ip = la_str[leftpos:rightpos]
-		if len(la_str) > rightpos + 1:
-			port = la_str[rightpos + 1:]
+		if iptype == 4:
+                	rightpos += 1
+		else:
+			rightpos += 2
+                    
+		if len(la_str) > rightpos:
+			port = la_str[rightpos:]
 
 	return ip, port, iptype
 
