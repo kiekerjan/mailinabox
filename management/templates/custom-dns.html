@@ -119,10 +119,14 @@
 
 <form class="form-horizontal" role="form" onsubmit="do_set_advanced_dns(); return false;">
     <div class="form-group">
-        <label for="enableHiddenMaster" class="col-sm-1 control-label">Enable Hidden Master</label>
-        <input type="checkbox" class="form-control" id="enableHiddenMaster">
-        <label for="enableShortTTL" class="col-sm-1 control-label">Enable short TTL</label>
-        <input type="checkbox" class="form-control" id="enableShortTTL">
+        <label for="enableHiddenMaster" class="col-sm-3 control-label">Enable Hidden Master</label>
+        <div class="col-sm-1">
+            <input type="checkbox" class="form-control" id="enableHiddenMaster">
+        </div>
+        <label for="enableShortTTL" class="col-sm-3 control-label">Enable short TTL</label>
+        <div class="col-sm-1">
+            <input type="checkbox" class="form-control" id="enableShortTTL">
+        </div>
     </div>
     <div class="col-sm-offset-1 col-sm-11">
       <button type="submit" class="btn btn-primary">Update</button>
