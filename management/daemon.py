@@ -256,7 +256,7 @@ def mail_aliases_remove():
 @app.route('/mail/domains')
 @authorized_personnel_only
 def mail_domains():
-    return "".join(x+"\n" for x in get_mail_domains(env))
+	return "".join(x+"\n" for x in get_mail_domains(env))
 
 # DNS
 
@@ -305,12 +305,12 @@ def dns_get_records(qname=None, rtype=None):
 
 	# Make a better data structure.
 	records = [
-        {
-                "qname": r[0],
-                "rtype": r[1],
-                "value": r[2],
+		{
+				"qname": r[0],
+				"rtype": r[1],
+				"value": r[2],
 		"sort-order": { },
-        } for r in records ]
+		} for r in records ]
 
 	# To help with grouping by zone in qname sorting, label each record with which zone it is in.
 	# There's an inconsistency in how we handle zones in get_dns_zones and in sort_domains, so
@@ -664,7 +664,7 @@ def munin_start():
 	# for the API to avoid CSRF vulnerabilities.)
 	response = make_response("OK")
 	response.set_cookie("session", auth_service.create_session_key(request.user_email, env, type='cookie'),
-	    max_age=60*30, secure=True, httponly=True, samesite="Strict") # 30 minute duration
+		max_age=60*30, secure=True, httponly=True, samesite="Strict") # 30 minute duration
 	return response
 
 def check_request_cookie_for_admin_access():
@@ -761,12 +761,12 @@ def log_failed_login(request):
 # APP
 
 if __name__ == '__main__':
-	logging_level = logging.DEBUG
-	
-	if "DEBUG" in os.environ:
+	config = utils.load_settings(env)
+	logging_level = getattr(logging, config.get("general", {}).get("loglevel", "INFO"), logging.INFO)
+
+	if "DEBUG" in os.environ or logging_level == logging.DEBUG:
 		# Turn on Flask debugging.
 		app.debug = True
-		logging_level = logging.DEBUG
 
 	if not app.debug:
 		app.logger.addHandler(utils.create_syslog_handler())
@@ -778,4 +778,5 @@ if __name__ == '__main__':
 
 	# Start the application server. Listens on 127.0.0.1 (IPv4 only).
 	app.run(port=10222)
-	
+
+x
