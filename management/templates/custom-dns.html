@@ -106,6 +106,35 @@
 </form>
 
 
+<h3>Advanced</h3>
+
+<h4>Hidden Master</h4>
+
+<p>A Hidden Master is a DNS server that is not listed at the registrar or the root DNS servers. This server is the primary authoritative server, which means it contains a complete zone file for a given domain stored in it's configuration files. It can be used to hide the primary server, to prevent attacks on it, and it also can be used without configuring glue records</p>
+<p>To use the Hidden Master, at least two secondary dns servers have to be configured (see above). Once enabled, only the secondary Nameservers have to be configured at the domain registrat, and no glue records have to be configured for this machine.</p>
+
+<h4>Short TTL</h4>
+
+<p>This option will shorten the Time To Live (TTL) values configured in the DNS entries. This is usefull when you are moving the domain in the DNS as changes will be taken over more quickly.</p>
+<p>In normal operation it should not be enabled.</p>
+
+<form class="form-horizontal" role="form" onsubmit="do_set_advanced_dns(); return false;">
+    <div class="form-group">
+    <label for="enableHiddenMaster" class="col-sm-1 control-label">Enable Hidden Master</label>
+    <div class="col-sm-10">
+      <input type="checkbox" class="form-control" id="enableHiddenMaster">
+    </div>
+    <label for="enableShortTTL" class="col-sm-1 control-label">Enable short TTL</label>
+    <div class="col-sm-10">
+      <input type="checkbox" class="form-control" id="enableShortTTL">
+    </div>
+    <div class="col-sm-offset-1 col-sm-11">
+      <button type="submit" class="btn btn-primary">Update</button>
+    </div>
+  </div>
+</form>
+
+
 <h3>Custom DNS API</h3>
 
 <p>Use your box&rsquo;s DNS API to set custom DNS records on domains hosted here. For instance, you can create your own dynamic DNS service.</p>
@@ -183,6 +212,9 @@ function show_custom_dns() {
         $('#customdnsZone').append($('<option/>').text(data[i]));
       }
     });
+
+
+
 
   show_current_custom_dns();
   show_customdns_rtype_hint();
@@ -285,4 +317,25 @@ function do_set_custom_dns(qname, rtype, value, method) {
 function show_customdns_rtype_hint() {
   $('#customdnsTypeHint').text($("#customdnsType").find('option:selected').attr('data-hint'));
 }
+
+function show_advanced_dns() {
+}
+
+function do_set_advanced_dns() {
+ api(
+    "/dns/secondary-nameserver",
+    "POST",
+    {
+      hostnames: $('#secondarydnsHostname').val()
+    },
+    function(data) {
+      if (data == "") return; // nothing updated
+      show_modal_error("Secondary DNS", $("<pre/>").text(data));
+      $('#secondarydns-clear-instructions').slideDown();
+    },
+    function(err) {
+      show_modal_error("Secondary DNS", $("<pre/>").text(err));
+    });
+}
+
 </script>
