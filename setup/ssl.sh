@@ -97,3 +97,12 @@ fi
 # a predefined finite field group, in this case ffdhe4096 from
 # https://raw.githubusercontent.com/internetstandards/dhe_groups/master/ffdhe4096.pem
 cp -f conf/dh4096.pem $STORAGE_ROOT/ssl/
+
+# Cleanup expired SSL certificates from $STORAGE_ROOT/ssl daily
+cat > /etc/cron.daily/mailinabox-ssl-cleanup << EOF;
+#!/bin/bash
+# Mail-in-a-Box
+# Cleanup expired SSL certificates
+$(pwd)/tools/ssl_cleanup
+EOF
+chmod +x /etc/cron.daily/mailinabox-ssl-cleanup
