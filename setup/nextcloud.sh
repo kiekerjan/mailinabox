@@ -21,8 +21,8 @@ echo "Installing Nextcloud (contacts/calendar)..."
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=28.0.6
-nextcloud_hash=49216bf978914d7557e01b99a166dbb845d48a34
+nextcloud_ver=28.0.8
+nextcloud_hash=9f9a8853c503a77a9d54001c60219b2ad1640807
 
 # Nextcloud apps
 # --------------
@@ -40,12 +40,12 @@ contacts_ver=5.5.3
 contacts_hash=799550f38e46764d90fa32ca1a6535dccd8316e5
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=4.7.6
-calendar_hash=a995bca4effeecb2cab25f3bbeac9bfe05fee766
+calendar_ver=4.7.12
+calendar_hash=2ddfc9656043cea67e2a4bb74b2b9473c6ff38c0
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
 user_external_ver=3.3.0
-user_external_hash=49800e8ca61391965ce8a75eaaf92a8037185375
+user_external_hash=280d24eb2a6cb56b4590af8847f925c28d8d853e
 
 # Developer advice (test plan)
 # ----------------------------
@@ -184,7 +184,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 	service php"$PHP_VER"-fpm stop &> /dev/null || /bin/true
 
 	# Remove backups older than 60 days
-	find "$STORAGE_ROOT/home/user-data/owncloud-backup/*" -maxdepth 0 -type d -cname +60 -exec rm -rf {} +
+	find "$STORAGE_ROOT/owncloud-backup" -mindepth 1 -maxdepth 1 -iname "*" -type d -ctime +60 -exec rm -rf {} + 2>/dev/null || true
 
 	# Backup the existing ownCloud/Nextcloud.
 	# Create a backup directory to store the current installation and database to
