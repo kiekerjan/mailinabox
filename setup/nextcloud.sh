@@ -183,6 +183,9 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 	# Stop php-fpm if running. If they are not running (which happens on a previously failed install), dont bail.
 	service php"$PHP_VER"-fpm stop &> /dev/null || /bin/true
 
+	# Remove backups older than 60 days
+	find "$STORAGE_ROOT/home/user-data/owncloud-backup/*" -maxdepth 0 -type d -cname +60 -exec rm -rf {} +
+
 	# Backup the existing ownCloud/Nextcloud.
 	# Create a backup directory to store the current installation and database to
 	BACKUP_DIRECTORY=$STORAGE_ROOT/owncloud-backup/$(date +"%Y-%m-%d-%T")
