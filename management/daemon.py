@@ -403,6 +403,22 @@ def dns_get_zonefile(zone):
 	from dns_update import get_dns_zonefile
 	return Response(get_dns_zonefile(zone, env), status=200, mimetype='text/plain')
 
+@app.route('/dns/advanced-dns')
+@authorized_personnel_only
+def dns_get_advanced_dns_options():
+	
+	return json_response({ "hiddenmaster_enabled": False, "hiddenmaster_selected": False, "short_ttl_selected" })
+
+@app.route('/dns/advanced-dns', methods=['POST'])
+@authorized_personnel_only
+def dns_set_advanced_dns_options():
+	
+	try:
+		return "Updated it very nicely"
+	except ValueError as e:
+		# Use as raise ValueError(msg)
+		return (str(e), 400)
+
 # SSL
 
 @app.route('/ssl/status')
