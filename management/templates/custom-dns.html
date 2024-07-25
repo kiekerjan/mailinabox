@@ -321,7 +321,7 @@ function show_advanced_dns() {
     "GET",
     { },
     function(data) {
-      if (data.hiddenmaster_enable) {
+      if (data.hiddenmaster_enabled) {
         $('#enableHiddenMaster').removeClass('disabled')
         $('#enableHiddenMaster').prop('checked', data.hiddenmaster_selected);
       }
