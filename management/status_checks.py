@@ -339,6 +339,29 @@ def run_network_checks(env, output):
 		output.print_error("""The IP address of this machine {} is listed in the Spamhaus Block List (code {}),
 			which may prevent recipients from receiving your email. See http://www.spamhaus.org/query/ip/{}.""".format(env['PUBLIC_IP'], zen, env['PUBLIC_IP']))
 
+	if not env['PUBLIC_IPV6']:
+		return
+		
+	from ipaddress import IPv6Address
+	
+	rev_ip6 = ".".join(reversed(IPv6Address(env['PUBLIC_IPV6']).exploded.split(':')))
+	zen = query_dns(rev_ip6+'.zen.spamhaus.org', 'A', nxdomain=None, retry = False)
+	if zen is None:
+		output.print_ok("IPv6 address is not blacklisted by zen.spamhaus.org.")
+	elif zen == "[timeout]":
+		output.print_warning("Connection to zen.spamhaus.org timed out. Could not determine whether this box's IPv6 address is blacklisted. Please try again later.")
+	elif zen == "[Not Set]":
+		output.print_warning("Could not connect to zen.spamhaus.org. Could not determine whether this box's IPv6 address is blacklisted. Please try again later.")
+	elif zen == "127.255.255.252":
+		output.print_warning("Incorrect spamhaus query: %s. Could not determine whether this box's IPv6 address is blacklisted." % (rev_ip6+'.zen.spamhaus.org'))
+	elif zen == "127.255.255.254":
+		output.print_warning("Mail-in-a-Box is configured to use a public DNS server. This is not supported by spamhaus. Could not determine whether this box's IPv6 address is blacklisted.")
+	elif zen == "127.255.255.255":
+		output.print_warning("Too many queries have been performed on the spamhaus server. Could not determine whether this box's IPv6 address is blacklisted.")
+	else:
+		output.print_error("""The IPv6 address of this machine {} is listed in the Spamhaus Block List (code {}),
+			which may prevent recipients from receiving your email. See http://www.spamhaus.org/query/ip/{}.""".format(env['PUBLIC_IPV6'], zen, env['PUBLIC_IPV6']))
+
 def run_domain_checks(rounded_time, env, output, pool, domains_to_check=None):
 	# Get the list of domains we handle mail for.
 	mail_domains = get_mail_domains(env)
