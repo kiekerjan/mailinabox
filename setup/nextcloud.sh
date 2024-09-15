@@ -9,6 +9,9 @@ source /etc/mailinabox.conf # load global vars
 
 echo "Installing Nextcloud (contacts/calendar)..."
 
+INSTALL_DIR=/usr/local/lib/nextcloud
+CLOUD_DIR=$INSTALL_DIR/cloud
+
 # Nextcloud core and app (plugin) versions to install.
 # With each version we store a hash to ensure we install what we expect.
 
@@ -96,75 +99,75 @@ InstallNextcloud() {
 	wget_verify "https://download.nextcloud.com/server/releases/nextcloud-$version.zip" "$hash" /tmp/nextcloud.zip
 
 	# Remove the current owncloud/Nextcloud
-	rm -rf /usr/local/lib/owncloud
+	rm -rf $CLOUD_DIR/cloud
 
 	# Extract ownCloud/Nextcloud
-	unzip -q /tmp/nextcloud.zip -d /usr/local/lib
-	mv /usr/local/lib/nextcloud /usr/local/lib/owncloud
+	unzip -q /tmp/nextcloud.zip -d $INSTALL_DIR
+	mv $INSTALL_DIR/nextcloud $CLOUD_DIR
 	rm -f /tmp/nextcloud.zip
 
 	# Empty the skeleton dir to save some space for each new user
-	rm -rf /usr/local/lib/owncloud/core/skeleton/*
+	rm -rf $CLOUD_DIR/core/skeleton/*
 
 	# The two apps we actually want are not in Nextcloud core. Download the releases from
 	# their github repositories.
-	mkdir -p /usr/local/lib/owncloud/apps
+	mkdir -p $CLOUD_DIR/apps
 
 	wget_verify "https://github.com/nextcloud-releases/contacts/archive/refs/tags/v$version_contacts.tar.gz" "$hash_contacts" /tmp/contacts.tgz
-	tar xf /tmp/contacts.tgz -C /usr/local/lib/owncloud/apps/
+	tar xf /tmp/contacts.tgz -C $CLOUD_DIR/apps/
 	rm /tmp/contacts.tgz
 
 	wget_verify "https://github.com/nextcloud-releases/calendar/archive/refs/tags/v$version_calendar.tar.gz" "$hash_calendar" /tmp/calendar.tgz
-	tar xf /tmp/calendar.tgz -C /usr/local/lib/owncloud/apps/
+	tar xf /tmp/calendar.tgz -C $CLOUD_DIR/apps/
 	rm /tmp/calendar.tgz
 
 	# Starting with Nextcloud 15, the app user_external is no longer included in Nextcloud core,
 	# we will install from their github repository.
 	if [ -n "$version_user_external" ]; then
 		wget_verify "https://github.com/nextcloud-releases/user_external/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
-		tar -xf /tmp/user_external.tgz -C /usr/local/lib/owncloud/apps/
+		tar -xf /tmp/user_external.tgz -C $CLOUD_DIR/apps/
 		rm /tmp/user_external.tgz
 	fi
 
 	# Fix weird permissions.
-	chmod 750 /usr/local/lib/owncloud/{apps,config}
+	chmod 750 $CLOUD_DIR/{apps,config}
 
 	# Create a symlink to the config.php in STORAGE_ROOT (for upgrades we're restoring the symlink we previously
 	# put in, and in new installs we're creating a symlink and will create the actual config later).
-	ln -sf "$STORAGE_ROOT/owncloud/config.php" /usr/local/lib/owncloud/config/config.php
+	ln -sf "$STORAGE_ROOT/owncloud/config.php" $CLOUD_DIR/config/config.php
 
 	# Make sure permissions are correct or the upgrade step won't run.
 	# $STORAGE_ROOT/owncloud may not yet exist, so use -f to suppress
 	# that error.
-	chown -f -R www-data:www-data "$STORAGE_ROOT/owncloud" /usr/local/lib/owncloud || /bin/true
+	chown -f -R www-data:www-data "$STORAGE_ROOT/owncloud" $INSTALL_DIR || /bin/true
 
 	# If this isn't a new installation, immediately run the upgrade script.
 	# Then check for success (0=ok and 3=no upgrade needed, both are success).
 	if [ -e "$STORAGE_ROOT/owncloud/owncloud.db" ]; then
 		# ownCloud 8.1.1 broke upgrades. It may fail on the first attempt, but
 		# that can be OK.
-		sudo -u www-data php /usr/local/lib/owncloud/occ upgrade
+		sudo -u www-data php $CLOUD_DIR/occ upgrade
 		E=$?
 		if [ $E -ne 0 ] && [ $E -ne 3 ]; then
 			echo "Trying ownCloud upgrade again to work around ownCloud upgrade bug..."
-			sudo -u www-data php /usr/local/lib/owncloud/occ upgrade
+			sudo -u www-data php $CLOUD_DIR/occ upgrade
 			E=$?
 			if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
-			sudo -u www-data php /usr/local/lib/owncloud/occ maintenance:mode --off
+			sudo -u www-data php $CLOUD_DIR/occ maintenance:mode --off
 			echo "...which seemed to work."
 		fi
 
 		# Add missing indices. NextCloud didn't include this in the normal upgrade because it might take some time.
-		sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/occ db:add-missing-indices
-		sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/occ db:add-missing-primary-keys
+		sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
+		sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
 
 		# Run conversion to BigInt identifiers, this process may take some time on large tables.
-		sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/occ db:convert-filecache-bigint --no-interaction
+		sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
 	fi
 }
 
 # Current Nextcloud Version, #1623
-# Checking /usr/local/lib/owncloud/version.php shows version of the Nextcloud application, not the DB
+# Checking /usr/local/lib/nextcloud/cloud/version.php shows version of the Nextcloud application, not the DB
 # $STORAGE_ROOT/owncloud is kept together even during a backup. It is better to rely on config.php than
 # version.php since the restore procedure can leave the system in a state where you have a newer Nextcloud
 # application version than the database.
@@ -178,7 +181,7 @@ fi
 
 # If the Nextcloud directory is missing (never been installed before, or the nextcloud version to be installed is different
 # from the version currently installed, do the install/upgrade
-if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; then
+if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; then
 
 	# Stop php-fpm if running. If they are not running (which happens on a previously failed install), dont bail.
 	service php"$PHP_VER"-fpm stop &> /dev/null || /bin/true
@@ -190,9 +193,9 @@ if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextc
 	# Create a backup directory to store the current installation and database to
 	BACKUP_DIRECTORY=$STORAGE_ROOT/owncloud-backup/$(date +"%Y-%m-%d-%T")
 	mkdir -p "$BACKUP_DIRECTORY"
-	if [ -d /usr/local/lib/owncloud/ ]; then
+	if [ -d $CLOUD_DIR ]; then
 		echo "Upgrading Nextcloud --- backing up existing installation, configuration, and database to directory to $BACKUP_DIRECTORY..."
-		cp -r /usr/local/lib/owncloud "$BACKUP_DIRECTORY/owncloud-install"
+		cp -r $CLOUD_DIR "$BACKUP_DIRECTORY/owncloud-install"
 	fi
 	if [ -e "$STORAGE_ROOT/owncloud/owncloud.db" ]; then
 		cp "$STORAGE_ROOT/owncloud/owncloud.db" "$BACKUP_DIRECTORY"
@@ -360,7 +363,7 @@ EOF
 	# when the install script is run. Make an administrator account
 	# here or else the install can't finish.
 	adminpassword=$(dd if=/dev/urandom bs=1 count=40 2>/dev/null | sha1sum | fold -w 30 | head -n 1)
-	cat > /usr/local/lib/owncloud/config/autoconfig.php <<EOF;
+	cat > $CLOUD_DIR/config/autoconfig.php <<EOF;
 <?php
 \$AUTOCONFIG = array (
   # storage/database
@@ -376,12 +379,12 @@ EOF
 EOF
 
 	# Set permissions
-	chown -R www-data:www-data "$STORAGE_ROOT/owncloud" /usr/local/lib/owncloud
+	chown -R www-data:www-data "$STORAGE_ROOT/owncloud" $CLOUD_DIR
 
 	# Execute Nextcloud's setup step, which creates the Nextcloud sqlite database.
 	# It also wipes it if it exists. And it updates config.php with database
 	# settings and deletes the autoconfig.php file.
-	(cd /usr/local/lib/owncloud || exit; sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/index.php;)
+	(cd $CLOUD_DIR || exit; sudo -u www-data php"$PHP_VER" $CLOUD_DIR/index.php;)
 fi
 
 # Update config.php.
@@ -444,34 +447,34 @@ chown www-data:www-data "$STORAGE_ROOT/owncloud/config.php"
 # The firstrunwizard gave Josh all sorts of problems, so disabling that.
 # user_external is what allows Nextcloud to use IMAP for login. The contacts
 # and calendar apps are the extensions we really care about here.
-hide_output sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/console.php app:disable firstrunwizard
-hide_output sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/console.php app:enable user_external
-hide_output sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/console.php app:enable contacts
-hide_output sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/console.php app:enable calendar
+hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:disable firstrunwizard
+hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:enable user_external
+hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:enable contacts
+hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:enable calendar
 
 # When upgrading, run the upgrade script again now that apps are enabled. It seems like
 # the first upgrade at the top won't work because apps may be disabled during upgrade?
 # Check for success (0=ok, 3=no upgrade needed).
-sudo -u www-data php"$PHP_VER" /usr/local/lib/owncloud/occ upgrade
+sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ upgrade
 E=$?
 if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
 
 # Disable default apps that we don't support
 sudo -u www-data \
-	php"$PHP_VER" /usr/local/lib/owncloud/occ app:disable photos dashboard activity \
+	php"$PHP_VER" $CLOUD_DIR/occ app:disable photos dashboard activity weather_status \
 	| (grep -v "No such app enabled" || /bin/true)
 
 # Install interesting apps
-(sudo -u www-data php /usr/local/lib/owncloud/occ app:install notes) || true
+(sudo -u www-data php $CLOUD_DIR/occ app:install notes) || true
 
-hide_output sudo -u www-data php /usr/local/lib/owncloud/console.php app:enable notes
+hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable notes
 
-(sudo -u www-data php /usr/local/lib/owncloud/occ app:install twofactor_totp) || true
+(sudo -u www-data php $CLOUD_DIR/occ app:install twofactor_totp) || true
 
-hide_output sudo -u www-data php /usr/local/lib/owncloud/console.php app:enable twofactor_totp
+hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable twofactor_totp
 
 # upgrade apps
-sudo -u www-data php /usr/local/lib/owncloud/occ app:update --all
+sudo -u www-data php $CLOUD_DIR/occ app:update --all
 
 # Set PHP FPM values to support large file uploads
 # (semicolon is the comment character in this file, hashes produce deprecation warnings)
@@ -487,7 +490,7 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 management/editconf.py /etc/php/"$PHP_VER"/cli/conf.d/10-opcache.ini -c ';' \
 	opcache.enable=1 \
 	opcache.enable_cli=1 \
-	opcache.interned_strings_buffer=8 \
+	opcache.interned_strings_buffer=16 \
 	opcache.max_accelerated_files=10000 \
 	opcache.memory_consumption=128 \
 	opcache.save_comments=1 \
@@ -506,14 +509,14 @@ sqlite3 "$STORAGE_ROOT/owncloud/owncloud.db" "UPDATE oc_users_external SET backe
 cat > /etc/cron.d/mailinabox-nextcloud << EOF;
 #!/bin/bash
 # Mail-in-a-Box
-*/5 * * * *	root	sudo -u www-data php$PHP_VER -f /usr/local/lib/owncloud/cron.php
-*/5 * * * *	root	sudo -u www-data php$PHP_VER -f /usr/local/lib/owncloud/occ dav:send-event-reminders
+*/5 * * * *	root	sudo -u www-data php$PHP_VER -f $CLOUD_DIR/cron.php
+*/5 * * * *	root	sudo -u www-data php$PHP_VER -f $CLOUD_DIR/occ dav:send-event-reminders
 EOF
 chmod +x /etc/cron.d/mailinabox-nextcloud
 
 # We also need to change the sending mode from background-job to occ.
 # Or else the reminders will just be sent as soon as possible when the background jobs run.
-hide_output sudo -u www-data php"$PHP_VER" -f /usr/local/lib/owncloud/occ config:app:set dav sendEventRemindersMode --value occ
+hide_output sudo -u www-data php"$PHP_VER" -f $CLOUD_DIR/occ config:app:set dav sendEventRemindersMode --value occ
 
 # Now set the config to read-only.
 # Do this only at the very bottom when no further occ commands are needed.
