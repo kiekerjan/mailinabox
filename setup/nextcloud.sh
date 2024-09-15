@@ -461,7 +461,8 @@ if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
 
 # Disable default apps that we don't support
 sudo -u www-data \
-	php"$PHP_VER" $CLOUD_DIR/occ app:disable photos dashboard activity weather_status \
+	php"$PHP_VER" $CLOUD_DIR/occ app:disable photos dashboard activity \
+	weather_status logreader \
 	| (grep -v "No such app enabled" || /bin/true)
 
 # Install interesting apps
@@ -517,6 +518,9 @@ chmod +x /etc/cron.d/mailinabox-nextcloud
 # We also need to change the sending mode from background-job to occ.
 # Or else the reminders will just be sent as soon as possible when the background jobs run.
 hide_output sudo -u www-data php"$PHP_VER" -f $CLOUD_DIR/occ config:app:set dav sendEventRemindersMode --value occ
+
+# Run the maintenance command
+hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ maintenance:repair --include-expensive
 
 # Now set the config to read-only.
 # Do this only at the very bottom when no further occ commands are needed.
