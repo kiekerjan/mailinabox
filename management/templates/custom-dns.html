@@ -111,7 +111,7 @@
 <h4>Hidden Master</h4>
 
 <p>A Hidden Master is a DNS server that is not listed at the registrar or the root DNS servers. This server is the primary authoritative server, which means it contains a complete zone file for a given domain stored in it's configuration files. It can be used to hide the primary server, to prevent attacks on it, and it also can be used without configuring glue records</p>
-<p>To use the Hidden Master, at least two secondary dns servers have to be configured (see above). Once enabled, only the secondary Nameservers have to be configured at the domain registrat, and no glue records have to be configured for this machine.</p>
+<p>To use the Hidden Master, at least two secondary dns servers have to be configured (see above). Once enabled, only the secondary Nameservers have to be configured at the domain registrar, and no glue records have to be configured for this machine.</p>
 
 <h4>Short TTL</h4>
 
@@ -119,7 +119,7 @@
 
 <form class="form-horizontal" role="form" onsubmit="do_set_advanced_dns(); return false;">
     <div class="form-group">
-        <label for="enableHiddenMaster" class="col-sm-2 control-label">Enable Hidden Master</label>
+        <label for="enableHiddenMaster" class="col-sm-2 control-label" id="enableHiddenMasterLabel">Enable Hidden Master</label>
         <div class="col-sm-1">
             <input type="checkbox" class="form-control" id="enableHiddenMaster">
         </div>
@@ -291,7 +291,7 @@ function do_set_custom_dns(qname, rtype, value, method) {
     if ($('#customdnsQname').val() != '')
       qname = $('#customdnsQname').val() + '.' + $('#customdnsZone').val();
     else
-    qname = $('#customdnsZone').val();
+      qname = $('#customdnsZone').val();
     rtype = $('#customdnsType').val();
     value = $('#customdnsValue').val();
     method = 'POST';
@@ -322,15 +322,17 @@ function show_advanced_dns() {
     { },
     function(data) {
       if (data.hiddenmaster_enabled) {
-        $('#enableHiddenMaster').removeClass('disabled')
+        $('#enableHiddenMaster').prop('disabled', false);
+        $('#enableHiddenMasterLabel').prop('disabled', false);
         $('#enableHiddenMaster').prop('checked', data.hiddenmaster_selected);
       }
       else {
-        $('#enableHiddenMaster').addClass('disabled')
+        $('#enableHiddenMaster').prop('disabled', true);
+        $('#enableHiddenMasterLabel').prop('disabled', true);
         $('#enableHiddenMaster').prop('checked', false);
       }
       
-      $('#enableShortTTL').prop(data.short_ttl_selected);
+      $('#enableShortTTL').prop('checked', data.short_ttl_selected);
     });
 }
 
@@ -339,8 +341,8 @@ function do_set_advanced_dns() {
     "/dns/advanced-dns",
     "POST",
     {
-      hiddenmaster_selected: $('#enableHiddenMaster').val();
-      short_ttl_selected: $('#enableShortTTL').val();
+      hiddenmaster_selected: $('#enableHiddenMaster').val(),
+      short_ttl_selected: $('#enableShortTTL').val()
     },
     function(data) {
       if (data == "") return; // nothing updated

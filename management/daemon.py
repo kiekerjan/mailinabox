@@ -407,7 +407,7 @@ def dns_get_zonefile(zone):
 @authorized_personnel_only
 def dns_get_advanced_dns_options():
 	
-	return json_response({ "hiddenmaster_enabled": False, "hiddenmaster_selected": False, "short_ttl_selected": False })
+	return json_response({ "hiddenmaster_enabled": False, "hiddenmaster_selected": True, "short_ttl_selected": True	})
 
 @app.route('/dns/advanced-dns', methods=['POST'])
 @authorized_personnel_only
