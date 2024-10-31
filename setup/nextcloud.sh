@@ -310,6 +310,7 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 # 27                - 8.0 (d), 8.1, 8.2 (r)
 # 28		    - 8.0 (d), 8.1, 8.2 (r), 8.3
 # 29		    - 8.0 (d), 8.1, 8.2 (r), 8.3
+# 30		    - 8.1 (d), 8.2, 8.3 (r)
 #
 # ubuntu 18.04 has php 7.2
 # ubuntu 22.04 has php 8.1
