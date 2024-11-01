@@ -110,12 +110,12 @@
 
 <h4>Hidden Master</h4>
 
-<p>A Hidden Master is a DNS server that is not listed at the registrar or the root DNS servers. This server is the primary authoritative server, which means it contains a complete zone file for a given domain stored in it's configuration files. It can be used to hide the primary server, to prevent attacks on it, and it also can be used without configuring glue records</p>
+<p>A Hidden Master is a DNS server that is not listed at the registrar or the root DNS servers. This server is the primary authoritative server, which means it contains a complete zone file for a given domain stored in its configuration files. It can be used to hide the primary server, to prevent attacks on it, and it also can be used without configuring glue records</p>
 <p>To use the Hidden Master, at least two secondary dns servers have to be configured (see above). Once enabled, only the secondary Nameservers have to be configured at the domain registrar, and no glue records have to be configured for this machine.</p>
 
 <h4>Short TTL</h4>
 
-<p>This option will shorten the Time To Live (TTL) values configured in the DNS entries. This is usefull when you are moving the domain in the DNS as changes will be taken over more quickly. In normal operation it should not be enabled.</p>
+<p>This option will shorten the Time To Live (TTL) values configured in the DNS entries. This is useful when you are making changes in the DNS as changes will be taken over more quickly. For instance when you are moving the box to a new hosting server and thus changing its IP Address. In normal operation it should not be enabled.</p>
 
 <form class="form-horizontal" role="form" onsubmit="do_set_advanced_dns(); return false;">
     <div class="form-group">
