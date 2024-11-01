@@ -406,14 +406,17 @@ def dns_get_zonefile(zone):
 @app.route('/dns/advanced-dns')
 @authorized_personnel_only
 def dns_get_advanced_dns_options():
-	
+
 	return json_response({ "hiddenmaster_enabled": False, "hiddenmaster_selected": True, "short_ttl_selected": True	})
 
 @app.route('/dns/advanced-dns', methods=['POST'])
 @authorized_personnel_only
 def dns_set_advanced_dns_options():
-	
+
 	try:
+		# We do nothing yet
+		logging.debug(f"Hidden master selected value {request.form.get('hiddenmaster_selected')} of type {type(request.form.get('hiddenmaster_selected'))}")
+		logging.debug(f"Short ttl selected value {request.form.get('short_ttl_selected')} of type {type(request.form.get('hiddenmaster_selected'))}")
 		return "Updated it very nicely"
 	except ValueError as e:
 		# Use as raise ValueError(msg)
