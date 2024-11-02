@@ -406,6 +406,11 @@ def dns_get_zonefile(zone):
 @app.route('/dns/advanced-dns')
 @authorized_personnel_only
 def dns_get_advanced_dns_options():
+	# Is hidden master available?
+	
+	# If yes, provide current value of hidden master in JSON response
+	
+	# Provide current value of short TTL
 
 	return json_response({ "hiddenmaster_enabled": False, "hiddenmaster_selected": True, "short_ttl_selected": True	})
 
@@ -414,6 +419,14 @@ def dns_get_advanced_dns_options():
 def dns_set_advanced_dns_options():
 
 	try:
+		# Is hidden master available?
+		
+		# If yes, store the hidden master selection in configuration
+		
+		# Store the value of short TTL selected
+		
+		# If anything changed, kick a DNS update
+		
 		# We do nothing yet
 		logging.debug(f"Hidden master selected value {request.form.get('hiddenmaster_selected')} of type {type(request.form.get('hiddenmaster_selected'))}")
 		logging.debug(f"Short ttl selected value {request.form.get('short_ttl_selected')} of type {type(request.form.get('hiddenmaster_selected'))}")
