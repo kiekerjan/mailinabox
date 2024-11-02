@@ -591,8 +591,7 @@ $TTL {defttl}          ; default time to live
 	primary_dns = "ns1." + env["PRIMARY_HOSTNAME"]
 
 	# Obtain the secondary nameserver list
-	additional_records = list(get_custom_dns_config(env))
-	secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
+	secondary_ns_list = get_secondary_ns_list(env)
 
 	# For DNS hidden master, take the first secondary nameserver as primary dns
 	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1:
@@ -684,6 +683,13 @@ $TTL {defttl}          ; default time to live
 		f.write(zone)
 
 	return True # file is updated
+
+
+def get_secondary_ns_list(env):
+	additional_records = list(get_custom_dns_config(env))
+	secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
+	return secondary_ns_list
+
 
 def get_dns_zonefile(zone, env):
 	for domain, fn in get_dns_zones(env):

@@ -389,7 +389,7 @@ def dns_set_record(qname, rtype="A"):
 		return "OK"
 
 	except ValueError as e:
-		return (str(e), 400)
+		return str(e), 400
 
 @app.route('/dns/dump')
 @authorized_personnel_only
@@ -397,40 +397,71 @@ def dns_get_dump():
 	from dns_update import build_recommended_dns
 	return json_response(build_recommended_dns(env))
 
+
 @app.route('/dns/zonefile/<zone>')
 @authorized_personnel_only
 def dns_get_zonefile(zone):
 	from dns_update import get_dns_zonefile
 	return Response(get_dns_zonefile(zone, env), status=200, mimetype='text/plain')
 
+
 @app.route('/dns/advanced-dns')
 @authorized_personnel_only
 def dns_get_advanced_dns_options():
-	# Is hidden master available?
-	
-	# If yes, provide current value of hidden master in JSON response
-	
-	# Provide current value of short TTL
+	from dns_update import get_secondary_ns_list
 
-	return json_response({ "hiddenmaster_enabled": False, "hiddenmaster_selected": True, "short_ttl_selected": True	})
+	config = utils.load_settings(env)
+
+	# Is hidden master available?
+	hm_available = len(get_secondary_ns_list(env)) > 1
+
+	if hm_available:
+		hm_val = config.get("dns", {}).get("hiddenmaster", False)
+	else:
+		hm_val = False
+
+	# Provide current value of short TTL
+	ttl_val = config.get("dns", {}).get("TTL", "default").lower() == 'short'
+
+	return json_response({ "hiddenmaster_enabled": hm_available, "hiddenmaster_selected": hm_val, "short_ttl_selected": ttl_val })
+
 
 @app.route('/dns/advanced-dns', methods=['POST'])
 @authorized_personnel_only
 def dns_set_advanced_dns_options():
+	from dns_update import do_dns_update, get_secondary_ns_list
 
 	try:
+		config = utils.load_settings(env)
+		secondary_ns_list = get_secondary_ns_list(env)
+
+		# Read old values
+		old_hm_val = config.get("dns", {}).get("hiddenmaster", None)
+		old_ttl_val = config.get("dns", {}).get("TTL", "unset")
+
 		# Is hidden master available?
-		
-		# If yes, store the hidden master selection in configuration
-		
+		if len(secondary_ns_list) > 1:
+			# If yes, store the hidden master selection in configuration
+			new_hm_val = request.form.get('hiddenmaster_selected').lower() == 'true'
+		else:
+			new_hm_val = False
+
 		# Store the value of short TTL selected
-		
-		# If anything changed, kick a DNS update
-		
-		# We do nothing yet
-		logging.debug(f"Hidden master selected value {request.form.get('hiddenmaster_selected')} of type {type(request.form.get('hiddenmaster_selected'))}")
-		logging.debug(f"Short ttl selected value {request.form.get('short_ttl_selected')} of type {type(request.form.get('hiddenmaster_selected'))}")
-		return "Updated it very nicely"
+		if request.form.get('short_ttl_selected').lower() == 'true':
+			new_ttl_val = 'short'
+		else:
+			new_ttl_val = 'default'
+
+		# Act if any changes
+		if not old_hm_val == new_hm_val or not old_ttl_val == new_ttl_val:
+			config["dns"]["hiddenmaster"] = new_hm_val
+			config["dns"]["TTL"] = new_ttl_val
+
+			utils.write_settings(config, env)
+
+			return do_dns_update(env)
+
+		return "OK"
 	except ValueError as e:
 		# Use as raise ValueError(msg)
 		return (str(e), 400)
