@@ -19,16 +19,16 @@ Functionality changes and additions
 * Configure domain names for which only www will be hosted  
   Edit /etc/miabwwwdomains.conf to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider! If you want this box to handle the DNS entries, simply add a mail alias. (existing functionality of the vanilla Mail-in-a-Box)
 * Add some munin plugins
-* Update nextcloud to 28.0.6
+* Update nextcloud to 29.0.8
   And updated calendar and contacts apps
 * Add nextcloud notes app
-* Update roundcube to 1.6.7
+* Update roundcube to 1.6.9
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
-* Use shorter TTL values in the DNS server  
-  To be used before for example when changing IP addresses. Shortening TTL values will propagate changes faster. For reference, default TTL is 1 day, short TTL is 5 minutes. To use, edit file /etc/forceshortdnsttl and add a line for each domain for which shorter TTLs should be used. To use short TTLs for all known domains, add "forceshortdnsttl"
-* Use the box as a Hidden Master in the DNS system  
-  Thus only the secondary DNS servers are used as public DNS servers. When using a hidden master, no glue records are necessary at your domain hoster. To use, first setup secondary DNS servers via the Custom DNS administration page. At least two secondary servers should be set. When that functions, edit file /etc/usehiddenmasterdns and add a line for each domain for which Hidden Master should be used. To use Hidden Master for all known domains, add "usehiddenmasterdns".
+* Option to use shorter TTL values in the DNS server  
+  To be used for example just before changing IP addresses. Shorter TTL values will make DNS records cached for a shorter time. Changes will thus apply faster. For reference, default TTL is 1 day, short TTL is 5 minutes.
+* Option to use the box as a Hidden Master in the DNS system  
+  Thus only the secondary DNS servers are used as public DNS servers. When using a hidden master, no glue records are necessary at your domain hoster. To use, first setup secondary DNS servers via the Custom DNS administration page. At least two secondary servers should be set. Then enable the Hidden Master option.
 * Daily ip blacklist check  
   Using check-dnsbl.py from https://github.com/gsauthof/utility
 * Updated ssl security for web and email  
