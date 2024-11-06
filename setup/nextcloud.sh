@@ -99,7 +99,7 @@ InstallNextcloud() {
 	wget_verify "https://download.nextcloud.com/server/releases/nextcloud-$version.zip" "$hash" /tmp/nextcloud.zip
 
 	# Remove the current owncloud/Nextcloud
-	rm -rf $CLOUD_DIR/cloud
+	rm -rf $CLOUD_DIR
 
 	# Extract ownCloud/Nextcloud
 	unzip -q /tmp/nextcloud.zip -d $INSTALL_DIR
