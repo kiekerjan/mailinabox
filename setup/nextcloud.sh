@@ -24,8 +24,8 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=29.0.9
-nextcloud_hash=16043eb84db9a825dcc403ce179abbb8fed9e049
+nextcloud_ver=29.0.10
+nextcloud_hash=171dec99881e959bb8ed5956fd7430c52c6ae5c7
 
 # Nextcloud apps
 # --------------
@@ -39,8 +39,8 @@ nextcloud_hash=16043eb84db9a825dcc403ce179abbb8fed9e049
 # the error message when it doesn't match what is below:
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=5.5.3
-contacts_hash=799550f38e46764d90fa32ca1a6535dccd8316e5
+contacts_ver=6.0.1
+contacts_hash=5ce799cce6943e7fa531ce53aa1cbe01b7b6f1be
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
 calendar_ver=4.7.16
@@ -186,8 +186,8 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 	# Stop php-fpm if running. If they are not running (which happens on a previously failed install), dont bail.
 	service php"$PHP_VER"-fpm stop &> /dev/null || /bin/true
 
-	# Remove backups older than 60 days
-	find "$STORAGE_ROOT/owncloud-backup" -mindepth 1 -maxdepth 1 -iname "*" -type d -ctime +60 -exec rm -rf {} + 2>/dev/null || true
+	# Remove backups older than 30 days
+	find "$STORAGE_ROOT/owncloud-backup" -mindepth 1 -maxdepth 1 -iname "*" -type d -ctime +30 -exec rm -rf {} + 2>/dev/null || true
 
 	# Backup the existing ownCloud/Nextcloud.
 	# Create a backup directory to store the current installation and database to
