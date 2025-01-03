@@ -46,6 +46,7 @@ apt_install \
 # - https://www.dovecot.org/list/dovecot/2011-December/132455.html
 management/editconf.py /etc/dovecot/conf.d/10-master.conf \
 	default_process_limit="$(($(nproc) * 250))" \
+	default_client_limit=1250 \
 	default_vsz_limit="$(($(free -tm  | tail -1 | awk '{print $2}') / 3))M" \
 	log_path=/var/log/mail.log
 
