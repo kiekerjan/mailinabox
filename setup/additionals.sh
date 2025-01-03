@@ -54,3 +54,6 @@ rkhunter --propupd
 hide_output install -m 755 tools/fail2ban-block-ip-range.py /usr/local/bin
 cp -f conf/cron/miab-fail2ban-subnet-blocker /etc/cron.d/
 # Logrotation is done via generic mail in a box logrotate config
+
+# Install combine_certs.sh tool
+hide_output install -m 755 tools/combine_certs.sh /usr/local/bin
