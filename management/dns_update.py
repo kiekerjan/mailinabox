@@ -308,7 +308,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 			relay = config.get("dns", {}).get("relay", {})
 			if relay:
 				records.append((None,  "TXT", 'v=spf1 mx include:%s ~all' %relay.strip(),
-				     "Recommended. Specifies that only the box and the configure relay are permitted to send @%s mail." % domain))
+				     "Recommended. Specifies that only the box and the configured relay are permitted to send @%s mail." % domain))
 			else:
 				records.append((None,  "TXT", 'v=spf1 mx ~all', "Recommended. Specifies that only the box is permitted to send @%s mail." % domain))
 
