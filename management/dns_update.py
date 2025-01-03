@@ -31,9 +31,11 @@ def get_dns_domains(env):
 	domains = set()
 	domains |= set(get_mail_domains(env))
 	domains |= set(get_web_domains(env, include_www_redirects=False))
-	# www_domains are hosted here, but DNS is pointed to our box from somewhere else.
-	# DNS is thus not hosted by us for these domains.
-	domains -= set(get_www_domains(set()))
+	# www_domains are hosted here, but DNS might not be.
+	domains -= set(get_www_domains(set(), env))
+	# add other domains for which DNS is hosted here explicitly.
+	#domains |= set(get_dns_domains))
+	
 	domains.add(env['PRIMARY_HOSTNAME'])
 	return domains
 

@@ -1,24 +1,23 @@
-import os.path, idna, sys, collections
+import os.path, idna, sys, collections, logging
+from utils import load_settings
 
-def get_www_domains(domains_to_skip):
+def get_www_domains(domains_to_skip, env):
     # Returns the domain names (IDNA-encoded) of all of the domains that are configured to serve www
     # on the system. 
     domains = []
-
-    try:
-        # read a line from text file
-        with open("/etc/miabwwwdomains.conf") as file_in:
-            for line in file_in:
-                # Valid domain check future extention: use validators module
-                # Only one dot allowed
-                if line.count('.') == 1:
-                    www_domain = get_domain(line, as_unicode=False)
-                    if www_domain not in domains_to_skip:
-                        domains.append(www_domain)
-    except:
-        # ignore failures
-        pass
     
+    config = load_settings(env)
+    www_entries = config.get("hostother", {}).get("www", {})
+
+    try:    
+        if isinstance(www_entries, list) or isinstance(www_entries, dict):
+            for val in www_entries:
+                www_domain = get_domain(val, as_unicode=False)
+                if www_domain not in domains_to_skip:
+                     domains.append(www_domain)
+    except:
+        logging.debug("Error reading hosted www from settings")
+        
     return set(domains)
 
 

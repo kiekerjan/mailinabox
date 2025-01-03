@@ -20,14 +20,14 @@ def get_web_domains(env, include_www_redirects=True, include_auto=True, exclude_
 	domains |= get_mail_domains(env)
 
 	# Add domains for which we only serve www
-	domains |= get_www_domains(domains)
+	domains |= get_www_domains(domains, env)
 
 	if include_www_redirects and include_auto:
 		# Add 'www.' subdomains that we want to provide default redirects
 		# to the main domain for. We'll add 'www.' to any DNS zones, i.e.
 		# the topmost of each domain we serve.
 		domains |= {'www.' + zone for zone, zonefile in get_dns_zones(env)}
-		domains |= {'www.' + wwwdomain for wwwdomain in get_www_domains(get_mail_domains(env))}
+		domains |= {'www.' + wwwdomain for wwwdomain in get_www_domains(get_mail_domains(env), env)}
 
 	if include_auto:
 		# Add Autoconfiguration domains for domains that there are user accounts at:
@@ -102,7 +102,7 @@ def do_web_update(env):
 	# Add configuration all other web domains.
 	has_root_proxy_or_redirect = get_web_domains_with_root_overrides(env)
 	web_domains_not_redirect = get_web_domains(env, include_www_redirects=False)
-	web_only_domains = get_www_domains(get_mail_domains(env))
+	web_only_domains = get_www_domains(get_mail_domains(env), env)
 	
 	for domain in get_web_domains(env):
 		if domain == env['PRIMARY_HOSTNAME']:
