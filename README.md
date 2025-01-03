@@ -17,7 +17,7 @@ Functionality changes and additions
 * Add xapian full text searching to dovecot (from https://github.com/grosjo/fts-xapian)
 * Add rkhunter for malware scanning
 * Configure domain names for which only www will be hosted  
-  Edit /etc/miabwwwdomains.conf to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider! If you want this box to handle the DNS entries, simply add a mail alias. (existing functionality of the vanilla Mail-in-a-Box)
+  Edit settings.yaml under the user-data folder to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider! If you want this box to handle the DNS entries, simply add a mail alias. (existing functionality of the vanilla Mail-in-a-Box)
 * Add some munin plugins
 * Update nextcloud to 29.0.8
   And updated calendar and contacts apps
@@ -29,6 +29,7 @@ Functionality changes and additions
   To be used for example just before changing IP addresses. Shorter TTL values will make DNS records cached for a shorter time. Changes will thus apply faster. For reference, default TTL is 1 day, short TTL is 5 minutes.
 * Option to use the box as a Hidden Master in the DNS system  
   Thus only the secondary DNS servers are used as public DNS servers. When using a hidden master, no glue records are necessary at your domain hoster. To use, first setup secondary DNS servers via the Custom DNS administration page. At least two secondary servers should be set. Then enable the Hidden Master option.
+* Both hidden master DNS and shorter TTL are configurable through the admin web portal.
 * Daily ip blacklist check  
   Using check-dnsbl.py from https://github.com/gsauthof/utility
 * Updated ssl security for web and email  
@@ -41,8 +42,8 @@ Functionality changes and additions
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
-* Correct nextcloud carddav url [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1918)
-* Take into account non-standard spamhaus return codes
+* Correct nextcloud carddav url [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1918) (update: included in upstream) 
+* Take into account non-standard spamhaus return codes (update: included in upstream)
 
 Maintenance (personal)
 * Automatically clean spam and trash folders after 120 days
@@ -51,7 +52,7 @@ Maintenance (personal)
 * Add weekly pflogsumm log analysis
 * Enable mail delivery to root, forwarded to administrator
 * Remove nextcloud skeleton to save disk space
-* Use actual configuration as reported by sshd instead of parsing the config file, for more robust configuration extraction.
+* Use actual configuration as reported by sshd instead of parsing the config file, for more robust configuration extraction. (update: included in upstream)
 
 Fun
 * Add option to define ADMIN_IP_ADDRESS  
