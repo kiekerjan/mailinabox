@@ -319,8 +319,6 @@ def run_network_checks(env, output):
 	# by a spammer, or the user may be deploying on a residential network. We
 	# will not be able to reliably send mail in these cases.
 
-	# See https://www.spamhaus.org/news/article/807/using-our-public-mirrors-check-your-return-codes-now. for
-	# information on spamhaus return codes
 	rev_ip4 = ".".join(reversed(env['PUBLIC_IP'].split('.')))
 	zen = query_dns(rev_ip4+'.zen.spamhaus.org', 'A', nxdomain=None, retry = False)
 	evaluate_spamhaus_lookup(env['PUBLIC_IP'], 'IPv4', rev_ip4, output, zen)
@@ -336,6 +334,8 @@ def run_network_checks(env, output):
 
 
 def evaluate_spamhaus_lookup(lookupaddress, lookuptype, lookupdomain, output, zen):
+	# See https://www.spamhaus.org/news/article/807/using-our-public-mirrors-check-your-return-codes-now. for
+	# information on spamhaus return codes
 	if zen is None:
 		output.print_ok(f"{lookuptype} address is not blacklisted by zen.spamhaus.org.")
 	elif zen == "[timeout]":

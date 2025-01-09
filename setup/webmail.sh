@@ -23,8 +23,8 @@ echo "Installing Roundcube (webmail)..."
 apt_install \
 	dbconfig-common \
 	php-cli php-sqlite3 php-intl php-json php-common php-curl php-imap \
-	php-gd php-pspell libjs-jquery libjs-jquery-mousewheel libmagic1 php-mbstring \
-  sqlite3
+	php-gd php-pspell php-mbstring php-xml libjs-jquery libjs-jquery-mousewheel libmagic1 \
+	sqlite3
 
 PHP_VER=$(php_version)
 
