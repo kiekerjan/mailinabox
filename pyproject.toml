@@ -1,0 +1,67 @@
+[tool.ruff]
+line-length = 320 # https://github.com/astral-sh/ruff/issues/8106
+indent-width = 4
+
+target-version = "py310"
+
+preview = true
+
+output-format = "concise"
+
+extend-exclude = ["tools/mail.py"]
+
+[tool.ruff.lint]
+select = [
+"ARG005",
+"B007",
+"EM102",
+"F401",
+"F841",
+"FURB110",
+"FURB118",
+"FURB142",
+"FURB188",
+"G004",
+"PERF102",
+"PGH004",
+"PLR6104",
+"PLR6201",
+"PLW0120",
+"PLW1514",
+"Q003",
+"RET504",
+"RET505",
+"RET506",
+"RET507",
+"RUF005",
+"RUF010",
+"RUF031",
+"RUF039",
+"RUF051",
+"RUF055",
+"SIM101",
+"SIM103",
+"SIM115",
+"SIM117",
+"TRY003",
+"TRY300",
+"UP015",
+"UP031",
+"UP032",
+"W605"
+]
+ignore = [
+	"W191",
+	"PLR09",
+	"PLR1702",
+	"PLR2004",
+	"RUF001",
+	"RUF002",
+	"RUF003",
+	"RUF023"
+]
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+indent-style = "tab"
