@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-from pprint import pprint
 from ipaddress import IPv4Network
 from collections import defaultdict
 from tempfile import mkstemp

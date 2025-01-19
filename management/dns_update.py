@@ -12,7 +12,6 @@ import logging
 
 from utils import shell, load_env_vars_from_file, safe_domain_name, sort_domains, get_ssh_port, get_ssh_config_value, load_settings, parse_listenaddress
 from ssl_certificates import get_ssl_certificates, check_certificate
-import contextlib
 
 # From https://stackoverflow.com/questions/3026957/how-to-validate-a-domain-name-using-regex-php/16491074#16491074
 # This regular expression matches domain names according to RFCs, it also accepts fqdn with an leading dot,
@@ -702,13 +701,13 @@ def get_secondary_ns_list(env):
 def get_dns_zonefile(zone, env):
 	for domain, fn in get_dns_zones(env):
 		if zone == domain:
-			break
-	else:
-		raise ValueError("%s is not a domain name that corresponds to a zone." % zone)
+			nsd_zonefile = "/etc/nsd/zones/" + fn
+			with open(nsd_zonefile, encoding="utf-8") as f:
+				return f.read()
+			return
 
-	nsd_zonefile = "/etc/nsd/zones/" + fn
-	with open(nsd_zonefile, encoding="utf-8") as f:
-		return f.read()
+	raise ValueError("%s is not a domain name that corresponds to a zone." % zone)
+
 
 ########################################################################
 

@@ -1,4 +1,4 @@
-import os.path, idna, sys, collections, logging
+import idna, logging
 from utils import load_settings
 
 def get_www_domains(domains_to_skip, env):

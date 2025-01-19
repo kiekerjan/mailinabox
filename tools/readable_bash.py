@@ -3,7 +3,7 @@
 # Generate documentation for how this machine works by
 # parsing our bash scripts!
 
-import cgi, re, html
+import re, html
 import markdown
 from modgrammar import *
 
