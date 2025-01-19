@@ -92,7 +92,7 @@ os.close(tmpf[0])
 # Script collects all banned ips
 
 # fail2ban.log is rotated every week, so limit to last 2500 lines
-script = 'tail -n 2500 /var/log/fail2ban.log | grep -E "fail2ban.filter.*\[[0-9]+\]:.*\[[^]]+\] Found ([0-9]{1,3}\.){3}[0-9]{1,3}" -o | sed -re "s/fail2ban.filter\s+\[[0-9]+\]:\sINFO\s+\[//; s/\]//; s/Found //;" | sort | uniq -c > ' + tmpf[1]
+script = r'tail -n 2500 /var/log/fail2ban.log | grep -E "fail2ban.filter.*\[[0-9]+\]:.*\[[^]]+\] Found ([0-9]{1,3}\.){3}[0-9]{1,3}" -o | sed -re "s/fail2ban.filter\s+\[[0-9]+\]:\sINFO\s+\[//; s/\]//; s/Found //;" | sort | uniq -c > ' + tmpf[1]
 # script = 'cat /var/log/fail2ban.log | grep -E "fail2ban.filter.*\[[0-9]+\]:.*\[[^]]+\] Found ([0-9]{1,3}\.){3}[0-9]{1,3}" -o | sed -re "s/fail2ban.filter\s+\[[0-9]+\]:\sINFO\s+\[//; s/\]//; s/Found //;" | sort | uniq -c > ' + tmpf[1]
 countLimit = 8  # If we find 100 ips in a jail filter, ban the subnet
 
@@ -147,7 +147,7 @@ for jail in finalList:
 
 # Look for ban actions and use them to ban a subnet in the recidive jail
 #script =  'cat /var/log/fail2ban.log | grep -E "fail2ban.actions.*\[[0-9]+\]:.*\[[^]]+\] Ban ([0-9]{1,3}\.){3}[0-9]{1,3}" -o | sed -re "s/fail2ban.actions\s+\[[0-9]+\]:\sNOTICE\s+\[//; s/\]//; s/Ban //;" | sort | uniq -c > ' + tmpf[1]
-script =  'tail -n 5000 /var/log/fail2ban.log | grep -E "fail2ban.actions.*\[[0-9]+\]:.*\[[^]]+\] Ban ([0-9]{1,3}\.){3}[0-9]{1,3}" -o | sed -re "s/fail2ban.actions\s+\[[0-9]+\]:\sNOTICE\s+\[//; s/\]//; s/Ban //;" | sort | uniq -c > ' + tmpf[1]
+script =  r'tail -n 5000 /var/log/fail2ban.log | grep -E "fail2ban.actions.*\[[0-9]+\]:.*\[[^]]+\] Ban ([0-9]{1,3}\.){3}[0-9]{1,3}" -o | sed -re "s/fail2ban.actions\s+\[[0-9]+\]:\sNOTICE\s+\[//; s/\]//; s/Ban //;" | sort | uniq -c > ' + tmpf[1]
 countLimit = 4   # If we banned x ips from a subnet, ban the subnet
 
 finalList = scanTheLog(script, countLimit, tmpf)
