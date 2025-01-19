@@ -3,7 +3,7 @@
 # Generate documentation for how this machine works by
 # parsing our bash scripts!
 
-import cgi, re
+import cgi, re, html
 import markdown
 from modgrammar import *
 
@@ -133,10 +133,10 @@ def generate_documentation():
 			if fn in ("setup/start.sh", "setup/preflight.sh", "setup/questions.sh", "setup/firstuser.sh", "setup/management.sh"):
 				continue
 
-		import sys
-		print(fn, file=sys.stderr)
+			import sys
+			print(fn, file=sys.stderr)
 
-		print(BashScript.parse(fn))
+			print(BashScript.parse(fn))
 
 	print("""
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
@@ -195,7 +195,7 @@ class CatEOF(Grammar):
 		return "<div class='write-to'><div class='filename'>%s <span>(%s)</span></div><pre>%s</pre></div>\n" \
 			% (self[4].string,
 			   "overwrite" if ">>" not in self[2].string else "append to",
-			   cgi.escape(content))
+			   html.escape(content))
 
 class HideOutput(Grammar):
 	grammar = (L("hide_output "), REF("BashElement"))
@@ -215,7 +215,7 @@ class EditConf(Grammar):
 		FILENAME,
 		SPACE,
 		OPTIONAL((LIST_OF(
-			L("-w") | L("-s") | L("-c ;"),
+			L("-w") | L("-s") | L("-c ;") | L("-e"),
 			sep=SPACE,
 		), SPACE)),
 		REST_OF_LINE,
@@ -227,29 +227,29 @@ class EditConf(Grammar):
 		options = []
 		eq = "="
 		if self[3] and "-s" in self[3].string: eq = " "
-		for opt in re.split("\s+", self[4].string):
+		for opt in re.split(r"\s+", self[4].string):
 			k, v = opt.split("=", 1)
 			v = re.sub(r"\n+", "", fixup_tokens(v)) # not sure why newlines are getting doubled
 			options.append("%s%s%s" % (k, eq, v))
-		return "<div class='write-to'><div class='filename'>" + self[1].string + " <span>(change settings)</span></div><pre>" + "\n".join(cgi.escape(s) for s in options) + "</pre></div>\n"
+		return "<div class='write-to'><div class='filename'>" + self[1].string + " <span>(change settings)</span></div><pre>" + "\n".join(html.escape(s) for s in options) + "</pre></div>\n"
 
 class CaptureOutput(Grammar):
 	grammar = OPTIONAL(SPACE), WORD("A-Za-z_"), L('=$('), REST_OF_LINE, L(")"), OPTIONAL(L(';')), EOL
 	def value(self):
 		cmd = self[3].string
 		cmd = cmd.replace("; ", "\n")
-		return "<div class='write-to'><div class='filename'>$" + self[1].string + "=</div><pre>" + cgi.escape(cmd) + "</pre></div>\n"
+		return "<div class='write-to'><div class='filename'>$" + self[1].string + "=</div><pre>" + html.escape(cmd) + "</pre></div>\n"
 
 class SedReplace(Grammar):
 	grammar = OPTIONAL(SPACE), L('sed -i "s/'), OPTIONAL(L('^')), ONE_OR_MORE(WORD("-A-Za-z0-9 #=\\{};.*$_!()")), L('/'), ONE_OR_MORE(WORD("-A-Za-z0-9 #=\\{};.*$_!()")), L('/"'), SPACE, FILENAME, EOL
 	def value(self):
-		return "<div class='write-to'><div class='filename'>edit<br>" + self[8].string + "</div><p>replace</p><pre>" + cgi.escape(self[3].string.replace(".*", ". . .")) + "</pre><p>with</p><pre>" + cgi.escape(self[5].string.replace("\\n", "\n").replace("\\t", "\t")) + "</pre></div>\n"
+		return "<div class='write-to'><div class='filename'>edit<br>" + self[8].string + "</div><p>replace</p><pre>" + html.escape(self[3].string.replace(".*", ". . .")) + "</pre><p>with</p><pre>" + html.escape(self[5].string.replace("\\n", "\n").replace("\\t", "\t")) + "</pre></div>\n"
 
 class EchoPipe(Grammar):
 	grammar = OPTIONAL(SPACE), L("echo "), REST_OF_LINE, L(' | '), REST_OF_LINE, EOL
 	def value(self):
 		text = " ".join("\"%s\"" % s for s in self[2].string.split(" "))
-		return "<pre class='shell'><div>echo " + recode_bash(text) + " \<br> | " + recode_bash(self[4].string) + "</div></pre>\n"
+		return "<pre class='shell'><div>echo " + recode_bash(text) + r" \<br> | " + recode_bash(self[4].string) + "</div></pre>\n"
 
 def shell_line(bash):
 	return "<pre class='shell'><div>" + recode_bash(bash.strip()) + "</div></pre>\n"
@@ -364,7 +364,7 @@ def quasitokenize(bashscript):
 			newscript += c
 
 		# "<< EOF" escaping.
-		if quote_mode is None and re.search("<<\s*EOF\n$", newscript):
+		if quote_mode is None and re.search(r"<<\s*EOF\n$", newscript):
 			quote_mode = "EOF"
 		elif quote_mode == "EOF" and re.search("\nEOF\n$", newscript):
 			quote_mode = None
@@ -383,7 +383,7 @@ def recode_bash(s):
 		else:
 			tok = tok.replace("'", "\\'")
 		return tok
-	return cgi.escape(" ".join(requote(tok) for tok in s.split(" ")))
+	return html.escape(" ".join(requote(tok) for tok in s.split(" ")))
 
 def fixup_tokens(s):
 	for c, enc in bash_special_characters1.items():
@@ -407,7 +407,7 @@ class BashScript(Grammar):
 
 		# tokenize
 		string = re.sub(".* #NODOC\n", "", string)
-		string = re.sub("\n\s*if .*then.*|\n\s*fi|\n\s*else|\n\s*elif .*", "", string)
+		string = re.sub(r"\n\s*if .*then.*|\n\s*fi|\n\s*else|\n\s*elif .*", "", string)
 		string = quasitokenize(string)
 		string = re.sub("hide_output ", "", string)
 
@@ -460,7 +460,7 @@ class BashScript(Grammar):
 		v = fixup_tokens(v)
 
 		v = v.replace("</pre>\n<pre class='shell'>", "")
-		v = re.sub("<pre>([\w\W]*?)</pre>", lambda m : "<pre>" + strip_indent(m.group(1)) + "</pre>", v)
+		v = re.sub(r"<pre>([\w\W]*?)</pre>", lambda m : "<pre>" + strip_indent(m.group(1)) + "</pre>", v)
 
 		v = re.sub(r"(\$?)PRIMARY_HOSTNAME", r"<b>box.yourdomain.com</b>", v)
 		v = re.sub(r"\$STORAGE_ROOT", r"<b>$STORE</b>", v)
@@ -470,7 +470,7 @@ class BashScript(Grammar):
 
 def wrap_lines(text, cols=60):
 	ret = ""
-	words = re.split("(\s+)", text)
+	words = re.split(r"(\s+)", text)
 	linelen = 0
 	for w in words:
 		if linelen + len(w) > cols-1:
