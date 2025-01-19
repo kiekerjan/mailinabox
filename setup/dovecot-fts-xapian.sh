@@ -17,6 +17,7 @@ source /etc/mailinabox.conf # load global vars
 
 echo "Installing fts-xapian..."
 
+# Install fts xapian plugin
 apt_install dovecot-fts-xapian
 
 # Update the dovecot plugin configuration
@@ -30,6 +31,9 @@ hide_output install -m 755 conf/cron/miab_dovecot /etc/cron.daily/
 if [ ! -f /usr/lib/dovecot/decode2text.sh ]; then
 	cp -f /usr/share/doc/dovecot-core/examples/decode2text.sh /usr/lib/dovecot
 fi
+
+# Install text decoder utilities
+apt_install poppler-utils catdoc unzip
 
 # Create configuration file
 cat > /etc/dovecot/conf.d/90-plugin-fts.conf << EOF;
