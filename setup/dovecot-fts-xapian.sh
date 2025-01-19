@@ -20,12 +20,8 @@ echo "Installing fts-xapian..."
 apt_install dovecot-fts-xapian
 
 # Update the dovecot plugin configuration
-#
-# Break-imap-search makes search work the way users expect, rather than the way
-# the IMAP specification expects.
 management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
-        mail_plugins="fts fts_xapian" \
-        mail_home="$STORAGE_ROOT/mail/homes/%d/%n"
+        mail_plugins="fts fts_xapian"
 
 # Install cronjobs to keep FTS up to date.
 hide_output install -m 755 conf/cron/miab_dovecot /etc/cron.daily/
@@ -77,6 +73,7 @@ restart_service dovecot
 hide_output doveadm fts rescan -A
 
 # Adds unindexed files to the fts database
+#
 # * `-q`: Queues the indexing to be run by indexer process. (will background the indexing)
 # * `-A`: All users
 # * `'*'`: All folders

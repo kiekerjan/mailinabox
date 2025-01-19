@@ -1,5 +1,5 @@
 #!/bin/bash
-# Nextcloud
+# # Nextcloud
 ##########################
 
 source setup/functions.sh # load our functions
@@ -64,6 +64,7 @@ user_external_hash=7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
 # 5.2 You still can create, edit and delete calendar events
 # 5.3 You still can create, edit and delete users
 # 5.4 Go to Administration > Logs and ensure no new errors are shown
+
 
 # Clear prior packages and install dependencies from apt.
 apt-get purge -qq -y owncloud* # we used to use the package manager
@@ -258,10 +259,13 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			CURRENT_NEXTCLOUD_VER="21.0.7"
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^21 ]]; then
+			# Nextcloud version 22
 			InstallNextcloud 22.2.3 58d2d897ba22a057aa03d29c762c5306211fefd2 4.0.7 45e7cf4bfe99cd8d03625cf9e5a1bb2e90549136 3.0.4 d0284b68135777ec9ca713c307216165b294d0fe 2.1.0 41d4c57371bd085d68421b52ab232092d7dfc882
 			CURRENT_NEXTCLOUD_VER="22.2.3"
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^22 ]]; then
+			# Nextcloud version 23
+			# When installing this, we also remove the old php version
 			InstallNextcloud 23.0.12 d138641b8e7aabebe69bb3ec7c79a714d122f729 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.0.0 0df781b261f55bbde73d8c92da3f99397000972f
 			CURRENT_NEXTCLOUD_VER="23.0.12"
 			
@@ -278,51 +282,57 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			add-apt-repository --yes --remove ppa:ondrej/php
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^23 ]]; then
+			# Install nextcloud 24
 			InstallNextcloud 24.0.12 7aa5d61632c1ccf4ca3ff00fb6b295d318c05599 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.1.0 399fe1150b28a69aaf5bfcad3227e85706604a44
 			CURRENT_NEXTCLOUD_VER="24.0.12"
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^24 ]]; then
+			# Install nextcloud 25
 			InstallNextcloud 25.0.7 a5a565c916355005c7b408dd41a1e53505e1a080 5.3.0 4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c 4.4.2 21a42e15806adc9b2618760ef94f1797ef399e2f 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 			CURRENT_NEXTCLOUD_VER="25.0.7"
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^25 ]]; then
+			# Install nextcloud 26
 			InstallNextcloud 26.0.8 a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8 5.4.2 d38c9e16b377c05b5114e70b3b0c3d3f1f1d10f6 4.5.3 7c974d4f092886e8932c6c3ae34532c30a3fcea9 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 			CURRENT_NEXTCLOUD_VER="26.0.8"
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^26 ]]; then
+			# Install nextcloud 27
 			InstallNextcloud 27.1.9 4797a2f1f7ffcedca7c0917f913d983b75ed22fd 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.2 9222953e5654c151604e082c0d5907dcc651d3d7 3.3.0 49800e8ca61391965ce8a75eaaf92a8037185375
 			CURRENT_NEXTCLOUD_VER="27.1.9"
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^27 ]]; then
+			# Install nextcloud 28
 			InstallNextcloud 28.0.10 24edd63bdc005ff39607831ed6cc2cac7278d41a 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.16 1c39ce674027a8710800d056a7cdd0c5c974781d 3.4.0 7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
 			CURRENT_NEXTCLOUD_VER="28.0.10"
 		fi
 	fi
 
+# ### Document nextcloud versions, php versions and user_external plugin compatibility
 # nextcloud version - supported php versions
-# 20                - 7.2, 7.3, 7.4
-# 21                - 7.3, 7.4, 8.0
-# 22                - 7.3, 7.4, 8.0
-# 23                - 7.3, 7.4, 8.0
-# 24                - 7.4, 8.0, 8.1
-# 25		    - 7.4, 8.0, 8.1
-# 26		    - 8.0, 8.1, 8.2
-# 27                - 8.0 (d), 8.1, 8.2 (r)
-# 28		    - 8.0 (d), 8.1, 8.2 (r), 8.3
-# 29		    - 8.0 (d), 8.1, 8.2 (r), 8.3
-# 30		    - 8.1 (d), 8.2, 8.3 (r)
 #
-# ubuntu 18.04 has php 7.2
-# ubuntu 22.04 has php 8.1
-# ubuntu 24.04 has php 8.3
-#
-# user_external 2.1.0 supports version 21-22
-# user_external 3.0.0 supports version 22-24
-# user_external 3.1.0 supports version 22-25
-# user_external 3.2.0 supports version 25-27
-# user_external 3.3.0 supports version 25-28
-# user_external 3.4.0 supports version 25-29
+# * 20                - 7.2, 7.3, 7.4 
+# * 21                - 7.3, 7.4, 8.0
+# * 22                - 7.3, 7.4, 8.0
+# * 23                - 7.3, 7.4, 8.0
+# * 24                - 7.4, 8.0, 8.1
+# * 25		    - 7.4, 8.0, 8.1
+# * 26		    - 8.0, 8.1, 8.2
+# * 27                - 8.0 (d), 8.1, 8.2 (r)
+# * 28		    - 8.0 (d), 8.1, 8.2 (r), 8.3
+# * 29		    - 8.0 (d), 8.1, 8.2 (r), 8.3
+# * 30		    - 8.1 (d), 8.2, 8.3 (r)
+# * ubuntu 18.04 has php 7.2
+# * ubuntu 22.04 has php 8.1
+# * ubuntu 24.04 has php 8.3
+# * user_external 2.1.0 supports version 21-22
+# * user_external 3.0.0 supports version 22-24
+# * user_external 3.1.0 supports version 22-25
+# * user_external 3.2.0 supports version 25-27
+# * user_external 3.3.0 supports version 25-28
+# * user_external 3.4.0 supports version 25-29
 
+	# ### Install latest nextcloud
 	InstallNextcloud $nextcloud_ver $nextcloud_hash $contacts_ver $contacts_hash $calendar_ver $calendar_hash $user_external_ver $user_external_hash
 fi
 

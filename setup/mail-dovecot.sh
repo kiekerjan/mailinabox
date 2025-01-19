@@ -175,6 +175,7 @@ sed -i "s/#mail_plugins = .*/mail_plugins = \$mail_plugins sieve/" /etc/dovecot/
 # link here to the actual sieve script. It should not be in the mailbox directory
 # (because then it might appear as a folder) and it should not be in the sieve_dir
 # (because then I suppose it might appear to the user as one of their scripts).
+#
 # * `sieve_dir`: Directory for :personal include scripts for the include extension. This
 # is also where the ManageSieve service stores the user's scripts.
 cat > /etc/dovecot/conf.d/99-local-sieve.conf << EOF;
@@ -194,7 +195,7 @@ EOF
 cp conf/sieve-spam.txt /etc/dovecot/sieve-spam.sieve
 sievec /etc/dovecot/sieve-spam.sieve
 
-# PERMISSIONS
+# ### Permissions
 
 # Ensure configuration files are owned by dovecot and not world readable.
 chown -R mail:dovecot /etc/dovecot

@@ -1,6 +1,8 @@
 source /etc/mailinabox.conf
 source setup/functions.sh
 
+# ## Additional modifications
+
 # Add additional packages
 apt_install pflogsumm rkhunter
 
@@ -19,6 +21,8 @@ restart_service rsyslog
 cat > /root/.forward << EOF;
 administrator@$PRIMARY_HOSTNAME
 EOF
+
+# ### rkhunter configuration
 
 # Adapt rkhunter cron job to reduce log file production
 sed -i "s/--cronjob --report-warnings-only --appendlog/--cronjob --report-warnings-only --no-verbose-logging --appendlog/g" /etc/cron.daily/rkhunter
@@ -50,10 +54,13 @@ management/editconf.py /etc/default/rkhunter \
 # Should be last, update expected output
 rkhunter --propupd
 
-# Install subnetblocker.
+# ### Install Subnetblocker
+# Regularly scan fail2ban log to capture whole subnets to block
 hide_output install -m 755 tools/fail2ban-block-ip-range.py /usr/local/bin
 cp -f conf/cron/miab-fail2ban-subnet-blocker /etc/cron.d/
 # Logrotation is done via generic mail in a box logrotate config
+
+# ### Install additional tools
 
 # Install combine_certs.sh tool
 hide_output install -m 755 tools/combine_certs.sh /usr/local/bin
