@@ -432,7 +432,7 @@ def check_dbls(domain, dbls, retries):
             if s:
                 errs += 1
                 log.error(s)
-        except dns.exception.Timeout as e:
+        except dns.exception.Timeout:
             if i + 1 < retries:
                 log.warning(f'Resolving {d} in {bl} timed out - retrying later ...')
                 ls.append((bl, i+1, time.clock_gettime(time.CLOCK_REALTIME)))
@@ -459,7 +459,7 @@ def check_bls(addrs, bls, dest, retries):
             if s:
                 errs += 1
                 log.error(s)
-        except dns.exception.Timeout as e:
+        except dns.exception.Timeout:
             if i + 1 < retries:
                 log.warning(f'Resolving {addr} in {bl[0]} timed out - retrying later ...')
                 ls.append((addr, domain, bl, i+1, time.clock_gettime(time.CLOCK_REALTIME)))
@@ -495,7 +495,7 @@ def check_addr_lists(bls):
             if not s:
                 log.error(f'OMG, mandatory 127.0.0.2 is NOT listed in DNSBL {bl}')
                 errs += 1
-        except dns.exception.Timeout as e:
+        except dns.exception.Timeout:
             log.error(f'Resolving mandatory entries timed out on {bl}')
     return errs
 
