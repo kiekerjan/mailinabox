@@ -1,6 +1,25 @@
 import idna, logging
 from utils import load_settings
 
+def get_dns_domains(domains_to_skip, env):
+    # Returns the domain names of all the fomains that are configured to serve dns for on the system
+    domains = []
+    
+    config = load_settings(env)
+    dns_entries = config.get("hostother", {}).get("dns", {})
+
+    try:    
+        if isinstance(dns_entries, list) or isinstance(dns_entries, dict):
+            for val in dns_entries:
+                dns_domain = get_domain(val, as_unicode=False)
+                if dns_domain not in domains_to_skip:
+                     domains.append(dns_domain)
+    except:
+        logging.debug("Error reading hosted dns from settings")
+        
+    return set(domains)
+
+
 def get_www_domains(domains_to_skip, env):
     # Returns the domain names (IDNA-encoded) of all of the domains that are configured to serve www
     # on the system. 
