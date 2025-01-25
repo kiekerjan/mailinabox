@@ -116,7 +116,16 @@ management/editconf.py /etc/postfix/master.cf -s -w \
 	  -o cleanup_service_name=authclean" \
 	"authclean=unix  n       -       -       -       0       cleanup
 	  -o header_checks=pcre:/etc/postfix/outgoing_mail_header_filters
-	  -o nested_header_checks="
+	  -o nested_header_checks=" \
+	"relaysp   unix  -       -       y       -       -       smtp
+          -o syslog_name=postfix/$service_name
+          -o smtp_sasl_auth_enable=yes
+          -o smtp_sasl_security_options=noanonymous
+          -o smtp_use_tls=yes
+          -o smtp_tls_note_starttls_offer=yes
+          -o smtpd_tls_loglevel=1
+          -o smtp_tls_wrappermode=yes
+          -o smtp_tls_security_level=encrypt"
 
 # Install the `outgoing_mail_header_filters` file required by the new 'authclean' service.
 cp conf/postfix_outgoing_mail_header_filters /etc/postfix/outgoing_mail_header_filters
