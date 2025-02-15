@@ -232,9 +232,6 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
 			# not supported by version 20, but that does not matter, as the InstallNextcloud function only runs the version 21 code.
 
-			# Install the ppa
-			add-apt-repository --yes ppa:ondrej/php
-
 			# Prevent installation of old packages
 			apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
 
@@ -263,17 +260,11 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 23.0.12 d138641b8e7aabebe69bb3ec7c79a714d122f729 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.0.0 0df781b261f55bbde73d8c92da3f99397000972f
 			CURRENT_NEXTCLOUD_VER="23.0.12"
 
-			# Remove older php version
-			update-alternatives --auto php
-
 			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
 				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
 				php8.0-common php8.0-opcache php8.0-readline
 
 			PHP_VER=8.1
-
-			# Remove the ppa
-			add-apt-repository --yes --remove ppa:ondrej/php
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^23 ]]; then
 			# Install nextcloud 24
