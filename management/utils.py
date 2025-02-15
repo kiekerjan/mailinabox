@@ -231,7 +231,7 @@ def parse_listenaddress(la_str):
                 	rightpos += 1
 		else:
 			rightpos += 2
-                    
+
 		if len(la_str) > rightpos:
 			port = la_str[rightpos:]
 
@@ -240,7 +240,7 @@ def parse_listenaddress(la_str):
 
 def get_php_version():
 	# Gets the version of PHP installed in the system.
-	return shell("check_output", ["/usr/bin/php", "-v"])[4:7]
+	return "8.1"
 
 if __name__ == "__main__":
 	from web_update import get_web_domains

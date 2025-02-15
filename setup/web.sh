@@ -19,9 +19,7 @@ fi
 
 echo "Installing Nginx (web server)..."
 
-apt_install nginx php-cli php-fpm idn2 libnginx-mod-http-geoip2
-
-PHP_VER=$(php_version)
+apt_install nginx php"${PHP_VER}"-cli php"${PHP_VER}"-fpm idn2 libnginx-mod-http-geoip2
 
 rm -f /etc/nginx/sites-enabled/default
 
@@ -58,7 +56,7 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 # Set higher timeout since fts searches with Roundcube may take longer
 # than the default 60 seconds. We will also match Roundcube's timeout to the
 # same value
-management/editconf.py /etc/php/$(php_version)/fpm/php.ini -c ';' \
+management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
         default_socket_timeout=180
 
 # Configure the path environment for php-fpm

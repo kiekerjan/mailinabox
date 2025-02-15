@@ -5,6 +5,8 @@
 # -o pipefail: don't ignore errors in the non-last command in a pipeline
 set -euo pipefail
 
+PHP_VER=8.1
+
 function hide_output {
 	# This function hides the output of a command unless the command fails
 	# and returns a non-zero exit code.
@@ -220,8 +222,4 @@ function git_clone {
 	(cd $TMPPATH; git checkout -q "$TREEISH";) || exit 1
 	mv $TMPPATH/"$SUBDIR" "$TARGETPATH"
 	rm -rf $TMPPATH
-}
-
-function php_version {
-	php --version | head -n 1 | cut -d " " -f 2 | cut -c 1-3
 }
