@@ -86,7 +86,7 @@ def prettify_idn_email_address(email):
 
 def is_dcv_address(email):
 	email = email.lower()
-	return any(email.startswith((localpart + "@", localpart + "+")) for localpart in ("admin", "administrator", "postmaster", "hostmaster", "webmaster", "abuse"))
+	return any(email.startswith((localpart + "@", localpart + "+")) for localpart in ("admin", "administrator", "postmaster", "hostmaster", "webmaster", "abuse", "dmarc-reports", "tls-reports"))
 
 def open_database(env, with_connection=False):
 	conn = sqlite3.connect(env["STORAGE_ROOT"] + "/mail/users.sqlite")
@@ -531,6 +531,12 @@ def get_required_aliases(env):
 	
 	# Setup root alias
 	aliases.add("root@" + env['PRIMARY_HOSTNAME'])
+	
+	# Setup dmarc report alias
+	aliases.add("dmarc-reports@" + env['PRIMARY_HOSTNAME'])
+	
+	# Setup TLS report alias
+	aliases.add("tls-reports@" + env['PRIMARY_HOSTNAME'])
 
 	# Get a list of domains we serve mail for, except ones for which the only
 	# email on that domain are the required aliases or a catch-all/domain-forwarder.

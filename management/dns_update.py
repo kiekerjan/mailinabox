@@ -4,7 +4,7 @@
 # and mail aliases and restarts nsd.
 ########################################################################
 
-import sys, os, os.path, datetime, re, hashlib, base64
+import sys, os, os.path, datetime, re, hashlib, base64, shutil
 import ipaddress
 import rtyaml
 import dns.resolver
@@ -334,7 +334,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 		# Append a DMARC record.
 		# Skip if the user has set a DMARC record already.
 		if not has_rec("_dmarc", "TXT", prefix="v=DMARC1; "):
-			records.append(("_dmarc", "TXT", 'v=DMARC1; p=quarantine;', "Recommended. Specifies that mail that does not originate from the box but claims to be from @%s or which does not have a valid DKIM signature is suspect and should be quarantined by the recipient's mail system." % domain))
+			records.append(("_dmarc", "TXT", "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@%s!2m" % env["PRIMARY_HOSTNAME"], "Recommended. Specifies that mail that does not originate from the box but claims to be from @%s or which does not have a valid DKIM signature is suspect and should be quarantined by the recipient's mail system." % domain))
 
 	if domain_properties[domain]["user"]:
 		# Add CardDAV/CalDAV SRV records on the non-primary hostname that points to the primary hostname
@@ -372,6 +372,11 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 	if domain_properties[domain]["mail"] \
 	  and domain_properties[env["PRIMARY_HOSTNAME"]]["certificate-is-valid"] \
 	  and is_domain_cert_signed_and_valid("mta-sts." + domain, env):
+		if config.get("dns", {}).get("TTL", "Default").lower() == "short":
+			shutil.copy("/var/lib/mailinabox/mta-sts-short.txt", "/var/lib/mailinabox/mta-sts.txt")
+		else:
+			shutil.copy("/var/lib/mailinabox/mta-sts-long.txt", "/var/lib/mailinabox/mta-sts.txt")
+	  
 		# Compute an up-to-32-character hash of the policy file. We'll take a SHA-1 hash of the policy
 		# file (20 bytes) and encode it as base-64 (28 bytes, using alphanumeric alternate characters
 		# instead of '+' and '/' which are not allowed in an MTA-STS policy id) but then just take its
@@ -379,14 +384,15 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 		# (and ensures any '=' padding at the end of the base64 encoding is dropped).
 		with open("/var/lib/mailinabox/mta-sts.txt", "rb") as f:
 			mta_sts_policy_id = base64.b64encode(hashlib.sha1(f.read()).digest(), altchars=b"AA").decode("ascii")[0:20]
+			
 		mta_sts_records.extend([
 			("_mta-sts", "TXT", "v=STSv1; id=" + mta_sts_policy_id, "Optional. Part of the MTA-STS policy for incoming mail. If set, a MTA-STS policy must also be published.")
 		])
 
 		# Enable SMTP TLS reporting (https://tools.ietf.org/html/rfc8460) if the user has set a config option.
 		# Skip if the rules below if the user has set a custom _smtp._tls record.
-		if env.get("MTA_STS_TLSRPT_RUA") and not has_rec("_smtp._tls", "TXT", prefix="v=TLSRPTv1;"):
-			mta_sts_records.append(("_smtp._tls", "TXT", "v=TLSRPTv1; rua=" + env["MTA_STS_TLSRPT_RUA"], "Optional. Enables MTA-STS reporting."))
+		if not has_rec("_smtp._tls", "TXT", prefix="v=TLSRPTv1;"):
+			mta_sts_records.append(("_smtp._tls", "TXT", "v=TLSRPTv1; rua=mailto:tls-reports@%s" % env["PRIMARY_HOSTNAME"], "Optional. Enables MTA-STS reporting."))
 	for qname, rtype, value, explanation in mta_sts_records:
 		if not has_rec(qname, rtype):
 			records.append((qname, rtype, value, explanation))

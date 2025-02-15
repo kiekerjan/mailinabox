@@ -142,8 +142,15 @@ PUNY_PRIMARY_HOSTNAME=$(echo "$PRIMARY_HOSTNAME" | idn2)
 cat conf/mta-sts.txt \
         | sed "s/MODE/${MTA_STS_MODE}/" \
         | sed "s/PRIMARY_HOSTNAME/$PUNY_PRIMARY_HOSTNAME/" \
-         > /var/lib/mailinabox/mta-sts.txt
-chmod a+r /var/lib/mailinabox/mta-sts.txt
+         > /var/lib/mailinabox/mta-sts-long.txt
+chmod a+r /var/lib/mailinabox/mta-sts-long.txt
+
+# Also create a mta-sts file with a short period, to be used when e.g. moving
+# the box. This will be coupled to the short ttl option in the DNS configuration.
+cat conf/mta-sts-short.txt \
+        | sed "s/PRIMARY_HOSTNAME/$PUNY_PRIMARY_HOSTNAME/" \
+         > /var/lib/mailinabox/mta-sts-short.txt
+chmod a+r /var/lib/mailinabox/mta-sts-short.txt
 
 # make a default homepage
 if [ -d "$STORAGE_ROOT/www/static" ]; then mv "$STORAGE_ROOT/www/static" "$STORAGE_ROOT/www/default"; fi # migration #NODOC

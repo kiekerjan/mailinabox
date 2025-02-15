@@ -1,7 +1,20 @@
-require ["regex", "fileinto", "imap4flags"];
+require ["regex", "fileinto", "imap4flags", "envelope", "mailbox"];
 
 if allof (header :regex "X-Spam-Status" "^Yes") {
   fileinto "Spam";
   stop;
 }
 
+# Move DMARC notifications when received
+if address :contains "to" "dmarc-reports" {
+  addflag "\\Seen";
+  fileinto :create "DMARC";
+  stop;
+}
+
+# Move TLS reports notifications when received
+if address :contains "to" "tls-reports" {
+  addflag "\\Seen";
+  fileinto :create "TLSRPT";
+  stop;
+}
