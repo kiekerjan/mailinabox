@@ -65,16 +65,13 @@ user_external_hash=7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
 # 5.3 You still can create, edit and delete users
 # 5.4 Go to Administration > Logs and ensure no new errors are shown
 
-
 # Clear prior packages and install dependencies from apt.
 apt-get purge -qq -y owncloud* # we used to use the package manager
 
-apt_install curl php php-fpm \
-	php-cli php-sqlite3 php-gd php-imap php-curl \
-	php-dev php-xml php-mbstring php-zip php-apcu \
-	php-intl php-imagick php-gmp php-bcmath
-
-PHP_VER=$(php_version)
+apt_install curl php"${PHP_VER}" php"${PHP_VER}"-fpm \
+	php"${PHP_VER}"-cli php"${PHP_VER}"-sqlite3 php"${PHP_VER}"-gd php"${PHP_VER}"-imap php"${PHP_VER}"-curl \
+	php"${PHP_VER}"-dev php"${PHP_VER}"-xml php"${PHP_VER}"-mbstring php"${PHP_VER}"-zip php"${PHP_VER}"-apcu \
+	php"${PHP_VER}"-intl php"${PHP_VER}"-imagick php"${PHP_VER}"-gmp php"${PHP_VER}"-bcmath
 
 # Enable APC before Nextcloud tools are run.
 management/editconf.py /etc/php/$PHP_VER/mods-available/apcu.ini -c ';' \
@@ -234,23 +231,17 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^20 ]]; then
 			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
 			# not supported by version 20, but that does not matter, as the InstallNextcloud function only runs the version 21 code.
-			
-			# Install the ppa
-			add-apt-repository --yes ppa:ondrej/php
-			
+
 			# Prevent installation of old packages
 			apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
-			
+
 			# Install older php version
 			apt_install php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd php8.0-imap \
 				php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip
-			
-			# set older php version as default
-			update-alternatives --set php /usr/bin/php8.0
-			
-			PHP_VER=$(php_version)
-			
-			management/editconf.py /etc/php/$(php_version)/mods-available/apcu.ini -c ';' \
+
+			PHP_VER=8.0
+
+			management/editconf.py /etc/php/"$PHP_VER"/mods-available/apcu.ini -c ';' \
 				apc.enabled=1	\
 				apc.enable_cli=1
 
@@ -268,18 +259,12 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			# When installing this, we also remove the old php version
 			InstallNextcloud 23.0.12 d138641b8e7aabebe69bb3ec7c79a714d122f729 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.0.0 0df781b261f55bbde73d8c92da3f99397000972f
 			CURRENT_NEXTCLOUD_VER="23.0.12"
-			
-			# Remove older php version
-			update-alternatives --auto php
 
 			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
 				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
 				php8.0-common php8.0-opcache php8.0-readline
-	
-			PHP_VER=$(php_version)
-			
-			# Remove the ppa
-			add-apt-repository --yes --remove ppa:ondrej/php
+
+			PHP_VER=8.1
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^23 ]]; then
 			# Install nextcloud 24
@@ -311,7 +296,7 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 # ### Document nextcloud versions, php versions and user_external plugin compatibility
 # nextcloud version - supported php versions
 #
-# * 20                - 7.2, 7.3, 7.4 
+# * 20                - 7.2, 7.3, 7.4
 # * 21                - 7.3, 7.4, 8.0
 # * 22                - 7.3, 7.4, 8.0
 # * 23                - 7.3, 7.4, 8.0
