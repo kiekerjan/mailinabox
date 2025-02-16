@@ -382,6 +382,10 @@ if [ $? -ne 0 ]; then
 fi
 
 # Modify systemd settings
+# Deleting resolv.conf fails if the file has the immutable attribute
+# or the append only attribute. So we ensure those attributes are not set
+# before attempting to delete the file.
+chattr -a -i /etc/resolv.conf
 rm -f /etc/resolv.conf
 management/editconf.py /etc/systemd/resolved.conf \
 	DNS=127.0.0.1 \
