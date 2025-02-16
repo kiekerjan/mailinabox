@@ -90,8 +90,8 @@ hide_output systemctl restart systemd-journald.service
 # Disable MOTD adverts to prevent revealing server information in MOTD request headers
 # See https://ma.ttias.be/what-exactly-being-sent-ubuntu-motd/
 if [ -f /etc/default/motd-news ]; then
-tools/editconf.py /etc/default/motd-news ENABLED=0
-rm -f /var/cache/motd-news
+	management/editconf.py /etc/default/motd-news ENABLED=0
+	rm -f /var/cache/motd-news
 fi
 
 # ### Add PPAs.
@@ -467,9 +467,9 @@ apt_install smartmontools
 smartd --quit=onecheck > /dev/null 2>&1 || { smart=$? ; }
 if [ "${smart:-0}" -ne 17 ]; then # smartd manpage: 17 means smartd didn't find any devices to monitor.
 	echo "S.M.A.R.T. capable hard drives found, setting up smartd..."
-	tools/editconf.py /etc/default/smartmontools start_smartd=yes
+	management/editconf.py /etc/default/smartmontools start_smartd=yes
 	restart_service smartmontools
 else
 	echo "No S.M.A.R.T. capable hard drives found, disabling smartd..."
-	tools/editconf.py /etc/default/smartmontools start_smartd=no
+	management/editconf.py /etc/default/smartmontools start_smartd=no
 fi
