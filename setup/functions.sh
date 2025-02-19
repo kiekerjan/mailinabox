@@ -192,6 +192,30 @@ function wget_verify {
 	DEST=$3
 	CHECKSUM="$HASH  $DEST"
 	rm -f "$DEST"
+	hide_output wget -O "$DEST" "$URL"
+	
+	if ! echo "$CHECKSUM" | sha1sum --check --strict > /dev/null; then
+		echo "------------------------------------------------------------"
+		echo "Download of $URL did not match expected checksum."
+		echo "Found:"
+		sha1sum "$DEST"
+		echo
+		echo "Expected:"
+		echo "$CHECKSUM"
+		rm -f "$DEST"
+		exit 1
+	fi
+}
+function wget_verify_log_progress {
+	# Downloads a file from the web and checks that it matches
+	# a provided hash. If the comparison fails, exit immediately.
+	# this variant of the wget verify function shows
+	# downliad progress
+	URL=$1
+	HASH=$2
+	DEST=$3
+	CHECKSUM="$HASH  $DEST"
+	rm -f "$DEST"
 	wget -q --show-progress --progress=dot:giga -O "$DEST" "$URL"
 	
 	if ! echo "$CHECKSUM" | sha1sum --check --strict > /dev/null; then
