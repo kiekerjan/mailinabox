@@ -474,8 +474,7 @@ def list_target_files(config):
 		target_path = target.path
 		if not target_path.endswith('/'):
 			target_path = target_path + '/'
-		if target_path.startswith('/'):
-			target_path = target_path[1:]
+		target_path = target_path.removeprefix('/')
 
 		ssh_path, ssh_file = get_ssh_key_file()
 		ssh_file_path = os.path.join(ssh_path, ssh_file)
