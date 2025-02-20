@@ -81,7 +81,7 @@ management/editconf.py /etc/spamassassin/local.cf -s \
 
 escapedprimaryhostname="${PRIMARY_HOSTNAME//./\\.}"
 
-cat > /etc/spamassassin/miab_spf_dmarc.cf << EOF
+cat > /etc/spamassassin/80_miab_spf_dmarc.cf << EOF
 # Evaluate DMARC Authentication-Results
 header DMARC_PASS Authentication-Results =~ /$escapedprimaryhostname; dmarc=pass/
 describe DMARC_PASS DMARC check passed

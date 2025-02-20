@@ -725,7 +725,7 @@ def check_dnssec(domain, env, output, dns_zonefiles, is_checking_primary=False):
 			with open(os.path.join(env['STORAGE_ROOT'], 'dns/dnssec/' + dnssec_keys['KSK'] + '.key'), encoding="utf-8") as f:
 				dnsssec_pubkey = f.read().split("\t")[3].split(" ")[3]
 
-				expected_ds_records[ (ds_keytag, ds_alg, ds_digalg, ds_digest) ] = {
+				expected_ds_records[ ds_keytag, ds_alg, ds_digalg, ds_digest ] = {
 					"record": rr_ds,
 					"keytag": ds_keytag,
 					"alg": ds_alg,
@@ -881,9 +881,9 @@ def check_mail_domain(domain, env, output):
 	elif dbl == "127.255.255.252":
 		output.print_warning("Incorrect spamhaus query: %s. Could not determine whether the domain %s is blacklisted." % (domain+'.dbl.spamhaus.org', domain))
 	elif dbl == "127.255.255.254":
-		output.print_warning("Mail-in-a-Box is configured to use a public DNS server. This is not supported by spamhaus. Could not determine whether the domain {} is blacklisted.".format(domain))
+		output.print_warning(f"Mail-in-a-Box is configured to use a public DNS server. This is not supported by spamhaus. Could not determine whether the domain {domain} is blacklisted.")
 	elif dbl == "127.255.255.255":
-		output.print_warning("Too many queries have been performed on the spamhaus server. Could not determine whether the domain {} is blacklisted.".format(domain))
+		output.print_warning(f"Too many queries have been performed on the spamhaus server. Could not determine whether the domain {domain} is blacklisted.")
 	else:
 		output.print_error(f"""This domain is listed in the Spamhaus Domain Block List (code {dbl}),
 			which may prevent recipients from receiving your mail.

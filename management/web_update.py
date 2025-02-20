@@ -87,7 +87,7 @@ def do_web_update(env):
 
 	# Build an nginx configuration file.
 	nginx_conf = read_conf("nginx-top.conf")
-	nginx_conf = re.sub("{{phpver}}", get_php_version(), nginx_conf)
+	nginx_conf = re.sub(r"{{phpver}}", get_php_version(), nginx_conf)
 
 	# Load the templates.
 	template0 = read_conf("nginx.conf")
@@ -180,7 +180,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 				proxy_redirect_off = False
 				frame_options_header_sameorigin = False
 				web_sockets = False
-				m = re.search("#(.*)$", url)
+				m = re.search(r"#(.*)$", url)
 				if m:
 					for flag in m.group(1).split(","):
 						if flag == "pass-http-host":
@@ -191,7 +191,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 							frame_options_header_sameorigin = True
 						elif flag == "web-sockets":
 							web_sockets = True
-					url = re.sub("#(.*)$", "", url)
+					url = re.sub(r"#(.*)$", "", url)
 
 				nginx_conf_extra += "\tlocation %s {" % path
 				nginx_conf_extra += "\n\t\tproxy_pass %s;" % url
@@ -239,14 +239,14 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 
 	# Add the HSTS header.
 	if hsts == "yes":
-		nginx_conf_extra += "\tadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;\n"
+		nginx_conf_extra += '\tadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;\n'
 	elif hsts == "preload":
-		nginx_conf_extra += "\tadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n"
+		nginx_conf_extra += '\tadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;\n'
 		
-	nginx_conf_extra += "\tadd_header X-Frame-Options \"SAMEORIGIN\" always;\n"
+	nginx_conf_extra += '\tadd_header X-Frame-Options "SAMEORIGIN" always;\n'
 	nginx_conf_extra += "\tadd_header X-Content-Type-Options nosniff;\n"
 	nginx_conf_extra += "\tadd_header Content-Security-Policy-Report-Only \"default-src 'self'; font-src *;img-src * data:; script-src *; style-src *;frame-ancestors 'self'\";\n"
-	nginx_conf_extra += "\tadd_header Referrer-Policy \"strict-origin\";\n"
+	nginx_conf_extra += '\tadd_header Referrer-Policy "strict-origin";\n'
 
 	# Add in any user customizations in the includes/ folder.
 	nginx_conf_custom_include = os.path.join(env["STORAGE_ROOT"], "www", safe_domain_name(domain) + ".conf")

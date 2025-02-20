@@ -474,8 +474,7 @@ def list_target_files(config):
 		target_path = target.path
 		if not target_path.endswith('/'):
 			target_path = target_path + '/'
-		if target_path.startswith('/'):
-			target_path = target_path[1:]
+		target_path = target_path.removeprefix('/')
 
 		ssh_path, ssh_file = get_ssh_key_file()
 		ssh_file_path = os.path.join(ssh_path, ssh_file)
@@ -618,8 +617,7 @@ def get_backup_config(env, for_save=False, for_ui=False):
 	# authentication details. The user will have to re-enter it.
 	if for_ui:
 		for field in ("target_user", "target_pass"):
-			if field in config:
-				del config[field]
+			config.pop(field, None)
 
 	# helper fields for the admin
 	config["file_target_directory"] = os.path.join(backup_root, 'encrypted')

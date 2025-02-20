@@ -71,7 +71,7 @@ def scan_files(collector):
 
         if not os.path.exists(fn):
             continue
-        elif fn[-3:] == '.gz':
+        if fn.endswith('.gz'):
             tmp_file = tempfile.NamedTemporaryFile()
             with gzip.open(fn, 'rb') as f:
                 shutil.copyfileobj(f, tmp_file)
@@ -391,7 +391,7 @@ def scan_postgrey_line(date, log, collector):
     """ Scan a postgrey log line and extract interesting data """
 
     m = re.match(r"action=(greylist|pass), reason=(.*?), (?:delay=\d+, )?client_name=(.*), "
-                 "client_address=(.*), sender=(.*), recipient=(.*)",
+                 r"client_address=(.*), sender=(.*), recipient=(.*)",
                  log)
 
     if m:
@@ -423,7 +423,7 @@ def scan_postfix_smtpd_line(date, log, collector):
 
     # Check if the incoming mail was rejected
 
-    m = re.match("NOQUEUE: reject: RCPT from .*?: (.*?); from=<(.*?)> to=<(.*?)>", log)
+    m = re.match(r"NOQUEUE: reject: RCPT from .*?: (.*?); from=<(.*?)> to=<(.*?)>", log)
 
     if m:
         message, sender, user = m.groups()
@@ -467,7 +467,7 @@ def scan_postfix_smtpd_line(date, log, collector):
 def scan_dovecot_login_line(date, log, collector, protocol_name):
     """ Scan a dovecot login log line and extract interesting data """
 
-    m = re.match("Info: Login: user=<(.*?)>, method=PLAIN, rip=(.*?),", log)
+    m = re.match(r"Info: Login: user=<(.*?)>, method=PLAIN, rip=(.*?),", log)
 
     if m:
         # TODO: CHECK DIT
@@ -495,7 +495,7 @@ def add_login(user, date, protocol_name, host, collector):
             data["latest"] = date
 
             data["totals_by_protocol"][protocol_name] += 1
-            data["totals_by_protocol_and_host"][(protocol_name, host)] += 1
+            data["totals_by_protocol_and_host"][protocol_name, host] += 1
 
             if host not in {"127.0.0.1", "::1"} or True:
                 data["activity-by-hour"][protocol_name][date.hour] += 1
