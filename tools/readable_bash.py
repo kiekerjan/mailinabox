@@ -409,7 +409,7 @@ class BashScript(Grammar):
 		string = re.sub(".* #NODOC\n", "", string)
 		string = re.sub(r"\n\s*if .*then.*|\n\s*fi|\n\s*else|\n\s*elif .*", "", string)
 		string = quasitokenize(string)
-		string = re.sub("hide_output ", "", string)
+		string = re.sub(r"hide_output ", "", string)
 
 		parser = BashScript.parser()
 		result = parser.parse_string(string)

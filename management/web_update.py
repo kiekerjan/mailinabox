@@ -87,7 +87,7 @@ def do_web_update(env):
 
 	# Build an nginx configuration file.
 	nginx_conf = read_conf("nginx-top.conf")
-	nginx_conf = re.sub("{{phpver}}", get_php_version(), nginx_conf)
+	nginx_conf = re.sub(r"{{phpver}}", get_php_version(), nginx_conf)
 
 	# Load the templates.
 	template0 = read_conf("nginx.conf")
@@ -180,7 +180,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 				proxy_redirect_off = False
 				frame_options_header_sameorigin = False
 				web_sockets = False
-				m = re.search("#(.*)$", url)
+				m = re.search(r"#(.*)$", url)
 				if m:
 					for flag in m.group(1).split(","):
 						if flag == "pass-http-host":
@@ -191,7 +191,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 							frame_options_header_sameorigin = True
 						elif flag == "web-sockets":
 							web_sockets = True
-					url = re.sub("#(.*)$", "", url)
+					url = re.sub(r"#(.*)$", "", url)
 
 				nginx_conf_extra += "\tlocation %s {" % path
 				nginx_conf_extra += "\n\t\tproxy_pass %s;" % url

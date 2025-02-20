@@ -321,8 +321,8 @@ def read_csv_bl(filename):
 
 
 
-v4_ex = re.compile('^[.0-9]+$')
-v6_ex = re.compile('^[:0-9a-fA-F]+$')
+v4_ex = re.compile(r'^[.0-9]+$')
+v6_ex = re.compile(r'^[:0-9a-fA-F]+$')
 
 def get_addrs(dest, mx=True):
     if v4_ex.match(dest) or v6_ex.match(dest):
