@@ -881,9 +881,9 @@ def check_mail_domain(domain, env, output):
 	elif dbl == "127.255.255.252":
 		output.print_warning("Incorrect spamhaus query: %s. Could not determine whether the domain %s is blacklisted." % (domain+'.dbl.spamhaus.org', domain))
 	elif dbl == "127.255.255.254":
-		output.print_warning("Mail-in-a-Box is configured to use a public DNS server. This is not supported by spamhaus. Could not determine whether the domain {} is blacklisted.".format(domain))
+		output.print_warning(f"Mail-in-a-Box is configured to use a public DNS server. This is not supported by spamhaus. Could not determine whether the domain {domain} is blacklisted.")
 	elif dbl == "127.255.255.255":
-		output.print_warning("Too many queries have been performed on the spamhaus server. Could not determine whether the domain {} is blacklisted.".format(domain))
+		output.print_warning(f"Too many queries have been performed on the spamhaus server. Could not determine whether the domain {domain} is blacklisted.")
 	else:
 		output.print_error(f"""This domain is listed in the Spamhaus Domain Block List (code {dbl}),
 			which may prevent recipients from receiving your mail.

@@ -350,7 +350,7 @@ def get_addrs(dest, mx=True):
             log.debug('domain {} has addresses: {}'
                       .format(domain, ', '.join([x[0] for x in xs])))
     if not addrs:
-        raise ValueError("There isn't any a/aaaa DNS record for {}".format(domain))
+        raise ValueError(f"There isn't any a/aaaa DNS record for {domain}")
     return addrs, ds
 
 
@@ -396,20 +396,19 @@ def check_rdns(addrs):
     for (addr, domain) in addrs:
         if domain is None:
             continue
-        log.debug('Check if there is a reverse DNS record that maps address {} to {}'
-                  .format(addr, domain))
+        log.debug(f'Check if there is a reverse DNS record that maps address {addr} to {domain}'
+                  )
         try:
             r = dns.resolver.resolve(dns.reversename.from_address(addr), 'ptr', search=False)
             a = list(r)[0]
             target = str(a.target).lower()
             source = str(domain).lower()
-            log.debug('Reverse DNS record for {} points to {}'.format(addr, target))
+            log.debug(f'Reverse DNS record for {addr} points to {target}')
             if domain and source + '.' != target and source != target:
-                log.error('domain {} resolves to {}, but the reverse record resolves to {}'.
-                         format(domain, addr, target))
+                log.error(f'domain {domain} resolves to {addr}, but the reverse record resolves to {target}')
                 errs = errs + 1
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-            log.error('There is no reverse DNS record for {}'.format(addr))
+            log.error(f'There is no reverse DNS record for {addr}')
             errs = errs + 1
             return errs
     return errs
