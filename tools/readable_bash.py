@@ -124,7 +124,7 @@ def generate_documentation():
  """)
 
 	parser = Source.parser()
-	with open("setup/start.sh", "r") as start_file:
+	with open("setup/start.sh") as start_file:
 		for line in start_file:
 			try:
 				fn = parser.parse_string(line).filename()
@@ -402,7 +402,7 @@ class BashScript(Grammar):
 	@staticmethod
 	def parse(fn):
 		if fn in ("setup/functions.sh", "/etc/mailinabox.conf"): return ""
-		with open(fn, "r") as f:
+		with open(fn) as f:
 			string = f.read()
 
 		# tokenize

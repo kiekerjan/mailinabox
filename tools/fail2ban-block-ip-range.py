@@ -17,7 +17,7 @@ def scanTheLog(script, countLimit, tmpf):
     #
     # PART 2: reads the ip list detected and iterate:
     #
-    file1 = open(tmpf[1], 'r')
+    file1 = open(tmpf[1])
     Lines = file1.readlines()
 
     mylist = defaultdict(lambda: defaultdict(int))
