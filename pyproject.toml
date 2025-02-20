@@ -10,6 +10,13 @@ output-format = "concise"
 
 extend-exclude = ["tools/mail.py"]
 
+## Ruff usage
+# ruff --config pyproject.toml check
+## Check single rule
+# ruff --config pyproject.toml check --diff --select ARG005
+## Fix single rule
+# ruff --config pyproject.toml check --fix --select ARG005
+
 [tool.ruff.lint]
 select = [
 "ARG005",
