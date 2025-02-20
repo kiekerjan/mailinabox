@@ -416,7 +416,7 @@ function clear_credentials() {
 function do_logout() {
   // Clear the session from the backend.
   api("/logout", "POST");
-  
+
   // Remove locally stored credentials
   clear_credentials();
 

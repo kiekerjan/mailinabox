@@ -258,7 +258,7 @@ management/editconf.py /etc/postfix/main.cf  -e lmtp_destination_recipient_limit
 # "450 4.7.1 Client host rejected: Service unavailable". This is a retry code, so the mail doesn't properly bounce. #NODOC
 management/editconf.py /etc/postfix/main.cf \
 	smtpd_sender_restrictions="reject_non_fqdn_sender,reject_unknown_sender_domain,reject_authenticated_sender_login_mismatch,reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]" \
-	smtpd_recipient_restrictions="permit_sasl_authenticated,permit_mynetworks,check_sender_access hash:/etc/postfix/sender_access,check_recipient_access hash:/etc/postfix/recipient_access,reject_rbl_client zen.spamhaus.org=127.0.0.[2..11],reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99],reject_rhsbl_helo dbl.spamhaus.org=127.0.1.[2..99],reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[2..99],warn_if_reject reject_rbl_client zen.spamhaus.org=127.255.255.[1..255],reject_unlisted_recipient,check_policy_service inet:127.0.0.1:10023"
+	smtpd_recipient_restrictions="permit_sasl_authenticated,permit_mynetworks,check_sender_access hash:/etc/postfix/sender_access,check_recipient_access hash:/etc/postfix/recipient_access,reject_rbl_client zen.spamhaus.org=127.0.0.[2..11],reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99],reject_rhsbl_helo dbl.spamhaus.org=127.0.1.[2..99],reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[2..99],warn_if_reject reject_rbl_client zen.spamhaus.org=127.255.255.[1..255],reject_unlisted_recipient,check_policy_service inet:127.0.0.1:10023,check_policy_service inet:127.0.0.1:12340"
 
 cp -f conf/postfix/sender_access /etc/postfix
 cp -f conf/postfix/recipient_access /etc/postfix
