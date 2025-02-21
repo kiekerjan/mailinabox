@@ -185,7 +185,12 @@ if [ -z "${PRIVATE_IP:-}" ]; then
 	PRIVATE_IP=$(get_default_privateip 4)
 fi
 if [ -z "${PRIVATE_IPV6:-}" ]; then
-	PRIVATE_IPV6=$(get_default_privateip 6)
+	# Do not override a configured IPv6
+	if [ ! -z "${DEFAULT_PRIVATE_IPV6:-}" ]; then
+		PRIVATE_IPV6=$DEFAULT_PRIVATE_IPV6
+	else
+		PRIVATE_IPV6=$(get_default_privateip 6)
+	fi
 fi
 if [[ -z "$PRIVATE_IP" && -z "$PRIVATE_IPV6" ]]; then
 	echo
