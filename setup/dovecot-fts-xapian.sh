@@ -21,8 +21,14 @@ echo "Installing fts-xapian..."
 apt_install dovecot-fts-xapian
 
 # Update the dovecot plugin configuration
-management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
-        mail_plugins="$mail_plugins quota fts fts_xapian"
+#sed -i "s/#mail_plugins =\(.*\)/mail_plugins =\1 \$mail_plugins quota/" /etc/dovecot/conf.d/10-mail.conf
+
+if ! grep -q "mail_plugins.* fts fts_xapian" /etc/dovecot/conf.d/10-mail.conf; then
+  sed -i "s/\(mail_plugins =.*\)/\1\n  mail_plugins = \$mail_plugins fts fts_xapian/" /etc/dovecot/conf.d/10-mail.conf
+fi
+
+#management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
+#        mail_plugins="\$mail_plugins quota fts fts_xapian"
 
 # Install cronjobs to keep FTS up to date.
 hide_output install -m 755 conf/cron/miab_dovecot /etc/cron.daily/
