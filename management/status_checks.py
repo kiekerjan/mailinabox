@@ -1022,7 +1022,7 @@ def list_apt_updates(apt_update=True):
 	# See if we have this information cached recently.
 	# Keep the information for 8 hours.
 	global _apt_updates
-	if _apt_updates is not None and _apt_updates[0] > datetime.datetime.now() - datetime.timedelta(hours=8):
+	if _apt_updates is not None and _apt_updates[0] > datetime.datetime.now() - datetime.timedelta(hours=6):
 		return _apt_updates[1]
 
 	# Run apt-get update to refresh package list. This should be running daily
