@@ -117,7 +117,7 @@ management/editconf.py /etc/postfix/master.cf -s -w \
 	"authclean=unix  n       -       -       -       0       cleanup
 	  -o header_checks=pcre:/etc/postfix/outgoing_mail_header_filters
 	  -o nested_header_checks=" \
-	"relaysp   unix  -       -       y       -       -       smtp
+	"relaysp=unix  -       -       y       -       -       smtp
           -o syslog_name=postfix/\$service_name
           -o smtp_sasl_auth_enable=yes
           -o smtp_sasl_security_options=noanonymous
