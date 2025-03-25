@@ -4,8 +4,8 @@
 ########################################################################
 
 from editconf import do_editconf
-from utils import load_settings
-import logging
+import logging, utils
+
 
 def do_daily_maintenance(env):
 	# This function collects all other maintenance functions
@@ -13,11 +13,12 @@ def do_daily_maintenance(env):
 	logging.debug("Do daily maintenance")
 
 	do_webmail_maintenance(env)
+	logging.debug(do_package_maintenance())
 
 
 def do_webmail_maintenance(env):
 	logging.debug("Do webmail maintenance")
-	config = load_settings(env)
+	config = utils.load_settings(env)
 
 	# Handle custom front logo of the Roundcube webmail
 	skin_logo = config.get("webmail", {}).get("skin_logo", None)
@@ -34,8 +35,15 @@ def do_webmail_maintenance(env):
 	if remove:
 		do_editconf([webmail_file, "-e", "$config['skin_logo']="])
 
+
+def do_package_maintenance():
+        utils.shell("check_call", ["/usr/bin/apt-get", "-qq", "update"])
+        return utils.shell("check_output", ["/usr/bin/apt-get", "-y", "upgrade"], env={
+                "DEBIAN_FRONTEND": "noninteractive"
+        })
+
+
 if __name__ == "__main__":
-	from utils import load_environment
-	env = load_environment()
+	env = utils.load_environment()
 
 	do_daily_maintenance(env)
