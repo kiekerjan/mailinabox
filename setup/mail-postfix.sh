@@ -153,7 +153,7 @@ management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_key_file="$STORAGE_ROOT/ssl/ssl_private_key.pem" \
 	smtpd_tls_dh1024_param_file="$STORAGE_ROOT/ssl/dh4096.pem" \
 	smtpd_tls_protocols=">=TLSv1.2" \
-	smtpd_tls_ciphers=high \
+	smtpd_tls_ciphers=medium \
 	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, CAMELLIA, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	tls_preempt_cipherlist=yes \
 	smtpd_tls_received_header=yes
@@ -209,7 +209,7 @@ management/editconf.py /etc/postfix/main.cf \
 # now see notices about trusted certs. The CA file is provided by the package `ca-certificates`.
 management/editconf.py /etc/postfix/main.cf \
 	smtp_tls_protocols=">=TLSv1.2" \
-	smtp_tls_ciphers=high \
+	smtp_tls_ciphers=medium \
 	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, CAMELLIA, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	smtp_tls_security_level=dane \
 	smtp_dns_support_level=dnssec \
