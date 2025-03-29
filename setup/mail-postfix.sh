@@ -140,7 +140,7 @@ sed -i "s/PUBLIC_IP/$PUBLIC_IP/" /etc/postfix/outgoing_mail_header_filters
 # encryption. On ports 465 and 587 it is mandatory (see above). Shared and non-shared settings are
 # given here. Shared settings include:
 # * Require TLS before a user is allowed to authenticate.
-# * Set the path to the server TLS certificate and 2048-bit DH parameters for old DH ciphers.
+# * Set the path to the server TLS certificate and 4096-bit DH parameters for old DH ciphers.
 # For port 25 only:
 # * Disable extremely old versions of TLS and extremely unsafe ciphers, but some mail servers out in
 #   the world are very far behind and if we disable too much, they may not be able to use TLS and
