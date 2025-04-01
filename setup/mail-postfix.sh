@@ -122,8 +122,6 @@ management/editconf.py /etc/postfix/master.cf -s -w \
           -o smtp_sasl_auth_enable=yes
           -o smtp_sasl_security_options=noanonymous
           -o smtp_use_tls=yes
-          -o smtp_tls_note_starttls_offer=yes
-          -o smtpd_tls_loglevel=1
           -o smtp_tls_wrappermode=yes
           -o smtp_tls_security_level=encrypt"
 
@@ -154,14 +152,16 @@ management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_dh1024_param_file="$STORAGE_ROOT/ssl/dh4096.pem" \
 	smtpd_tls_protocols=">=TLSv1.2" \
 	smtpd_tls_ciphers=medium \
-	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, CAMELLIA, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
+	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	tls_preempt_cipherlist=yes \
-	smtpd_tls_received_header=yes
+	smtpd_tls_received_header=yes \
+	smtpd_tls_loglevel=1
 
 # For ports 465/587 (via the 'mandatory' settings):
 management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_mandatory_protocols=">=TLSv1.2" \
-	smtpd_tls_mandatory_ciphers=high
+	smtpd_tls_mandatory_ciphers=high \
+	smtpd_tls_mandatory_exclude_ciphers=CAMELLIA
 
 # Add block_root_external to block mail send to root@PRIMARY_HOSTNAME. This mail address is only supposed to be used for local
 # mail delivery (cron etc)
@@ -210,13 +210,15 @@ management/editconf.py /etc/postfix/main.cf \
 management/editconf.py /etc/postfix/main.cf \
 	smtp_tls_protocols=">=TLSv1.2" \
 	smtp_tls_ciphers=medium \
-	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, CAMELLIA, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
+	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	smtp_tls_security_level=dane \
 	smtp_dns_support_level=dnssec \
 	smtp_tls_mandatory_protocols=">=TLSv1.2" \
 	smtp_tls_mandatory_ciphers=high \
+	smtp_tls_mandatory_exclude_ciphers=CAMELLIA \
 	smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt \
-	smtp_tls_loglevel=2
+	smtp_tls_loglevel=1 \
+	smtp_tls_note_starttls_offer=yes
 
 # ### Incoming Mail
 
