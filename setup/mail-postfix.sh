@@ -150,9 +150,9 @@ management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_cert_file="$STORAGE_ROOT/ssl/ssl_certificate.pem" \
 	smtpd_tls_key_file="$STORAGE_ROOT/ssl/ssl_private_key.pem" \
 	smtpd_tls_dh1024_param_file="$STORAGE_ROOT/ssl/dh4096.pem" \
-	smtpd_tls_protocols=">=TLSv1.2" \
+	smtpd_tls_protocols=">=TLSv1" \
 	smtpd_tls_ciphers=medium \
-	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
+	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, ARIAGCM" \
 	tls_preempt_cipherlist=yes \
 	smtpd_tls_received_header=yes \
 	smtpd_tls_loglevel=1
@@ -161,7 +161,7 @@ management/editconf.py /etc/postfix/main.cf \
 management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_mandatory_protocols=">=TLSv1.2" \
 	smtpd_tls_mandatory_ciphers=high \
-	smtpd_tls_mandatory_exclude_ciphers=CAMELLIA
+	smtpd_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA"
 
 # Add block_root_external to block mail send to root@PRIMARY_HOSTNAME. This mail address is only supposed to be used for local
 # mail delivery (cron etc)
@@ -208,14 +208,14 @@ management/editconf.py /etc/postfix/main.cf \
 # even if we don't know if it's to the right party, than to not encrypt at all. Instead we'll
 # now see notices about trusted certs. The CA file is provided by the package `ca-certificates`.
 management/editconf.py /etc/postfix/main.cf \
-	smtp_tls_protocols=">=TLSv1.2" \
+	smtp_tls_protocols=">=TLSv1" \
 	smtp_tls_ciphers=medium \
-	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, kRSA, ARIAGCM, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
+	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, ARIAGCM" \
 	smtp_tls_security_level=dane \
 	smtp_dns_support_level=dnssec \
 	smtp_tls_mandatory_protocols=">=TLSv1.2" \
 	smtp_tls_mandatory_ciphers=high \
-	smtp_tls_mandatory_exclude_ciphers=CAMELLIA \
+	smtp_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt \
 	smtp_tls_loglevel=1 \
 	smtp_tls_note_starttls_offer=yes
