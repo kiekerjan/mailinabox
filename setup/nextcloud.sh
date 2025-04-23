@@ -24,8 +24,8 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=29.0.12
-nextcloud_hash=6cd53db7a8d730ebd5972081344db41eb2b174a8
+nextcloud_ver=29.0.16
+nextcloud_hash=ceb3014aaddc70d3074d2c69bc6afc76eb1aeff0
 
 # Nextcloud apps
 # --------------
@@ -39,8 +39,8 @@ nextcloud_hash=6cd53db7a8d730ebd5972081344db41eb2b174a8
 # the error message when it doesn't match what is below:
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=6.0.1
-contacts_hash=5ce799cce6943e7fa531ce53aa1cbe01b7b6f1be
+contacts_ver=6.0.4
+contacts_hash=fee86bffa2a1b6ecd6145b5e637e2bae2ba1a65c
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
 calendar_ver=4.7.16
@@ -227,13 +227,13 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 		fi
 
 		# Install php 8.0 for older versions of nextcloud that don't support 8.1
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[0123] ]]; then
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[012345] ]]; then
 			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
 			# not supported by version 20, but that does not matter, as the InstallNextcloud function only runs the version 21 code.
-			# We need php 8.0 for nextcloud 21-23, as php 8.1 is supported starting nextcloud 24
+			# We need php 8.0 for nextcloud 21-25, skip php 8.1, php 8.2 is supported starting nextcloud 26
 
 			# Prevent installation of old packages
-			apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
+			hide_output apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
 
 			# Install php version 8.0
 			apt_install php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd php8.0-imap \
@@ -268,22 +268,6 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 24.0.12 7aa5d61632c1ccf4ca3ff00fb6b295d318c05599 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.1.0 399fe1150b28a69aaf5bfcad3227e85706604a44
 			CURRENT_NEXTCLOUD_VER="24.0.12"
 		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[456] ]]; then
-			# From nextcloud 24 and higher, php8.1 is supported, so we can now remove the php8.0 ppa and packages
-
-			# Reset the default php version used
-			NC_PHP_VER=$PHP_VER
-
-			# Remove older php version
-			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
-				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
-				php8.0-common php8.0-opcache php8.0-readline
-				
-			# Unhold packages
-			apt-mark unhold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
-		fi
-
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^24 ]]; then
 			# Install nextcloud 25
 			InstallNextcloud 25.0.7 a5a565c916355005c7b408dd41a1e53505e1a080 5.3.0 4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c 4.4.2 21a42e15806adc9b2618760ef94f1797ef399e2f 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
@@ -294,6 +278,22 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 26.0.8 a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8 5.4.2 d38c9e16b377c05b5114e70b3b0c3d3f1f1d10f6 4.5.3 7c974d4f092886e8932c6c3ae34532c30a3fcea9 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 			CURRENT_NEXTCLOUD_VER="26.0.8"
 		fi
+
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[6789] ]]; then
+			# From nextcloud 26 and higher, php8.2 is supported, so we can now remove the php8.0 ppa and packages
+
+			# Reset the default php version used
+			NC_PHP_VER=$PHP_VER
+
+			# Remove older php version
+			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
+				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
+				php8.0-common php8.0-opcache php8.0-readline
+				
+			# Unhold packages
+			hide_output apt-mark unhold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
+		fi
+		
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^26 ]]; then
 			# Install nextcloud 27
 			InstallNextcloud 27.1.9 4797a2f1f7ffcedca7c0917f913d983b75ed22fd 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.2 9222953e5654c151604e082c0d5907dcc651d3d7 3.3.0 49800e8ca61391965ce8a75eaaf92a8037185375
