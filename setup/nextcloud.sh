@@ -65,6 +65,9 @@ user_external_hash=7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
 # 5.3 You still can create, edit and delete users
 # 5.4 Go to Administration > Logs and ensure no new errors are shown
 
+# Set a local variable for the PHP version
+NC_PHP_VER=$PHP_VER
+
 # Clear prior packages and install dependencies from apt.
 apt-get purge -qq -y owncloud* # we used to use the package manager
 
@@ -74,9 +77,9 @@ apt_install curl php"${PHP_VER}" php"${PHP_VER}"-fpm \
 	php"${PHP_VER}"-intl php"${PHP_VER}"-imagick php"${PHP_VER}"-gmp php"${PHP_VER}"-bcmath
 
 # Enable APC before Nextcloud tools are run.
-management/editconf.py /etc/php/$PHP_VER/mods-available/apcu.ini -c ';' \
-    apc.enabled=1 \
-    apc.enable_cli=1
+management/editconf.py /etc/php/"$PHP_VER"/mods-available/apcu.ini -c ';' \
+	apc.enabled=1 \
+	apc.enable_cli=1
 
 InstallNextcloud() {
 
@@ -144,23 +147,23 @@ InstallNextcloud() {
 	if [ -e "$STORAGE_ROOT/owncloud/owncloud.db" ]; then
 		# ownCloud 8.1.1 broke upgrades. It may fail on the first attempt, but
 		# that can be OK.
-		sudo -u www-data php $CLOUD_DIR/occ upgrade
+		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
 		E=$?
 		if [ $E -ne 0 ] && [ $E -ne 3 ]; then
 			echo "Trying ownCloud upgrade again to work around ownCloud upgrade bug..."
-			sudo -u www-data php $CLOUD_DIR/occ upgrade
+			sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
 			E=$?
 			if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
-			sudo -u www-data php $CLOUD_DIR/occ maintenance:mode --off
+			sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ maintenance:mode --off
 			echo "...which seemed to work."
 		fi
 
 		# Add missing indices. NextCloud didn't include this in the normal upgrade because it might take some time.
-		sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
-		sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
+		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
+		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
 
 		# Run conversion to BigInt identifiers, this process may take some time on large tables.
-		sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
+		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
 	fi
 }
 
@@ -223,28 +226,29 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			return 0
 		fi
 
-		# Hint: whenever you bump, remember this:
-		# - Run a server with the previous version
-		# - On a new if-else block, copy the versions/hashes from the previous version
-		# - Run sudo ./setup/start.sh on the new machine. Upon completion, test its basic functionalities.
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^20 ]]; then
+		# Install php 8.0 for older versions of nextcloud that don't support 8.1
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[0123] ]]; then
 			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
 			# not supported by version 20, but that does not matter, as the InstallNextcloud function only runs the version 21 code.
+			# We need php 8.0 for nextcloud 21-23, as php 8.1 is supported starting nextcloud 24
 
 			# Prevent installation of old packages
 			apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
 
-			# Install older php version
+			# Install php version 8.0
 			apt_install php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd php8.0-imap \
 				php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip
 
-			PHP_VER=8.0
+			# set php version 8.0 as default
+			NC_PHP_VER=8.0
 
-			management/editconf.py /etc/php/"$PHP_VER"/mods-available/apcu.ini -c ';' \
+			# Make sure apc is enabled
+			management/editconf.py /etc/php/"$NC_PHP_VER"/mods-available/apcu.ini -c ';' \
 				apc.enabled=1	\
 				apc.enable_cli=1
+		fi
 
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^20 ]]; then
 			# Install nextcloud, this also updates user_external to 2.1.0
 			InstallNextcloud 21.0.7 f5c7079c5b56ce1e301c6a27c0d975d608bb01c9 4.0.7 45e7cf4bfe99cd8d03625cf9e5a1bb2e90549136 3.0.4 d0284b68135777ec9ca713c307216165b294d0fe 2.1.0 41d4c57371bd085d68421b52ab232092d7dfc882
 			CURRENT_NEXTCLOUD_VER="21.0.7"
@@ -256,21 +260,30 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^22 ]]; then
 			# Nextcloud version 23
-			# When installing this, we also remove the old php version
 			InstallNextcloud 23.0.12 d138641b8e7aabebe69bb3ec7c79a714d122f729 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.0.0 0df781b261f55bbde73d8c92da3f99397000972f
 			CURRENT_NEXTCLOUD_VER="23.0.12"
-
-			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
-				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
-				php8.0-common php8.0-opcache php8.0-readline
-
-			PHP_VER=8.1
 		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^23 ]]; then
 			# Install nextcloud 24
 			InstallNextcloud 24.0.12 7aa5d61632c1ccf4ca3ff00fb6b295d318c05599 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.1.0 399fe1150b28a69aaf5bfcad3227e85706604a44
 			CURRENT_NEXTCLOUD_VER="24.0.12"
 		fi
+
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[456] ]]; then
+			# From nextcloud 24 and higher, php8.1 is supported, so we can now remove the php8.0 ppa and packages
+
+			# Reset the default php version used
+			NC_PHP_VER=$PHP_VER
+
+			# Remove older php version
+			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
+				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
+				php8.0-common php8.0-opcache php8.0-readline
+				
+			# Unhold packages
+			apt-mark unhold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
+		fi
+
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^24 ]]; then
 			# Install nextcloud 25
 			InstallNextcloud 25.0.7 a5a565c916355005c7b408dd41a1e53505e1a080 5.3.0 4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c 4.4.2 21a42e15806adc9b2618760ef94f1797ef399e2f 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
@@ -291,6 +304,10 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 28.0.10 24edd63bdc005ff39607831ed6cc2cac7278d41a 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.16 1c39ce674027a8710800d056a7cdd0c5c974781d 3.4.0 7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
 			CURRENT_NEXTCLOUD_VER="28.0.10"
 		fi
+		# Hint: whenever you bump, remember this:
+		# - Run a server with the previous version
+		# - On a new if-else block, copy the versions/hashes from the previous version
+		# - Run sudo ./setup/start.sh on the new machine. Upon completion, test its basic functionalities.
 	fi
 
 # ### Document nextcloud versions, php versions and user_external plugin compatibility
