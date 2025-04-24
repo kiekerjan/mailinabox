@@ -226,11 +226,11 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			return 0
 		fi
 
-		# Install php 8.0 for older versions of nextcloud that don't support 8.1
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[012345] ]]; then
+		# Install php 8.0 for older versions of nextcloud that don't support 8.3
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[0123456] ]]; then
 			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
 			# not supported by version 20, but that does not matter, as the InstallNextcloud function only runs the version 21 code.
-			# We need php 8.0 for nextcloud 21-25, skip php 8.1, php 8.2 is supported starting nextcloud 26
+			# We need php 8.0 for installing nextcloud 21-27. From version 28 on, we can use the default PHP version 8.3
 
 			# Prevent installation of old packages
 			hide_output apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
@@ -278,9 +278,15 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 26.0.8 a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8 5.4.2 d38c9e16b377c05b5114e70b3b0c3d3f1f1d10f6 4.5.3 7c974d4f092886e8932c6c3ae34532c30a3fcea9 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
 			CURRENT_NEXTCLOUD_VER="26.0.8"
 		fi
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^26 ]]; then
+			# Install nextcloud 27
+			InstallNextcloud 27.1.9 4797a2f1f7ffcedca7c0917f913d983b75ed22fd 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.2 9222953e5654c151604e082c0d5907dcc651d3d7 3.3.0 49800e8ca61391965ce8a75eaaf92a8037185375
+			CURRENT_NEXTCLOUD_VER="27.1.9"
+		fi
 
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[6789] ]]; then
-			# From nextcloud 26 and higher, php8.2 is supported, so we can now remove the php8.0 ppa and packages
+		# Match not only version 27, but also 28 and 29 to make sure the cleanup runs
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[789] ]]; then
+			# From nextcloud 28 and higher, php8.3 is supported, so we can now remove the php8.0 ppa and packages
 
 			# Reset the default php version used
 			NC_PHP_VER=$PHP_VER
@@ -294,11 +300,6 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			hide_output apt-mark unhold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
 		fi
 		
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^26 ]]; then
-			# Install nextcloud 27
-			InstallNextcloud 27.1.9 4797a2f1f7ffcedca7c0917f913d983b75ed22fd 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.2 9222953e5654c151604e082c0d5907dcc651d3d7 3.3.0 49800e8ca61391965ce8a75eaaf92a8037185375
-			CURRENT_NEXTCLOUD_VER="27.1.9"
-		fi
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^27 ]]; then
 			# Install nextcloud 28
 			InstallNextcloud 28.0.10 24edd63bdc005ff39607831ed6cc2cac7278d41a 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.16 1c39ce674027a8710800d056a7cdd0c5c974781d 3.4.0 7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
@@ -309,30 +310,6 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 		# - On a new if-else block, copy the versions/hashes from the previous version
 		# - Run sudo ./setup/start.sh on the new machine. Upon completion, test its basic functionalities.
 	fi
-
-# ### Document nextcloud versions, php versions and user_external plugin compatibility
-# nextcloud version - supported php versions
-#
-# * 20                - 7.2, 7.3, 7.4
-# * 21                - 7.3, 7.4, 8.0
-# * 22                - 7.3, 7.4, 8.0
-# * 23                - 7.3, 7.4, 8.0
-# * 24                - 7.4, 8.0, 8.1
-# * 25		    - 7.4, 8.0, 8.1
-# * 26		    - 8.0, 8.1, 8.2
-# * 27                - 8.0 (d), 8.1, 8.2 (r)
-# * 28		    - 8.0 (d), 8.1, 8.2 (r), 8.3
-# * 29		    - 8.0 (d), 8.1, 8.2 (r), 8.3
-# * 30		    - 8.1 (d), 8.2, 8.3 (r)
-# * ubuntu 18.04 has php 7.2
-# * ubuntu 22.04 has php 8.1
-# * ubuntu 24.04 has php 8.3
-# * user_external 2.1.0 supports version 21-22
-# * user_external 3.0.0 supports version 22-24
-# * user_external 3.1.0 supports version 22-25
-# * user_external 3.2.0 supports version 25-27
-# * user_external 3.3.0 supports version 25-28
-# * user_external 3.4.0 supports version 25-29
 
 	# ### Install latest nextcloud
 	InstallNextcloud $nextcloud_ver $nextcloud_hash $contacts_ver $contacts_hash $calendar_ver $calendar_hash $user_external_ver $user_external_hash
