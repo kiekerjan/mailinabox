@@ -4,10 +4,15 @@ source setup/functions.sh
 echo Installing geoip packages...
 
 # geo ip filtering of ssh entries, based on https://www.axllent.org/docs/ssh-geoip/#disqus_thread
+# This also installs geo ip database used by nginx
 
 # Install geo ip lookup tool
-gunzip -c tools/goiplookup.gz > /usr/local/bin/goiplookup
-chmod +x /usr/local/bin/goiplookup
+iptool_ver=0.3.0
+iptool_hash=cd1ed60092db4027f13e90e26f749ae6ba3ed030
+
+wget_verify "https://github.com/axllent/goiplookup/releases/download/$iptool_ver/goiplookup_"$iptool_ver"_linux_amd64.bz2" "$iptool_hash" /tmp/goiplookup.bz2
+bunzip2 -f /tmp/goiplookup.bz2
+hide_output install -m 755 /tmp/goiplookup /usr/local/bin/
 
 # check that GeoLite2-Country.mmdb is older then 2 months, to not hit the server too often 
 if [[ ! -d /usr/share/GeoIP || ! -f /usr/share/GeoIP/GeoLite2-Country.mmdb || $(find "/usr/share/GeoIP/GeoLite2-Country.mmdb" -mtime +60 -print) ]]; then
