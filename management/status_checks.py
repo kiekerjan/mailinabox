@@ -642,7 +642,7 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 
 	if custom_secondary_ns and not probably_external_dns:
 		SOARecord = query_dns(domain, "SOA", at=env['PUBLIC_IP'])# Explicitly ask the local dns server.
-
+		
 		for ns in custom_secondary_ns:
 			# We must first resolve the nameserver to an IP address so we can query it.
 			ns_ips = query_dns(ns, "A")
@@ -651,8 +651,12 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				continue
 			# Choose the first IP if nameserver returns multiple
 			ns_ip = ns_ips.split('; ')[0]
-
-			checkSOA = True
+			
+			# No need to check if we could not obtain the SOA record
+			if SOARecord == '[timeout]':
+				checkSOA = False
+			else:			
+				checkSOA = True
 
 			# Now query it to see what it says about this domain.
 			ip = query_dns(domain, "A", at=ns_ip, nxdomain=None)
@@ -674,10 +678,10 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 
 				if SOARecord == SOASecondary:
 					output.print_ok(f"Secondary nameserver {ns} has consistent SOA record.")
-				elif SOARecord == '[Not Set]':
+				elif SOASecondary == '[Not Set]':
 					output.print_error(f"Secondary nameserver {ns} has no SOA record configured.")
-				elif SOARecord == '[timeout]':
-					output.print_error(f"Secondary nameserver {ns} timed out on checking SOA record.")
+				elif SOASecondary == '[timeout]':
+					output.print_warning(f"Secondary nameserver {ns} timed out on checking SOA record.")
 				else:
 					output.print_error(f"""Secondary nameserver {ns} has inconsistent SOA record (primary: {SOARecord} versus secondary: {SOASecondary}).
 					Check that synchronization between secondary and primary DNS servers is properly set-up.""")
@@ -937,7 +941,7 @@ def query_dns(qname, rtype, nxdomain='[Not Set]', at=None, as_list=False, retry=
 	# Set a timeout so that a non-responsive server doesn't hold us back.
 	resolver.timeout = 5
 	# The number of seconds to spend trying to get an answer to the question. If the
-	# lifetime expires a dns.exception.Timeout exception will be raised.
+	# lifetime expires a dns.resolver.LifetimeTimeout exception will be raised.
 	resolver.lifetime = 5
 
 	if retry:
@@ -951,16 +955,16 @@ def query_dns(qname, rtype, nxdomain='[Not Set]', at=None, as_list=False, retry=
 		try:
 			response = resolver.resolve(qname, rtype, search=True)
 			tries = 0
-		except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-			# Host did not have an answer for this query; not sure what the
-			# difference is between the two exceptions.
-			logging.debug("No result for dns lookup %s, %s (%d)", qname, rtype, tries)
-			if tries < 1:
-				return nxdomain
-		except dns.exception.Timeout:
+		except dns.resolver.LifetimeTimeout:
+			# Catch timeout exception
 			logging.debug("Timeout on dns lookup %s, %s (%d)", qname, rtype, tries)
 			if tries < 1:
 				return "[timeout]"
+		except dns.resolver.ResolverException:
+			# Catch all other exceptions
+			logging.debug("No result for dns lookup %s, %s (%d)", qname, rtype, tries)
+			if tries < 1:
+				return nxdomain
 
 	# Normalize IP addresses. IP address --- especially IPv6 addresses --- can
 	# be expressed in equivalent string forms. Canonicalize the form before
