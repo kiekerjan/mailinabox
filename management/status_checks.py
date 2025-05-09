@@ -938,12 +938,7 @@ def query_dns(qname, rtype, nxdomain='[Not Set]', at=None, as_list=False, retry=
 		resolver = dns.resolver.Resolver()
 		resolver.nameservers = [at]
 
-	# Set a timeout so that a non-responsive server doesn't hold us back.
-	resolver.timeout = 5
-	# The number of seconds to spend trying to get an answer to the question. If the
-	# lifetime expires a dns.resolver.LifetimeTimeout exception will be raised.
-	resolver.lifetime = 5
-
+	# Handle retries
 	if retry:
 		tries = 2
 	else:
@@ -955,12 +950,12 @@ def query_dns(qname, rtype, nxdomain='[Not Set]', at=None, as_list=False, retry=
 		try:
 			response = resolver.resolve(qname, rtype, search=True)
 			tries = 0
-		except dns.resolver.LifetimeTimeout:
+		except dns.exception.Timeout:
 			# Catch timeout exception
 			logging.debug("Timeout on dns lookup %s, %s (%d)", qname, rtype, tries)
 			if tries < 1:
 				return "[timeout]"
-		except dns.resolver.ResolverException:
+		except dns.exception.DNSException:
 			# Catch all other exceptions
 			logging.debug("No result for dns lookup %s, %s (%d)", qname, rtype, tries)
 			if tries < 1:
