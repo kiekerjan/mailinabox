@@ -376,7 +376,7 @@ def run_network_checks(env, output):
 	# will not be able to reliably send mail in these cases.
 
 	rev_ip4 = ".".join(reversed(env['PUBLIC_IP'].split('.')))
-	zen = query_dns(rev_ip4+'.zen.spamhaus.org', 'A', nxdomain=None, retry = False)
+	zen = query_dns(rev_ip4+get_spamhaus_query_url(env, 'zen'), 'A', nxdomain=None, retry = False)
 	evaluate_spamhaus_lookup(env['PUBLIC_IP'], 'IPv4', rev_ip4, output, zen)
 
 	if not env['PUBLIC_IPV6']:
@@ -385,8 +385,27 @@ def run_network_checks(env, output):
 	from ipaddress import IPv6Address
 
 	rev_ip6 = ".".join(reversed(IPv6Address(env['PUBLIC_IPV6']).exploded.split(':')))
-	zen = query_dns(rev_ip6+'.zen.spamhaus.org', 'A', nxdomain=None, retry = False)
+	zen = query_dns(rev_ip6+get_spamhaus_query_url(env, 'zen'), 'A', nxdomain=None, retry = False)
 	evaluate_spamhaus_lookup(env['PUBLIC_IPV6'], 'IPv6', rev_ip6, output, zen)
+	
+
+def get_spamhaus_query_url(env, selector='zen'):
+	# Filter on valid selectors
+	if not selector in ('zen', 'dbl'):
+		logging.debug(f"Cannot construct spamhaus query url from {selector}, reverting to default")
+		# Set default so at least something is returned
+		selector = 'zen'
+
+	# Default public block list
+	spamhaus_url = '.'+selector+'.spamhaus.org'
+	
+	# Check if system makes use of Spamhaus Data Query Service, see https://portal.spamhaus.com/dqs/?ft=1#3.1
+	env_key = 'SPAMHAUS_DQS_KEY_'+selector.upper()
+	if env_key in env and len(env[env_key]) > 0:
+		dqs_key = env[env_key]
+		spamhaus_url = '.'+dqs_key+'.'+selector+'.dq.spamhaus.net'
+	
+	return spamhaus_url
 
 
 def evaluate_spamhaus_lookup(lookupaddress, lookuptype, lookupdomain, output, zen):
@@ -875,7 +894,8 @@ def check_mail_domain(domain, env, output):
 
 	# See https://www.spamhaus.org/news/article/807/using-our-public-mirrors-check-your-return-codes-now. for
 	# information on spamhaus return codes
-	dbl = query_dns(domain+'.dbl.spamhaus.org', "A", nxdomain=None)
+	dbl = query_dns(domain+get_spamhaus_query_url(env, 'dbl'), "A", nxdomain=None, retry = False)
+	
 	if dbl is None:
 		output.print_ok("Domain is not blacklisted by dbl.spamhaus.org.")
 	elif dbl == "[timeout]":

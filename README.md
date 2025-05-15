@@ -22,7 +22,7 @@ Functionality changes and additions
 * Update nextcloud to 29.0.8
   And updated calendar and contacts apps
 * Add nextcloud notes app
-* Update roundcube to 1.6.9
+* Update roundcube to 1.6.10
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
 * Option to use shorter TTL values in the DNS server  
@@ -39,6 +39,8 @@ Functionality changes and additions
 * Replace bind9 with unbound DNS resolver https://www.nlnetlabs.nl/projects/unbound/about/
 * Make backup target folder configurable
   set BACKUP_ROOT to the backup target folder (default is same as STORAGE_ROOT)
+* Add support for Spamhaus Data Query Service (https://info.spamhaus.com/getting-started-with-dqs)
+  Set SPAMHAUS_DQS_KEY_DBL and SPAMHAUS_DQS_KEY_ZEN to the corresponding Datafeed Query Account Key in /etc/mailinabox.conf. The status checks page will then query the DQS instead of the public Spamhaus blocklist servers
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
