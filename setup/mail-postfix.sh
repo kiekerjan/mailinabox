@@ -256,9 +256,74 @@ management/editconf.py /etc/postfix/main.cf  -e lmtp_destination_recipient_limit
 # so these IPs get mail delivered quickly. But when an IP is not listed in the permit_dnswl_client list (i.e. it is not #NODOC
 # whitelisted) then postfix does a DEFER_IF_REJECT, which results in all "unknown user" sorts of messages turning into #NODOC
 # "450 4.7.1 Client host rejected: Service unavailable". This is a retry code, so the mail doesn't properly bounce. #NODOC
-management/editconf.py /etc/postfix/main.cf \
-	smtpd_sender_restrictions="reject_non_fqdn_sender,reject_unknown_sender_domain,reject_authenticated_sender_login_mismatch,reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]" \
-	smtpd_recipient_restrictions="permit_sasl_authenticated,permit_mynetworks,check_sender_access hash:/etc/postfix/sender_access,check_recipient_access hash:/etc/postfix/recipient_access,reject_rbl_client zen.spamhaus.org=127.0.0.[2..11],reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99],reject_rhsbl_helo dbl.spamhaus.org=127.0.1.[2..99],reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[2..99],warn_if_reject reject_rbl_client zen.spamhaus.org=127.255.255.[1..255],reject_unlisted_recipient,check_policy_service inet:127.0.0.1:10023,check_policy_service inet:127.0.0.1:12340"
+# In case the Spamhaus Data Query Service is used, slightly different configuration is needed. Source: https://portal.spamhaus.com/dqs/?ft=1#3.1.2
+# Zero Reputation Domain (ZRD) blocklist is limited to two hour old domains, not 24 like suggested by Spamhaus.
+
+# smtpd_recipient_restrictions is different whether Spamhaus DQS is used or not.
+# Start definition of the configuration here
+CONF_SMTPD_RECIPIENT_RESTRICTIONS=$(cat <<-END
+	permit_sasl_authenticated,
+        permit_mynetworks,
+        check_sender_access              hash:/etc/postfix/sender_access,
+        check_recipient_access           hash:/etc/postfix/recipient_access,
+END
+)
+
+if [ -z "${SPAMHAUS_DQS_KEY:-}" ]; then
+        # Public spamhaus blocklist servers queried
+        DBL_QUERY=dbl.spamhaus.org
+        ZEN_QUERY=zen.spamhaus.org
+
+CONF_SMTPD_RECIPIENT_RESTRICTIONS=$(cat <<-END
+	$CONF_SMTPD_RECIPIENT_RESTRICTIONS
+        reject_rbl_client                $ZEN_QUERY=127.0.0.[2..11],
+        reject_rhsbl_sender              $DBL_QUERY=127.0.1.[2..99],
+        reject_rhsbl_helo                $DBL_QUERY=127.0.1.[2..99],
+        reject_rhsbl_reverse_client      $DBL_QUERY=127.0.1.[2..99],
+        warn_if_reject reject_rbl_client $ZEN_QUERY=127.255.255.[1..255],        
+END
+)
+else
+        # Use Data Query Service for blocklist query URLs
+        DBL_QUERY=$SPAMHAUS_DQS_KEY.dbl.dq.spamhaus.net
+        ZEN_QUERY=$SPAMHAUS_DQS_KEY.zen.dq.spamhaus.net
+        ZRD_QUERY=$SPAMHAUS_DQS_KEY.zrd.dq.spamhaus.net
+
+CONF_SMTPD_RECIPIENT_RESTRICTIONS=$(cat <<-END
+	$CONF_SMTPD_RECIPIENT_RESTRICTIONS
+        reject_rhsbl_sender              $DBL_QUERY=127.0.1.[2..99],
+        reject_rhsbl_helo                $DBL_QUERY=127.0.1.[2..99],
+        reject_rhsbl_reverse_client      $DBL_QUERY=127.0.1.[2..99],
+        reject_rhsbl_sender              $ZRD_QUERY=127.0.2.2,
+        reject_rhsbl_helo                $ZRD_QUERY=127.0.2.2,
+        reject_rhsbl_reverse_client      $ZRD_QUERY=127.0.2.2,
+        reject_rbl_client                $ZEN_QUERY=127.0.0.[2..255],
+END
+)
+fi
+
+# Define configuration for smtpd_sender_restrictions
+CONF_SMTPD_SENDER_RESTRICTIONS=$(cat <<-END
+	reject_non_fqdn_sender,
+        reject_unknown_sender_domain,
+        reject_authenticated_sender_login_mismatch,
+        reject_rhsbl_sender $DBL_QUERY=127.0.1.[2..99]
+END
+)
+
+# Finalize configuration for smtpd_recipient_restrictions
+CONF_SMTPD_RECIPIENT_RESTRICTIONS=$(cat <<-END
+	$CONF_SMTPD_RECIPIENT_RESTRICTIONS
+        reject_unlisted_recipient,
+        check_policy_service             inet:127.0.0.1:10023,
+        check_policy_service             inet:127.0.0.1:12340
+END
+)
+
+# Apply configuration
+management/editconf.py /etc/postfix/main.cf -w \
+        smtpd_sender_restrictions="$CONF_SMTPD_SENDER_RESTRICTIONS" \
+        smtpd_recipient_restrictions="$CONF_SMTPD_RECIPIENT_RESTRICTIONS"
 
 cp -f conf/postfix/sender_access /etc/postfix
 cp -f conf/postfix/recipient_access /etc/postfix
