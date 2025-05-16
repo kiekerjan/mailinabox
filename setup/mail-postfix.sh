@@ -325,8 +325,15 @@ management/editconf.py /etc/postfix/main.cf -w \
         smtpd_sender_restrictions="$CONF_SMTPD_SENDER_RESTRICTIONS" \
         smtpd_recipient_restrictions="$CONF_SMTPD_RECIPIENT_RESTRICTIONS"
 
-cp -f conf/postfix/sender_access /etc/postfix
-cp -f conf/postfix/recipient_access /etc/postfix
+
+# Don't overwrite file if it exists
+if [ ! -f "/etc/postfix/sender_access" ]; then
+	cp -f conf/postfix/sender_access /etc/postfix
+fi
+	
+if [ ! -f "/etc/postfix/recipient_access" ]; then
+	cp -f conf/postfix/recipient_access /etc/postfix
+fi
 
 postmap /etc/postfix/sender_access
 postmap /etc/postfix/recipient_access
