@@ -389,9 +389,9 @@ def run_network_checks(env, output):
 	evaluate_spamhaus_lookup(env['PUBLIC_IPV6'], 'IPv6', rev_ip6, output, zen)
 	
 
-def get_spamhaus_query_url(env, selector='zen'):
+def get_spamhaus_query_url(env, selector):
 	# Filter on valid selectors
-	if not selector in ('zen', 'dbl'):
+	if not selector in ('zen', 'dbl', 'zrd', 'sbl', 'xbl', 'pbl'):
 		logging.debug(f"Cannot construct spamhaus query url from {selector}, reverting to default")
 		# Set default so at least something is returned
 		selector = 'zen'
@@ -400,7 +400,7 @@ def get_spamhaus_query_url(env, selector='zen'):
 	spamhaus_url = '.'+selector+'.spamhaus.org'
 	
 	# Check if system makes use of Spamhaus Data Query Service, see https://portal.spamhaus.com/dqs/?ft=1#3.1
-	env_key = 'SPAMHAUS_DQS_KEY_'+selector.upper()
+	env_key = 'SPAMHAUS_DQS_KEY'
 	if env_key in env and len(env[env_key]) > 0:
 		dqs_key = env[env_key]
 		spamhaus_url = '.'+dqs_key+'.'+selector+'.dq.spamhaus.net'
