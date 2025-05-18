@@ -40,7 +40,7 @@ Functionality changes and additions
 * Make backup target folder configurable
   set BACKUP_ROOT to the backup target folder (default is same as STORAGE_ROOT)
 * Add support for Spamhaus Data Query Service (https://info.spamhaus.com/getting-started-with-dqs)
-  Set SPAMHAUS_DQS_KEY_DBL and SPAMHAUS_DQS_KEY_ZEN to the corresponding Datafeed Query Account Key in /etc/mailinabox.conf. The status checks page will then query the DQS instead of the public Spamhaus blocklist servers
+  Set SPAMHAUS_DQS_KEY to the corresponding Datafeed Query Account Key in /etc/mailinabox.conf. The status checks page will then query the DQS instead of the public Spamhaus blocklist servers
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
