@@ -1,476 +1,601 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{hostname}} - Mail-in-a-Box Control Panel</title>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <meta name="robots" content="noindex, nofollow">
+		<title>{{hostname}} - Mail-in-a-Box Control Panel</title>
 
-        <link rel="stylesheet" href="/admin/assets/bootstrap/css/bootstrap.min.css">
-        <style>
-            body {
-              overflow-y: scroll;
-              padding-bottom: 20px;
-            }
+		<meta name="robots" content="noindex, nofollow">
 
-            p {
-              margin-bottom: 1.25em;
-            }
+		<link rel="stylesheet" href="/admin/assets/bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/admin/assets/fontawesome/css/fontawesome.min.css">
+		<link rel="stylesheet" href="/admin/assets/fontawesome/css/solid.min.css">
 
-            h1, h2, h3, h4 {
-              font-family: sans-serif;
-              font-weight: bold;
-            }
+		<style>
+			body {
+				overflow-y: scroll;
+				padding-bottom: 20px;
+			}
 
-            h2 {
-              margin: 1em 0;
-            }
+			p {
+				margin-bottom: 1.25em;
+			}
 
-            h3 {
-              font-size: 130%;
-              border-bottom: 1px solid black;
-              padding-bottom: 3px;
-              margin-bottom: 13px;
-              margin-top: 30px;
-            }
-            .panel-heading h3 {
-              border: none;
-              padding: 0;
-              margin: 0;
-            }
+			h1,	h2, h3, h4 {
+				font-family: sans-serif;
+				font-weight: bold;
+			}
 
-            h4 {
-              font-size: 110%;
-              margin-bottom: 13px;
-              margin-top: 18px;
-            }
-            h4:first-child {
-              margin-top: 6px;
-            }
+			h2 {
+				margin: 1em 0;
+			}
 
-            .admin_panel {
-              display: none;
-            }
+			h3 {
+				font-size: 130%;
+				border-bottom: 1px solid black;
+				padding-bottom: 3px;
+				margin-bottom: 13px;
+				margin-top: 30px;
+			}
 
-            table.table {
-              margin: 1.5em 0;
-            }
+			.panel-heading h3 {
+				border: none;
+				padding: 0;
+				margin: 0;
+			}
 
-            ol li {
-              margin-bottom: 1em;
-            }
+			h4 {
+				font-size: 110%;
+				margin-bottom: 13px;
+				margin-top: 18px;
+			}
 
-            .if-logged-in { display: none; }
-            .if-logged-in-admin { display: none; }
+			h4:first-child {
+				margin-top: 6px;
+			}
 
-      /* The below only gets used if it is supported */
-      @media (prefers-color-scheme: dark) {
-        /* Invert invert lightness but not hue */
-        html {
-          filter: invert(100%) hue-rotate(180deg);
-        }
+			.admin_panel {
+				display: none;
+			}
 
-        /* Override Bootstrap theme here to give more contrast. The black turns to white by the filter. */
-        .form-control {
-          color: black !important;
-        }
+			table.table {
+				margin: 1.5em 0;
+			}
 
-        /* Revert the invert for the navbar */
-        button, div.navbar {
-          filter: invert(100%) hue-rotate(180deg);
-        }
+			ol li {
+				margin-bottom: 1em;
+			}
 
-        /* Revert the revert for the dropdowns */
-        ul.dropdown-menu {
-          filter: invert(100%) hue-rotate(180deg);
-        }
-      }
-        </style>
-        <link rel="stylesheet" href="/admin/assets/bootstrap/css/bootstrap-theme.min.css">
-    </head>
-    <body>
+			.if-logged-in {
+				display: none;
+			}
 
-    <!--[if lt IE 8]><p>Internet Explorer version 8 or any modern web browser is required to use this website, sorry.<![endif]-->
-    <!--[if gt IE 7]><!-->
+			.if-logged-in-admin {
+				display: none;
+			}
+		</style>
+	</head>
 
-    <div class="navbar navbar-inverse navbar-static-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">{{hostname}}</a>
-        </div>
-        <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="dropdown if-logged-in-admin">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">System <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="#system_status">Status Checks</a></li>
-                <li><a href="#tls">TLS (SSL) Certificates</a></li>
-                <li><a href="#system_backup">Backup Status</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Advanced Pages</li>
-                <li><a href="#custom_dns">Custom DNS</a></li>
-                <li><a href="#external_dns">External DNS</a></li>
-                <li><a href="#munin">Munin Monitoring</a></li>
-              </ul>
-            </li>
-            <li><a href="#mail-guide" class="if-logged-in-not-admin">Mail</a></li>
-            <li class="dropdown if-logged-in-admin">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Mail &amp; Users <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="#mail-guide">Instructions</a></li>
-                <li><a href="#users">Users</a></li>
-                <li><a href="#aliases">Aliases</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Your Account</li>
-                <li><a href="#mfa">Two-Factor Authentication</a></li>
-              </ul>
-            </li>
-            <li><a href="#sync_guide" class="if-logged-in">Contacts/Calendar</a></li>
-            <li><a href="#web" class="if-logged-in-admin">Web</a></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="if-logged-in"><a href="#" onclick="do_logout(); return false;" style="color: white">Log out</a></li>
-          </ul>
-        </div><!--/.navbar-collapse -->
-      </div>
-    </div>
+	<body class="">
+		<div class="navbar navbar-expand-lg navbar-light" role="navigation">
+			<div class="container bg-light pt-2 pb-2">
+				<div class="if-logged-in">
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+						aria-controls="#navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+				</div>
+				<div class="navbar-brand ms-2">
+					<span class="fas fa-envelope"></span>
+					<b>{{hostname}}</b>
+				</div>
+				<div class="ms-2">
+					<span class="me-1 fas fa-sun"></span>
+					<span class="form-switch">
+						<input class="form-check-input" type="checkbox" role="switch" id="toggle-theme">
+						<label class="ms-1 fas fa-moon"></label>
+					</span>
+				</div>
+				<div class="collapse navbar-collapse" id="navbarContent">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item me-1 me-xl-4 dropdown if-logged-in-admin">
+							<button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
+								aria-expanded="false">System</button>
+							<ul class="dropdown-menu">
+								<li><a class="dropdown-item" href="#system_status" onclick="return show_panel(this);">Status Checks</a></li>
+								<li><a class="dropdown-item" href="#tls" onclick="return show_panel(this);">TLS (SSL) Certificates</a></li>
+								<li><a class="dropdown-item" href="#system_backup" onclick="return show_panel(this);">Backup Status</a></li>
+							</ul>
+						</li>
+						<li class="nav-item me-1 me-xl-4 dropdown if-logged-in-admin">
+							<button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
+								aria-expanded="false">Advanced</button>
+							<ul class="dropdown-menu">
+								<li><a class="dropdown-item" href="#custom_dns" onclick="return show_panel(this);">Custom DNS</a></li>
+								<li><a class="dropdown-item" href="#external_dns" onclick="return show_panel(this);">External DNS</a></li>								
+								<li><a class="dropdown-item" href="#munin" onclick="return show_panel(this);">Munin Monitoring</a></li>
+							</ul>
+						</li>
+						<li class="nav-item me-1 me-xl-4 dropdown if-logged-in-not-admin">
+							<button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Your Account</button>
+							<ul class="dropdown-menu">
+								<li><a class="dropdown-item" href="#manage-password" onclick="return show_panel(this);">Manage Password</a></li>
+								<li><a class="dropdown-item" href="#mfa" onclick="return show_panel(this);">Two-Factor Authentication</a></li>
+							</ul>
+						</li>
+						<li class="nav-item me-1 me-xl-4 btn if-logged-in-not-admin" type="button" href="#mail-guide" onclick="return show_panel(this);">
+							Mail Guide
+						</li>
+						<li class="nav-item me-1 me-xl-4 dropdown if-logged-in-admin">
+							<button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Mail</button>
+							<ul class="dropdown-menu">
+								<li><a class="dropdown-item" href="#mail-guide" onclick="return show_panel(this);">Mail Guide</a></li>
+								<li><a class="dropdown-item" href="#users" onclick="return show_panel(this);">Users</a></li>
+								<li><a class="dropdown-item" href="#aliases" onclick="return show_panel(this);">Aliases</a></li>
+								<li class="divider"></li>
+								<li class="dropdown-header">Your Account</li>
+								<li><a class="dropdown-item" href="#mfa" onclick="return show_panel(this);">Two-Factor Authentication</a></li>
+							</ul>
+						</li>
+						<li><button class="nav-item me-1 me-xl-4 btn if-logged-in" type="button" href="#sync_guide" onclick="return show_panel(this);">Contacts/Calendar</button></li>
+						<li><button class="nav-item me-1 me-xl-4 btn if-logged-in-admin" type="button" href="#web" onclick="return show_panel(this);">Web</button></li>
+						<li><button class="nav-item btn btn-secondary if-logged-in" type="button" onclick="do_logout(); return false;"><b>Logout</b></button></li>
+					</ul>
+				</div>
+			</div>
+		</div>
 
-    <div class="container">
-      <div id="panel_welcome" class="admin_panel">
-      {% include "welcome.html" %}
-      </div>
+		<div class="container">
+			<div id="panel_welcome" class="admin_panel">
+				{% include "welcome.html" %}
+			</div>
 
-      <div id="panel_system_status" class="admin_panel">
-      {% include "system-status.html" %}
-      </div>
+			<div id="panel_system_status" class="admin_panel">
+				{% include "system-status.html" %}
+			</div>
 
-      <div id="panel_system_backup" class="admin_panel">
-      {% include "system-backup.html" %}
-      </div>
+			<div id="panel_system_backup" class="admin_panel">
+				{% include "system-backup.html" %}
+			</div>
 
-      <div id="panel_external_dns" class="admin_panel">
-      {% include "external-dns.html" %}
-      </div>
+			<div id="panel_external_dns" class="admin_panel">
+				{% include "external-dns.html" %}
+			</div>
 
-      <div id="panel_custom_dns" class="admin_panel">
-      {% include "custom-dns.html" %}
-      </div>
+			<div id="panel_custom_dns" class="admin_panel">
+				{% include "custom-dns.html" %}
+			</div>
 
-      <div id="panel_mfa" class="admin_panel">
-      {% include "mfa.html" %}
-      </div>
+			<div id="panel_manage-password" class="admin_panel">
+				{% include "manage-password.html" %}
+			</div>
 
-      <div id="panel_login" class="admin_panel">
-      {% include "login.html" %}
-      </div>
+			<div id="panel_mfa" class="admin_panel">
+				{% include "mfa.html" %}
+			</div>
 
-      <div id="panel_mail-guide" class="admin_panel">
-      {% include "mail-guide.html" %}
-      </div>
+			<div id="panel_login" class="admin_panel">
+				{% include "login.html" %}
+			</div>
 
-      <div id="panel_users" class="admin_panel">
-      {% include "users.html" %}
-      </div>
+			<div id="panel_mail-guide" class="admin_panel">
+				{% include "mail-guide.html" %}
+			</div>
 
-      <div id="panel_aliases" class="admin_panel">
-      {% include "aliases.html" %}
-      </div>
+			<div id="panel_users" class="admin_panel">
+				{% include "users.html" %}
+			</div>
 
-      <div id="panel_sync_guide" class="admin_panel">
-      {% include "sync-guide.html" %}
-      </div>
+			<div id="panel_aliases" class="admin_panel">
+				{% include "aliases.html" %}
+			</div>
 
-      <div id="panel_web" class="admin_panel">
-      {% include "web.html" %}
-      </div>
+			<div id="panel_sync_guide" class="admin_panel">
+				{% include "sync-guide.html" %}
+			</div>
 
-      <div id="panel_tls" class="admin_panel">
-      {% include "ssl.html" %}
-      </div>
+			<div id="panel_web" class="admin_panel">
+				{% include "web.html" %}
+			</div>
 
-      <div id="panel_munin" class="admin_panel">
-      {% include "munin.html" %}
-      </div>
+			<div id="panel_tls" class="admin_panel">
+				{% include "ssl.html" %}
+			</div>
 
-      <hr>
+			<div id="panel_munin" class="admin_panel">
+				{% include "munin.html" %}
+			</div>
 
-      <footer>
-        <p>This is a <a href="https://mailinabox.email">Mail-in-a-Box</a>.</p>
-      </footer>
-    </div> <!-- /container -->
+			<hr>
 
-        <div id="ajax_loading_indicator" style="display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; text-align: center; background-color: rgba(255,255,255,.75)">
-          <div style="margin: 20% auto">
-            <div><span class="fa fa-spinner fa-pulse"></span></div>
-            <div>Loading...</div>
-          </div>
-        </div>
+			<footer>
+				<p>This is a <a href="https://mailinabox.email">Mail-in-a-Box</a>.</p>
+			</footer>
+		</div> <!-- /container -->
 
-        <div id="global_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="errorModalTitle" aria-hidden="true">
-          <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="errorModalTitle"> </h4>
-              </div>
-              <div class="modal-body">
-                <p> </p>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Yes</button>
-              </div>
-            </div>
-          </div>
-        </div>
+		<div id="ajax_loading_indicator" style="display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 100000; text-align: center; background-color: rgba(0,0,0,.8)">
+			<div class="justify-content-center" style="margin: 20%;">
+				<div class="spinner-border text-light" role="status" style="width: 4rem; height: 4rem;"></div>
+				<div class="text-light display-5">Loading... please wait!</div>
+			</div>
+		</div>
 
-        <script src="/admin/assets/jquery.min.js"></script>
-        <script src="/admin/assets/bootstrap/js/bootstrap.min.js"></script>
+		<div id="global_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="errorModalTitle" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title" id="errorModalTitle"> </h4>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+					</div>
+					<div class="modal-body">
+						<p> </p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
+						<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Yes</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <script>
-var global_modal_state = null;
-var global_modal_funcs = null;
+		<style>
+			.darkmode,
+			.darkmode .form-control,
+			.darkmode .form-select {
+				background-color: rgb(20, 20, 20) !important;
+			}
 
-$(function() {
-  $('#global_modal').on('shown.bs.modal', function (e) {
-    // set focus to first input in the global modal's body
-    var input = $('#global_modal .modal-body input');
-    if (input.length > 0) $(input[0]).focus();
-  })
-  $('#global_modal .btn-danger').click(function() {
-    // Don't take action now. Wait for the modal to be totally hidden
-    // so that we don't attempt to show another modal while this one
-    // is closing.
-    global_modal_state = 0; // OK
-  })
-  $('#global_modal .btn-default').click(function() {
-    global_modal_state = 1; // Cancel
-  })
-  $('#global_modal').on('hidden.bs.modal', function (e) {
-    // do the cancel function
-    if (global_modal_state == null) global_modal_state = 1; // cancel if the user hit ESC or clicked outside of the modal
-    if (global_modal_funcs && global_modal_funcs[global_modal_state])
-      global_modal_funcs[global_modal_state]();
-  })
-})
+			.darkmode .btn-light,
+			.darkmode .bg-light,
+			.darkmode .dropdown-menu,
+			.darkmode .input-group-text,
+			.darkmode .modal-content,
+			.darkmode .form-control:disabled,
+			.darkmode .form-select:disabled {
+				background-color: rgb(36, 36, 36) !important;
+			}
 
-function show_modal_error(title, message, callback) {
-  $('#global_modal h4').text(title);
-  $('#global_modal .modal-body').html("<p/>");
-  if (typeof question == 'string') {
-    $('#global_modal p').text(message);
-    $('#global_modal .modal-dialog').addClass("modal-sm");
-  } else {
-    $('#global_modal p').html("").append(message);
-    $('#global_modal .modal-dialog').removeClass("modal-sm");
-  }
-  $('#global_modal .btn-default').show().text("OK");
-  $('#global_modal .btn-danger').hide();
-  global_modal_funcs = [callback, callback];
-  global_modal_state = null;
-  $('#global_modal').modal({});
-  return false; // handy when called from onclick
-}
+			.darkmode .form-control,
+			.darkmode .form-select,
+			.darkmode .btn-light,
+			.darkmode .input-group-text,
+			.darkmode .table,
+			.darkmode .tr,
+			.darkmode .thead,
+			.darkmode .card,
+			.darkmode .modal-header,
+			.darkmode .modal-footer {
+				border-color: rgb(56, 56, 56) !important;
+			}
 
-function show_modal_confirm(title, question, verb, yes_callback, cancel_callback) {
-  $('#global_modal h4').text(title);
-  if (typeof question == 'string') {
-    $('#global_modal .modal-dialog').addClass("modal-sm");
-    $('#global_modal .modal-body').html("<p/>");
-    $('#global_modal p').text(question);
-  } else {
-    $('#global_modal .modal-dialog').removeClass("modal-sm");
-    $('#global_modal .modal-body').html("").append(question);
-  }
-  if (typeof verb == 'string') {
-    $('#global_modal .btn-default').show().text("Cancel");
-    $('#global_modal .btn-danger').show().text(verb);
-  } else {
-    $('#global_modal .btn-default').show().text(verb[1]);
-    $('#global_modal .btn-danger').show().text(verb[0]);
-  }
-  global_modal_funcs = [yes_callback, cancel_callback];
-  global_modal_state = null;
-  $('#global_modal').modal({});
-  return false; // handy when called from onclick
-}
+			.darkmode h3 {
+				border-color: rgb(206, 212, 218) !important;
+			}
 
-var ajax_num_executing_requests = 0;
-function ajax_with_indicator(options) {
-  setTimeout("if (ajax_num_executing_requests > 0) $('#ajax_loading_indicator').fadeIn()", 100);
-  function hide_loading_indicator() {
-    ajax_num_executing_requests--;
-    if (ajax_num_executing_requests == 0)
-      $('#ajax_loading_indicator').stop(true).hide(); // stop() prevents an ongoing fade from causing the thing to be shown again after this call
-  }
-  var old_success = options.success;
-  var old_error = options.error;
-  options.success = function(data) {
-    hide_loading_indicator();
-    if (data.status == "error")
-      show_modal_error("Error", data.message);
-    else if (old_success)
-      old_success(data);
-  };
-  options.error = function(jqxhr) {
-    hide_loading_indicator();
-    if (!old_error)
-      show_modal_error("Error", "Something went wrong, sorry.")
-    else
-      old_error(jqxhr.responseText, jqxhr);
-  };
-  ajax_num_executing_requests++;
-  $.ajax(options);
-  return false; // handy when called from onclick
-}
+			.darkmode .table>:not(:first-child) {
+				border-top: 2px solid rgb(206, 212, 218) !important;
+			}
 
-var api_credentials = null;
-function api(url, method, data, callback, callback_error, headers) {
-  // from http://www.webtoolkit.info/javascript-base64.html
-  function base64encode(input) {
-    _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    var output = "";
-    var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-    var i = 0;
-    while (i < input.length) {
-        chr1 = input.charCodeAt(i++);
-        chr2 = input.charCodeAt(i++);
-        chr3 = input.charCodeAt(i++);
-        enc1 = chr1 >> 2;
-        enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-        enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-        enc4 = chr3 & 63;
-        if (isNaN(chr2)) {
-            enc3 = enc4 = 64;
-        } else if (isNaN(chr3)) {
-            enc4 = 64;
-        }
-        output = output +
-        _keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
-        _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
-    }
+			.darkmode a,
+			.darkmode b,
+			.darkmode p,
+			.darkmode label,
+			.darkmode span,
+			.darkmode small,
+			.darkmode div,
+			.darkmode td,
+			.darkmode hr,
+			.darkmode .form-control,
+			.darkmode .form-select {
+				color: rgb(206, 212, 218);
+			}
 
-    return output;
-  }
+			.darkmode .btn,
+			.darkmode h1,
+			.darkmode h2,
+			.darkmode h3,
+			.darkmode h4,
+			.darkmode h5,
+			.darkmode .navbar-brand,
+			.darkmode .dropdown-menu,
+			.darkmode th,
+			.darkmode .navbar-brand>span,
+			.darkmode .navbar-brand>b,
+			.darkmode .nav-item>*,
+			.darkmode .input-group-text,
+			.darkmode .input-group-text>* {
+				color: rgb(255, 255, 255) !important;
+			}
 
-  function default_error(text, xhr) {
-    if (xhr.status != 403) // else handled below
-      show_modal_error("Error", "Something went wrong, sorry.")
-  }
+			.darkmode .btn-close,
+			.darkmode .navbar-toggler {
+				filter: invert(97%) sepia(2%) saturate(1242%) hue-rotate(180deg) brightness(93%) contrast(82%);
+			}
 
-  ajax_with_indicator({
-    url: "/admin" + url,
-    method: method,
-    cache: false,
-    data: data,
-    headers: headers,
-    // the custom DNS api sends raw POST/PUT bodies --- prevent URL-encoding
-    processData: typeof data != "string",
-    mimeType: typeof data == "string" ? "text/plain; charset=ascii" : null,
+			.darkmode .status-error .status-text {
+				color: rgb(255, 191, 191);
+			}
 
-    beforeSend: function(xhr) {
-      // We don't store user credentials in a cookie to avoid the hassle of CSRF
-      // attacks. The Authorization header only gets set in our AJAX calls triggered
-      // by user actions.
-      if (api_credentials)
-        xhr.setRequestHeader(
-          'Authorization',
-          'Basic ' + base64encode(api_credentials.username + ':' + api_credentials.session_key));
-    },
-    success: callback,
-    error: callback_error || default_error,
-    statusCode: {
-      403: function(xhr) {
-        // Credentials are no longer valid. Try to login again.
-        var p = current_panel;
-        clear_credentials();
-        show_panel('login');
-        show_hide_menus();
-        switch_back_to_panel = p;
-      }
-    }
-  })
-}
+			.darkmode .status-warning .status-text {
+				color: rgb(255, 241, 191);
+			}
 
-var current_panel = null;
-var switch_back_to_panel = null;
+			.darkmode .status-ok .status-text {
+				color: rgb(191, 255, 191);
+			}
 
-function clear_credentials() {
-  // Forget the token.
-  api_credentials = null;
-  if (typeof localStorage != 'undefined')
-    localStorage.removeItem("miab-cp-credentials");
-  if (typeof sessionStorage != 'undefined')
-    sessionStorage.removeItem("miab-cp-credentials");
-}
+			.darkmode .status-na .status-text {
+				color: rgb(155, 155, 155);
+			}
+		</style>
 
-function do_logout() {
-  // Clear the session from the backend.
-  api("/logout", "POST");
+		<script src="/admin/assets/jquery.min.js"></script>
+		<script src="/admin/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-  // Remove locally stored credentials
-  clear_credentials();
+		<script>
+			var global_modal_state = null;
+			var global_modal_funcs = null;
 
-  // Return to the start.
-  show_panel('login');
+			const toggle = document.getElementById("toggle-theme")
+			function set_dark_mode(isdark) {
+				if (isdark) {
+					$("body").addClass("darkmode")
+				} else {
+					$("body").removeClass("darkmode")
+				}
+			}
 
-  // Reset menus.
-  show_hide_menus();
-}
+			if (typeof localStorage != 'undefined' && localStorage.getItem("miab-theme-preference")) {
+				let themepref = localStorage.getItem("miab-theme-preference")
+				if (themepref === "dark") {
+					toggle.checked = true
+					set_dark_mode(true)
+				} else if (themepref === "light") {
+					set_dark_mode(false)
+				}
+			} else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+				// Toggle dark mode right now
+				toggle.checked = true
+				set_dark_mode(true)
+			}
 
-function show_panel(panelid) {
-  if (panelid.getAttribute) {
-    // we might be passed an HTMLElement <a>.
-    panelid = panelid.getAttribute('href').substring(1);
-  }
+			$("#toggle-theme").change(() => {
+				if (typeof localStorage != 'undefined') {
+					localStorage.setItem("miab-theme-preference", toggle.checked ? "dark" : "light")
+				}
+				set_dark_mode(toggle.checked)
+			})
 
-  $('.admin_panel').hide();
-  $('#panel_' + panelid).show();
-  if (window["show_" + panelid])
-    window["show_" + panelid]();
+			$(function() {
+				$('#global_modal').on('shown.bs.modal', function (e) {
+					// set focus to first input in the global modal's body
+					var input = $('#global_modal .modal-body input');
+					if (input.length > 0) $(input[0]).focus();
+				})
+				$('#global_modal .btn-danger').click(function() {
+					// Don't take action now. Wait for the modal to be totally hidden
+					// so that we don't attempt to show another modal while this one
+					// is closing.
+					global_modal_state = 0; // OK
+				})
+				$('#global_modal .btn-default').click(function() {
+					global_modal_state = 1; // Cancel
+				})
+				$('#global_modal').on('hidden.bs.modal', function (e) {
+					// do the cancel function
+					if (global_modal_state == null) global_modal_state = 1; // cancel if the user hit ESC or clicked outside of the modal
+					if (global_modal_funcs && global_modal_funcs[global_modal_state])
+						global_modal_funcs[global_modal_state]();
+				})
+			})
 
-  current_panel = panelid;
-  switch_back_to_panel = null;
-}
+			const global_modal = new bootstrap.Modal($("#global_modal"))
 
-window.onhashchange = function() {
-  var panelid = window.location.hash.substring(1);
-  show_panel(panelid);
-};
+			function show_modal_error(title, message, callback) {
+				$('#global_modal h4').text(title);
+				$('#global_modal .modal-body').html("<p/>");
+				if (typeof question == 'string') {
+					$('#global_modal p').text(message);
+				} else {
+					$('#global_modal p').html("").append(message);
+				}
+				$('#global_modal .btn-default').show().text("OK");
+				$('#global_modal .btn-danger').hide();
+				global_modal_funcs = [callback, callback];
+				global_modal_state = null;
+				global_modal.show();
+				return false; // handy when called from onclick
+			}
 
-$(function() {
-  // Recall saved user credentials.
-  try {
-    if (typeof sessionStorage != 'undefined' && sessionStorage.getItem("miab-cp-credentials"))
-      api_credentials = JSON.parse(sessionStorage.getItem("miab-cp-credentials"));
-    else if (typeof localStorage != 'undefined' && localStorage.getItem("miab-cp-credentials"))
-      api_credentials = JSON.parse(localStorage.getItem("miab-cp-credentials"));
-  } catch (_) {
-  }
+			function show_modal_confirm(title, question, verb, yes_callback, cancel_callback) {
+				$('#global_modal h4').text(title);
+				if (typeof question == 'string') {
+					$('#global_modal .modal-body').html("<p/>");
+					$('#global_modal p').text(question);
+				} else {
+					$('#global_modal .modal-body').html("").append(question);
+				}
+				if (typeof verb == 'string') {
+					$('#global_modal .btn-default').show().text("Cancel");
+					$('#global_modal .btn-danger').show().text(verb);
+				} else {
+					$('#global_modal .btn-default').show().text(verb[1]);
+					$('#global_modal .btn-danger').show().text(verb[0]);
+				}
+				global_modal_funcs = [yes_callback, cancel_callback];
+				global_modal_state = null;
+				global_modal.show();
+				return false; // handy when called from onclick
+			}
 
-  // Toggle menu state.
-  show_hide_menus();
+			var ajax_num_executing_requests = 0;
+			function ajax_with_indicator(options) {
+				setTimeout("if (ajax_num_executing_requests > 0) $('#ajax_loading_indicator').fadeIn()", 100);
+				function hide_loading_indicator() {
+					ajax_num_executing_requests--;
+					if (ajax_num_executing_requests == 0)
+						$('#ajax_loading_indicator').stop(true).hide(); // stop() prevents an ongoing fade from causing the thing to be shown again after this call
+				}
+				var old_success = options.success;
+				var old_error = options.error;
+				options.success = function(data) {
+					hide_loading_indicator();
+					if (data.status == "error")
+						show_modal_error("Error", data.message);
+					else if (old_success)
+						old_success(data);
+				};
+				options.error = function(jqxhr) {
+					hide_loading_indicator();
+					if (!old_error)
+						show_modal_error("Error", "Something went wrong, sorry.")
+					else
+						old_error(jqxhr.responseText, jqxhr);
+				};
+				ajax_num_executing_requests++;
+				$.ajax(options);
+				return false; // handy when called from onclick
+			}
 
-  // Recall what the user was last looking at.
-  if (api_credentials != null && window.location.hash) {
-    var panelid = window.location.hash.substring(1);
-    show_panel(panelid);
-  } else if (api_credentials != null) {
-    show_panel('welcome');
-  } else {
-    show_panel('login');
-  }
-})
+			var api_credentials = null;
+			function api(url, method, data, callback, callback_error, headers) {
+				// from http://www.webtoolkit.info/javascript-base64.html
+				function base64encode(input) {
+					_keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+					var output = "";
+					var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+					var i = 0;
+					while (i < input.length) {
+						chr1 = input.charCodeAt(i++);
+						chr2 = input.charCodeAt(i++);
+						chr3 = input.charCodeAt(i++);
+						enc1 = chr1 >> 2;
+						enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+						enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+						enc4 = chr3 & 63;
+						if (isNaN(chr2)) {
+							enc3 = enc4 = 64;
+						} else if (isNaN(chr3)) {
+							enc4 = 64;
+						}
+						output = output +
+							_keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
+							_keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+					}
 
-        </script>
-    </body>
+					return output;
+				}
+
+				function default_error(text, xhr) {
+					if (xhr.status != 403) // else handled below
+						show_modal_error("Error", "Something went wrong, sorry.")
+				}
+
+				ajax_with_indicator({
+					url: "/admin" + url,
+					method: method,
+					cache: false,
+					data: data,
+					headers: headers,
+					// the custom DNS api sends raw POST/PUT bodies --- prevent URL-encoding
+					processData: typeof data != "string",
+					mimeType: typeof data == "string" ? "text/plain; charset=ascii" : null,
+
+					beforeSend: function(xhr) {
+						// We don't store user credentials in a cookie to avoid the hassle of CSRF
+						// attacks. The Authorization header only gets set in our AJAX calls triggered
+						// by user actions.
+						if (api_credentials)
+							xhr.setRequestHeader(
+								'Authorization',
+								'Basic ' + base64encode(api_credentials.username + ':' + api_credentials.session_key));
+					},
+					success: callback,
+					error: callback_error || default_error,
+					statusCode: {
+						403: function(xhr) {
+							// Credentials are no longer valid. Try to login again.
+							var p = current_panel;
+							clear_credentials();
+							show_panel('login');
+							show_hide_menus();
+							switch_back_to_panel = p;
+						}
+					}
+				})
+			}
+
+			var current_panel = null;
+			var switch_back_to_panel = null;
+
+			function clear_credentials() {
+				// Forget the token.
+				api_credentials = null;
+				if (typeof localStorage != 'undefined')
+					localStorage.removeItem("miab-cp-credentials");
+				if (typeof sessionStorage != 'undefined')
+					sessionStorage.removeItem("miab-cp-credentials");
+			}
+
+			function do_logout() {
+				// Clear the session from the backend.
+				api("/logout", "POST");
+
+				// Remove locally stored credentials
+				clear_credentials();
+
+				// Return to the start.
+				show_panel('login');
+
+				// Reset menus.
+				show_hide_menus();
+			}
+
+			function show_panel(panelid) {
+				if (panelid.getAttribute) {
+					// we might be passed an HTMLElement <a>.
+					panelid = panelid.getAttribute('href').substring(1);
+				}
+
+				$('.admin_panel').hide();
+				$('#panel_' + panelid).show();
+				if (typeof localStorage != 'undefined')
+					localStorage.setItem("miab-cp-lastpanel", panelid);
+				if (window["show_" + panelid])
+					window["show_" + panelid]();
+
+				current_panel = panelid;
+				switch_back_to_panel = null;
+
+				return false; // when called from onclick, cancel navigation
+			}
+
+			$(function() {
+				// Recall saved user credentials.
+				try {
+					if (typeof sessionStorage != 'undefined' && sessionStorage.getItem("miab-cp-credentials"))
+						api_credentials = JSON.parse(sessionStorage.getItem("miab-cp-credentials"));
+					else if (typeof localStorage != 'undefined' && localStorage.getItem("miab-cp-credentials"))
+						api_credentials = JSON.parse(localStorage.getItem("miab-cp-credentials"));
+				} catch (_) {
+				}
+
+				// Toggle menu state.
+				show_hide_menus();
+
+				// Recall what the user was last looking at.
+				if (api_credentials != null && typeof localStorage != 'undefined' && localStorage.getItem("miab-cp-lastpanel")) {
+					show_panel(localStorage.getItem("miab-cp-lastpanel"));
+				} else if (api_credentials != null) {
+					show_panel('welcome');
+				} else {
+					show_panel('login');
+				}
+			})
+
+		</script>
+	</body>
 </html>
