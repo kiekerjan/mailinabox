@@ -240,7 +240,6 @@ management/editconf.py /etc/postfix/main.cf  -e lmtp_destination_recipient_limit
 # * `reject_non_fqdn_sender`: Reject not-nice-looking return paths.
 # * `reject_unknown_sender_domain`: Reject return paths with invalid domains.
 # * `reject_authenticated_sender_login_mismatch`: Reject if mail FROM address does not match the client SASL login
-# * `reject_rhsbl_sender`: Reject return paths that use blacklisted domains.
 # * `permit_sasl_authenticated`: Authenticated users (i.e. on port 587) can skip further checks.
 # * `permit_mynetworks`: Mail that originates locally can skip further checks.
 # * `reject_rbl_client`: Reject connections from IP addresses blacklisted in zen.spamhaus.org
