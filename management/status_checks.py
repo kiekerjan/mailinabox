@@ -333,7 +333,11 @@ def check_backup(rounded_values, env, output):
 		output.print_ok("Backups are enabled")
 	
 	# Get the age of the most recent backup
-	backup_stat = backup_status(env)
+	try:
+		backup_stat = backup_status(env)
+	except Exception  as e:
+		output.print_warning(f"Could not retrieve backup status, check logfiles for errors ({str(e)})")
+		return
 	
 	backups = backup_stat.get("backups", {})
 	if backups and len(backups) > 0:
