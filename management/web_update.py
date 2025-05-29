@@ -96,6 +96,12 @@ def do_web_update(env):
 	template3 = "\trewrite ^(.*) https://$REDIRECT_DOMAIN$1 permanent;\n"
 	template4 = open(os.path.join(os.path.dirname(__file__), "../conf/nginx-webonlydomains.conf")).read()
 
+	if os.path.exists("/usr/local/share/snappymail/snappymail"):
+		# Insert the snappymail configuration
+		template1 = re.sub("[ \t]*# SNAPPYMAIL DIRECTIVES HERE *\n", open(os.path.join(os.path.dirname(__file__), "../conf/nginx-snappymail.conf")).read(), template1)
+	else:
+		template1 = re.sub("[ \t]*# SNAPPYMAIL DIRECTIVES HERE *\n", "", template1)
+
 	# Add the PRIMARY_HOST configuration first so it becomes nginx's default server.
 	nginx_conf += make_domain_config(env['PRIMARY_HOSTNAME'], [template0, template1, template2], ssl_certificates, env)
 
