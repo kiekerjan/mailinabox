@@ -363,7 +363,7 @@ fi #NODOC
 apt-get purge -qq -y bind9 bind9-utils
 
 # Install unbound and dns utils (e.g. dig)
-apt_install unbound python3-unbound bind9-dnsutils
+apt_install unbound python3-unbound bind9-dnsutils dns-root-data
 
 # Configure unbound
 cp -f conf/unbound.conf /etc/unbound/unbound.conf.d/miabunbound.conf
@@ -382,10 +382,6 @@ if [ $? -ne 0 ]; then
 fi
 
 # Modify systemd settings
-# Deleting resolv.conf fails if the file has the immutable attribute
-# or the append only attribute. So we ensure those attributes are not set
-# before attempting to delete the file.
-chattr -a -i /etc/resolv.conf
 rm -f /etc/resolv.conf
 management/editconf.py /etc/systemd/resolved.conf \
 	DNS=127.0.0.1 \

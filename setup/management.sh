@@ -19,7 +19,7 @@ apt_install duplicity python3-pip virtualenv certbot rsync
 # b2sdk is used for backblaze backups.
 # boto3 is used for amazon aws backups.
 # Both are installed outside the pipenv, so they can be used by duplicity
-hide_output pip3 install --upgrade b2sdk boto3
+hide_output pip3 install --break-system-packages --upgrade b2sdk boto3
 
 # Create a virtualenv for the installation of Python 3 packages
 # used by the management daemon.
@@ -46,7 +46,7 @@ hide_output $venv/bin/pip install --upgrade \
 	rtyaml "email_validator>=1.0.0" "exclusiveprocess" \
 	flask dnspython python-dateutil expiringdict gunicorn \
 	qrcode[pil] pyotp \
-	"idna>=2.0.0" "cryptography==37.0.2" psutil postfix-mta-sts-resolver \
+	"idna>=2.0.0" "cryptography>=45.0.0,<46.0.0" psutil postfix-mta-sts-resolver \
 	b2sdk boto3
 
 # CONFIGURATION
@@ -105,7 +105,6 @@ exec gunicorn -b localhost:10222 -w 1 --timeout 630 wsgi:app
 EOF
 chmod +x $inst_dir/start
 cp --remove-destination conf/mailinabox.service /lib/systemd/system/mailinabox.service # target was previously a symlink so remove it first
-hide_output systemctl link -f /lib/systemd/system/mailinabox.service
 hide_output systemctl daemon-reload
 hide_output systemctl enable mailinabox.service
 

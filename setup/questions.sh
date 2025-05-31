@@ -16,7 +16,7 @@ if [ -z "${NONINTERACTIVE:-}" ]; then
 	# Installing email_validator is repeated in setup/management.sh, but in setup/management.sh
 	# we install it inside a virtualenv. In this script, we don't have the virtualenv yet
 	# so we install the python package globally.
-	hide_output pip3 install "email_validator>=1.0.0" || exit 1
+	hide_output pip3 install --break-system-packages "email_validator>=1.0.0" || exit 1
 
 	message_box "Mail-in-a-Box Installation" \
 		"Hello and thanks for deploying a Mail-in-a-Box!

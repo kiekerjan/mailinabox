@@ -23,6 +23,9 @@ echo "Installing SpamAssassin..."
 apt_install spampd razor pyzor dovecot-antispam libmail-dkim-perl
 
 # Allow spamassassin to download new rules.
+if [ ! -f /etc/default/spamassassin ]; then
+	touch /etc/default/spamassassin
+fi 
 management/editconf.py /etc/default/spamassassin \
 	CRON=1
 

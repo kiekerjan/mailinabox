@@ -25,7 +25,7 @@ from backup import get_backup_root, get_backup_config, backup_status
 def get_services():
 	return [
 		{ "name": "Local DNS (unbound)", "port": 53, "public": False, },
-		{ "name": "Local DNS Control (unbound)", "port": 953, "public": False, },
+		{ "name": "Local DNS Control (unbound)", "port": 8953, "public": False, },
 		{ "name": "Dovecot LMTP LDA", "port": 10026, "public": False, },
 		{ "name": "Postgrey", "port": 10023, "public": False, },
 		{ "name": "Spamassassin", "port": 10025, "public": False, },
