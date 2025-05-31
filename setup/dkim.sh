@@ -63,7 +63,7 @@ if [ ! -f "$STORAGE_ROOT/mail/dkim/mail.key" ]; then
 	
 	# Change format from pkcs#8 to pkcs#1, dkimpy seemingly is not able to handle the #8 format
 	# See bug https://bugs.launchpad.net/dkimpy/+bug/1978835
-	line=$(head -n 1 mail.key)
+	line=$(head -n 1 "$STORAGE_ROOT/mail/dkim/mail.key")
 	if [ ! "$line" = "-----BEGIN RSA PRIVATE KEY-----" ]; then
 		# Generate pkcs#1 key from the pkcs#8 key
 		openssl pkey -in "$STORAGE_ROOT/mail/dkim/mail.key" -traditional -out "$STORAGE_ROOT/mail/dkim/mail.key.1"
