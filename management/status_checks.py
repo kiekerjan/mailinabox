@@ -25,7 +25,6 @@ from backup import get_backup_root, get_backup_config, backup_status
 def get_services():
 	return [
 		{ "name": "Local DNS (unbound)", "port": 53, "public": False, },
-		{ "name": "Local DNS Control (unbound)", "port": 8953, "public": False, },
 		{ "name": "Dovecot LMTP LDA", "port": 10026, "public": False, },
 		{ "name": "Postgrey", "port": 10023, "public": False, },
 		{ "name": "Spamassassin", "port": 10025, "public": False, },
@@ -37,7 +36,6 @@ def get_services():
 		{ "name": "Incoming Mail (SMTP/postfix)", "port": 25, "public": True, },
 		{ "name": "Outgoing Mail (SMTP 465/postfix)", "port": 465, "public": True, },
 		{ "name": "Outgoing Mail (SMTP 587/postfix)", "port": 587, "public": True, },
-		#{ "name": "Postfix/master", "port": 10587, "public": True, },
 		{ "name": "IMAPS (dovecot)", "port": 993, "public": True, },
 		{ "name": "Mail Filters (Sieve/dovecot)", "port": 4190, "public": True, },
 		{ "name": "HTTP Web (nginx)", "port": 80, "public": True, },
