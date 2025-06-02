@@ -60,6 +60,27 @@ hide_output install -m 755 tools/fail2ban-block-ip-range.py /usr/local/bin
 cp -f conf/cron/miab-fail2ban-subnet-blocker /etc/cron.d/
 # Logrotation is done via generic mail in a box logrotate config
 
+# ### Install ipset blacklist 
+mkdir -p /etc/ipset-blacklist
+
+# Configuration files
+if [ ! -f /etc/ipset-blacklist/ipset-blacklist.conf ]; then
+	cp conf/ipset-blacklist.conf /etc/ipset-blacklist/
+fi
+if [ ! -f /etc/ipset-blacklist/ipset-blacklist-custom.list ]; then
+	touch /etc/ipset-blacklist/ipset-blacklist-custom.list
+fi
+
+# Install update scripts
+mkdir -p /usr/local/lib/ipset-blacklist
+
+hide_output install -m 755 tools/update-blacklist.sh /usr/local/lib/ipset-blacklist
+hide_output install -m 755 tools/ipset-at-boot /usr/local/lib/ipset-blacklist
+hide_output install -m 755 tools/ipset-update /usr/local/lib/ipset-blacklist
+
+# Install cron job
+hide_output install -m 755 conf/cron/miab-ipset-blacklist /etc/cron.d
+
 # ### Install additional tools
 
 # Install combine_certs.sh tool
