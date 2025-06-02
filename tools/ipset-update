@@ -1,0 +1,23 @@
+#!/bin/bash
+source /etc/mailinabox.conf
+
+if [ -n "$ABUSEIPDB_API_KEY" ]; then
+# download the abuseipdb set
+curl -s -G https://api.abuseipdb.com/api/v2/blacklist \
+    -d confidenceMinimum=100 \
+    -d ipVersion=4 \
+    -H "Key: "$ABUSEIPDB_API_KEY"" -H "Accept: text/plain" \
+    -o /tmp/abuseipdbv4.txt
+
+curl -s -G https://api.abuseipdb.com/api/v2/blacklist \
+    -d confidenceMinimum=100 \
+    -d ipVersion=6 \
+    -H "Key: "$ABUSEIPDB_API_KEY"" -H "Accept: text/plain" \
+    -o /tmp/abuseipdbv6.txt
+fi
+
+# update the ipset
+/usr/local/lib/ipset-blacklist/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf
+
+# Clean up
+rm /tmp/abuseipdb*

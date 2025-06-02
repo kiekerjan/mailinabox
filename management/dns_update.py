@@ -307,7 +307,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 		# Skip if the user has set a custom SPF record.
 		if not has_rec(None, "TXT", prefix="v=spf1 "):
 			# Include a relay here if it is configured
-			relay = config.get("dns", {}).get("relay", {})
+			relay = config.get("mail", {}).get("relay", {}).get("sendingdomain", {})
 			if relay:
 				records.append((None,  "TXT", 'v=spf1 mx include:%s ~all' %relay.strip(),
 				     "Recommended. Specifies that only the box and the configured relay are permitted to send @%s mail." % domain))
