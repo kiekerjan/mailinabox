@@ -445,7 +445,7 @@ def dns_get_advanced_dns_options():
 		hm_val = False
 
 	# Provide current value of short TTL
-	ttl_val = config.get("dns", {}).get("TTL", "default").lower() == 'short'
+	ttl_val = config.get("dns", {}).get("ttl", "default").lower() == 'short'
 
 	return json_response({ "hiddenmaster_enabled": hm_available, "hiddenmaster_selected": hm_val, "short_ttl_selected": ttl_val })
 
@@ -461,7 +461,7 @@ def dns_set_advanced_dns_options():
 
 		# Read old values
 		old_hm_val = config.get("dns", {}).get("hiddenmaster", None)
-		old_ttl_val = config.get("dns", {}).get("TTL", "unset")
+		old_ttl_val = config.get("dns", {}).get("ttl", "unset")
 
 		# Is hidden master available?
 		if len(secondary_ns_list) > 1:
@@ -479,7 +479,7 @@ def dns_set_advanced_dns_options():
 		# Act if any changes
 		if not old_hm_val == new_hm_val or not old_ttl_val == new_ttl_val:
 			config["dns"]["hiddenmaster"] = new_hm_val
-			config["dns"]["TTL"] = new_ttl_val
+			config["dns"]["ttl"] = new_ttl_val
 
 			utils.write_settings(config, env)
 

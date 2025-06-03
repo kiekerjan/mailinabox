@@ -372,7 +372,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 	if domain_properties[domain]["mail"] \
 	  and domain_properties[env["PRIMARY_HOSTNAME"]]["certificate-is-valid"] \
 	  and is_domain_cert_signed_and_valid("mta-sts." + domain, env):
-		if config.get("dns", {}).get("TTL", "Default").lower() == "short":
+		if config.get("dns", {}).get("ttl", "default").lower() == "short":
 			shutil.copy("/var/lib/mailinabox/mta-sts-short.txt", "/var/lib/mailinabox/mta-sts.txt")
 		else:
 			shutil.copy("/var/lib/mailinabox/mta-sts-long.txt", "/var/lib/mailinabox/mta-sts.txt")
@@ -594,7 +594,7 @@ $TTL {defttl}          ; default time to live
 	config = load_settings(env)
 
 	# Shorten dns ttl if file exists. Use before moving domains, changing secondary dns servers etc
-	if config.get("dns", {}).get("TTL", "Default").lower() == "short":
+	if config.get("dns", {}).get("ttl", "default").lower() == "short":
 		# Override the ttl values
 		p_defttl = "5m"
 		p_refresh = "30m"
