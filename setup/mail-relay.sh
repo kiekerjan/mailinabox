@@ -17,7 +17,7 @@ RELAYDOMAIN=$(get_miab_setting mail.relay.relaydomain)
 
 if [ -n $RELAYDOMAIN ]; then
 
-	cat > /etc/cron.daily/miab_stunnel_certx << EOF;
+	cat > /etc/cron.daily/miab_stunnel_cert << EOF;
 #!/bin/bash
 # Mail-in-a-Box
 # Update stunnel SSL certificate
@@ -26,7 +26,7 @@ if [ $STORAGE_ROOT/ssl/ssl_certificate.pem -nt /etc/stunnel/cert.pem ]; then
         chmod 700 /etc/stunnel/cert.pem
 fi
 EOF
-	chmod +x /etc/crond.daily/miab_stunnel_cert
+	chmod +x /etc/cron.daily/miab_stunnel_cert
 	
 	RELAYPORT=$(get_miab_setting mail.relay.port)
 	
