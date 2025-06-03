@@ -121,6 +121,7 @@ source setup/dns.sh
 source setup/mail-postfix.sh
 source setup/mail-dovecot.sh
 source setup/mail-users.sh
+source setup/mail-relay.sh
 source setup/dovecot-fts-xapian.sh
 source setup/dkim.sh
 source setup/spamassassin.sh
