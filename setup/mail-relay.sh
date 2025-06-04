@@ -87,11 +87,11 @@ EOF
 	
 	# Configuration of fallback relay
 	management/editconf.py /etc/postfix/main.cf \
-		smtp_reply_filter = pcre:/etc/postfix/reply_filter \
-		smtp_sasl_password_maps = "hash:/etc/postfix/sasl_passwd" \
-		smtp_sasl_auth_enable = yes \
-		smtp_sasl_tls_security_options = noanonymous \
-		smtp_fallback_relay = "\[127.0.0.1\]:11001"
+		smtp_reply_filter=pcre:/etc/postfix/reply_filter \
+		smtp_sasl_password_maps="hash:/etc/postfix/sasl_passwd" \
+		smtp_sasl_auth_enable=yes \
+		smtp_sasl_tls_security_options=noanonymous \
+		smtp_fallback_relay = "[127.0.0.1]:11001"
 
 	systemctl restart postfix
 else
