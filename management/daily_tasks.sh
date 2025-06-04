@@ -33,4 +33,8 @@ management/daily_maintenance.py
 management/status_checks.py --show-changes  2>&1 | management/email_administrator.py "Status Checks Change Notice"
 
 # Check blacklists
-tools/check-dnsbl.py $PUBLIC_IP $PUBLIC_IPV6 2>&1 | management/email_administrator.py "Blacklist Check Result"
+if [ -n "$SPAMHAUS_DQS_KEY" ]; then
+	tools/check-dnsbl.py --dqs-key $SPAMHAUS_DQS_KEY $PUBLIC_IP $PUBLIC_IPV6 2>&1 | management/email_administrator.py "Blacklist Check Result"
+else
+	tools/check-dnsbl.py $PUBLIC_IP $PUBLIC_IPV6 2>&1 | management/email_administrator.py "Blacklist Check Result"
+fi

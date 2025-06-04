@@ -270,6 +270,7 @@ mechanics and policies of the different lists.
             ' by clueless operators and thus easily return false-positives'))
     p.add_argument('--check-lists', action='store_true',
             help='check lists for mandatory RFC 5782 test entries')
+    p.add_argument('--dqs-key', help='Use Spamhaus DQS with provided key')
     return p
 
 
@@ -305,6 +306,14 @@ def parse_args(*a):
     elif args.verbose:
         l = logging.getLogger() # root logger
         l.setLevel(logging.INFO)
+
+    if len(args.dqs_key) > 0:
+        if len(args.dqs_key) == 26 and args.dqs_key.isalnum():
+            # Look for spamhaus servers and insert dqs key
+            args.bls = [(args.dqs_key + '.zen.dq.spamhaus.net', e[1], e[2]) if e[0] == 'zen.spamhaus.org' else e for e in args.bls]
+            args.dbls = [(args.dqs_key + '.dbl.dq.spamhaus.net', e[1], e[2]) if e[0] == 'dbl.spamhaus.org' else e for e in args.bls]
+        else:
+            raise RuntimeError('Invalid dqs key: ' + args.dqs_key)
 
     if not args.dests and not args.check_lists:
         raise RuntimeError('supply either destinations or --check-lists')
