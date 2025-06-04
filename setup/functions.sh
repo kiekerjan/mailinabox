@@ -248,3 +248,7 @@ function git_clone {
 	mv $TMPPATH/"$SUBDIR" "$TARGETPATH"
 	rm -rf $TMPPATH
 }
+
+function get_miab_setting {
+	echo $(/usr/local/lib/mailinabox/env/bin/python3 -c "from management.utils import get_setting; print(get_setting('$1'))")
+}

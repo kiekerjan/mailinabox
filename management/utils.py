@@ -179,9 +179,11 @@ def wait_for_service(port, public, env, timeout):
 				return False
 		time.sleep(min(timeout/4, 1))
 
+
 def get_php_version():
 	# Gets the version of PHP used by Mail-in-a-Box
 	return "8.3"
+
 
 def get_ssh_port():
 	port_value = get_ssh_config_value("port")
@@ -190,6 +192,7 @@ def get_ssh_port():
 		return int(port_value[0])
 
 	return None
+
 
 def get_ssh_config_value(parameter_name):
 	# Returns ssh configuration value for the provided parameter
@@ -212,6 +215,21 @@ def get_ssh_config_value(parameter_name):
 			values.append(value) # space-delimited if there are multiple values
 
 	return values
+
+
+def get_setting(path):
+	# obtain a setting using a single string as reference. "." is used as separator
+	env = load_environment()
+	config = load_settings(env)
+	keys = path.split(".")
+	
+	for key in keys:
+		config = config.get(key, {})
+	
+	if not config:
+		return ""
+	else:
+		return config
 
 
 def parse_listenaddress(la_str):
