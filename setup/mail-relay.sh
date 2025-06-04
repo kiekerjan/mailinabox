@@ -69,9 +69,8 @@ CApath = /etc/ssl/certs
 verifyChain = yes
 EOF
 
-	systemctl stop stunnel4.service
-	systemctl enable stunnel4.service
-	systemctl start stunnel4.service
+	systemctl enable stunnel@miabrelay.service
+	systemctl start stunnel@miabrelay.service
 	
 	# Create reply filter
 	cp -f conf/postfix/reply_filter /etc/postfix/
@@ -92,12 +91,12 @@ EOF
 		smtp_sasl_password_maps = "hash:/etc/postfix/sasl_passwd" \
 		smtp_sasl_auth_enable = yes \
 		smtp_sasl_tls_security_options = noanonymous \
-		smtp_fallback_relay = [127.0.0.1]:11001
+		smtp_fallback_relay = "\[127.0.0.1\]:11001"
 
 	systemctl restart postfix
 else
-	systemctl stop stunnel4.service
-	systemctl disable stunnel4.service
+	systemctl stop stunnel@miabrelay.service
+	systemctl disable stunnel@miabrelay.service
 	
 	rm /etc/cron.daily/miab_stunnel_cert
 	rm /etc/stunnel/miabrelay.conf
