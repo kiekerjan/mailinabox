@@ -27,6 +27,7 @@ if [ $STORAGE_ROOT/ssl/ssl_certificate.pem -nt /etc/stunnel/cert.pem ]; then
 fi
 EOF
 	chmod +x /etc/cron.daily/miab_stunnel_cert
+	/etc/cron.daily/miab_stunnel_cert
 	
 	RELAYPORT=$(get_miab_setting mail.relay.port)
 	
