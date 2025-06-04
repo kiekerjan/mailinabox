@@ -1,0 +1,13 @@
+# Turns 5xx into 4xx for specific 5xx replies (5.7.x), thus making smtp_fallback_relay to try again
+#if /^5[0-9][0-9][ -]5\.7\.[0-9] /
+if /^55[0-9][ -]5\.7\.[0-9] /
+/^5(.*)$/ 4$1
+endif
+# debugging
+#if /^550[ -]5\.1\.1 /
+#/^5(.*)$/ 4$1
+#endif
+#
+# Known codes
+# 550-5.7.1 likely unsolicited mail
+# 554 5.7.1 Service unavailable
