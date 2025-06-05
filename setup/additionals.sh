@@ -62,6 +62,10 @@ hide_output install -m 755 conf/cron/miab-ipset-blacklist /etc/cron.d
 # Initial creation
 hide_output /usr/local/lib/ipset-blacklist/ipset-update
 
+# Fail2ban actions cause fail2ban rules to be added after ipset blacklist rules
+cp -f conf/fail2ban/action.d/iptables-allports.local /etc/fail2ban/action.d/
+cp -f conf/fail2ban/action.d/iptables-multiport.local /etc/fail2ban/action.d/
+
 # ### rkhunter configuration
 
 # Adapt rkhunter cron job to reduce log file production
