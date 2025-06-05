@@ -31,9 +31,17 @@ cp -f conf/cron/miab-fail2ban-subnet-blocker /etc/cron.d/
 # Logrotation is done via generic mail in a box logrotate config
 
 # ### Install ipset blacklist 
-mkdir -p /etc/ipset-blacklist
+
+# Dependencies
+apt_install ipset iptables
+
+wget_verify "https://github.com/zhanhb/cidr-merger/releases/download/v1.1.3/cidr-merger-linux-amd64" b7d0a54514653c609509095f13c702f9ab2f32dc /tmp/cidr-merger
+hide_output install -m 755 /tmp/cidr-merger /usr/local/bin
+rm -f /tmp/cidr-merger
 
 # Configuration files
+mkdir -p /etc/ipset-blacklist
+
 if [ ! -f /etc/ipset-blacklist/ipset-blacklist.conf ]; then
 	cp conf/ipset-blacklist.conf /etc/ipset-blacklist/
 fi
@@ -50,6 +58,13 @@ hide_output install -m 755 tools/ipset-update /usr/local/lib/ipset-blacklist
 
 # Install cron job
 hide_output install -m 755 conf/cron/miab-ipset-blacklist /etc/cron.d
+
+# Initial creation
+hide_output /usr/local/lib/ipset-blacklist/ipset-update
+
+# Fail2ban actions cause fail2ban rules to be added after ipset blacklist rules
+cp -f conf/fail2ban/action.d/iptables-allports.local /etc/fail2ban/action.d/
+cp -f conf/fail2ban/action.d/iptables-multiport.local /etc/fail2ban/action.d/
 
 # ### rkhunter configuration
 
