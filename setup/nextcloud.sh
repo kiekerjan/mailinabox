@@ -108,7 +108,7 @@ InstallNextcloud() {
 	rm -f /tmp/nextcloud.zip
 
 	# Empty the skeleton dir to save some space for each new user
-	rm -rf $CLOUD_DIR/core/skeleton/*
+#	rm -rf $CLOUD_DIR/core/skeleton/*
 
 	# The two apps we actually want are not in Nextcloud core. Download the releases from
 	# their github repositories.
@@ -500,8 +500,8 @@ sqlite3 "$STORAGE_ROOT/owncloud/owncloud.db" "UPDATE oc_users_external SET backe
 cat > /etc/cron.d/mailinabox-nextcloud << EOF;
 #!/bin/bash
 # Mail-in-a-Box
-*/5 * * * *	root	sudo -u www-data php$PHP_VER -f $CLOUD_DIR/cron.php
-*/5 * * * *	root	sudo -u www-data php$PHP_VER -f $CLOUD_DIR/occ dav:send-event-reminders
+*/5 * * * *	www-data	php$PHP_VER -f $CLOUD_DIR/cron.php
+*/5 * * * *	www-data	php$PHP_VER -f $CLOUD_DIR/occ dav:send-event-reminders
 EOF
 chmod +x /etc/cron.d/mailinabox-nextcloud
 
