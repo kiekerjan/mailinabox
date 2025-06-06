@@ -91,7 +91,7 @@ EOF
 		smtp_sasl_password_maps="hash:/etc/postfix/sasl_passwd" \
 		smtp_sasl_auth_enable=yes \
 		smtp_sasl_tls_security_options=noanonymous \
-		smtp_fallback_relay = "[127.0.0.1]:11001"
+		smtp_fallback_relay="[127.0.0.1]:11001"
 
 	systemctl restart postfix
 else
