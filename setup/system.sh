@@ -109,10 +109,7 @@ fi
 # come from there and minimal Ubuntu installs may have it turned off.
 hide_output add-apt-repository -y universe
 
-# Install the duplicity PPA.
-hide_output add-apt-repository -y ppa:duplicity-team/duplicity-release-git
-
-# Stock PHP is now 8.1, but we're transitioning through 8.0 because
+# Stock PHP is now 8.3, but we're transitioning through 8.0 because
 # of Nextcloud.
 hide_output add-apt-repository --y ppa:ondrej/php
 
