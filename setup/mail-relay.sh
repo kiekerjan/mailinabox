@@ -80,7 +80,7 @@ EOF
 	RELAYPASSWORD=$(get_miab_setting mail.relay.password)
 	
 	cat > /etc/postfix/sasl_passwd << EOF;
-\[$$RELAYDOMAIN\]:$RELAYPORT $RELAYUSER:$RELAYPASSWORD
+[$RELAYDOMAIN]:$RELAYPORT $RELAYUSER:$RELAYPASSWORD
 EOF
 	chmod 600 /etc/postfix/sasl_passwd
 	postmap /etc/postfix/sasl_passwd
