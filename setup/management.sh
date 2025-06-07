@@ -5,40 +5,6 @@ source /etc/mailinabox.conf # load global vars
 
 echo "Installing Mail-in-a-Box system management daemon..."
 
-# DEPENDENCIES
-
-# duplicity is used to make backups of user data.
-#
-# virtualenv is used to isolate the Python 3 packages we
-# install via pip from the system-installed packages.
-#
-# certbot installs EFF's certbot which we use to
-# provision free TLS certificates.
-apt_install duplicity python3-pip virtualenv certbot rsync
-
-# b2sdk is used for backblaze backups.
-# boto3 is used for amazon aws backups.
-# Both are installed outside the pipenv, so they can be used by duplicity
-hide_output pip3 install --break-system-packages --upgrade b2sdk boto3
-
-# Create a virtualenv for the installation of Python 3 packages
-# used by the management daemon.
-inst_dir=/usr/local/lib/mailinabox
-mkdir -p $inst_dir
-venv=$inst_dir/env
-if [ ! -d $venv ]; then
-	# A bug specific to Ubuntu 22.04 and Python 3.10 requires
-	# forcing a virtualenv directory layout option (see #2335
-	# and https://github.com/pypa/virtualenv/pull/2415). In
-	# our issue, reportedly installing python3-distutils didn't
-	# fix the problem.)
-	export DEB_PYTHON_INSTALL_LAYOUT='deb'
-	hide_output virtualenv -ppython3 $venv
-fi
-
-# Upgrade pip because the Ubuntu-packaged version is out of date.
-hide_output $venv/bin/pip install --upgrade pip
-
 # Install other Python 3 packages used by the management daemon.
 # The first line is the packages that Josh maintains himself!
 # NOTE: email_validator is repeated in setup/questions.sh, so please keep the versions synced.
