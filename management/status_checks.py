@@ -874,8 +874,11 @@ def check_mail_domain(domain, env, output):
 		sts_resolver = postfix_mta_sts_resolver.resolver.STSResolver(loop=loop)
 		valid, policy = loop.run_until_complete(sts_resolver.resolve(domain))
 		if valid == postfix_mta_sts_resolver.resolver.STSFetchResult.VALID:
+			config = load_settings(env)
 			if policy[1].get("mx") == [env['PRIMARY_HOSTNAME']] and policy[1].get("mode") == "enforce": # policy[0] is the policyid
 				output.print_ok("MTA-STS policy is present.")
+			elif policy[1].get("mx") == [env['PRIMARY_HOSTNAME']] and policy[1].get("mode") == "testing" and config.get("dns", {}).get("ttl", "default") == "short":
+				output.print_warning("MTA-STS policy is present, set to testing. See Custom DNS to disable testing mode: remove checkmark for Enable short TTL.")
 			else:
 				output.print_error(f"MTA-STS policy is present but has unexpected settings. [{policy[1]}]")
 		else:
