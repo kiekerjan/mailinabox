@@ -1,10 +1,12 @@
 Modifications are go
 ====================
 
-This is not the original Mail-in-a-Box. See https://github.com/mail-in-a-box/mailinabox for the real deal! Many thanks to [@JoshData](https://github.com/JoshData) and other  [contributors](https://github.com/mail-in-a-box/mailinabox/graphs/contributors).
-I made a number of modifications to the original Mail-in-a-Box, some to fix bugs, some to ease maintenance for my personal installation, to learn and to be used as a statging aread for adding functionality.
+This is not the original Mail-in-a-Box. See https://github.com/mail-in-a-box/mailinabox for the OG! Many thanks to [@JoshData](https://github.com/JoshData) and other [contributors](https://github.com/mail-in-a-box/mailinabox/graphs/contributors).
+I made a number of modifications to the original Mail-in-a-Box, some to fix bugs, some to ease maintenance for my personal installation, to learn and to be used as a staging area for adding functionality before submitting it upstream.
 
 Functionality changes and additions
+* Use Ubuntu 24.04
+* Use PHP 8.3
 * Add geoipblocking on the admin web console  
   This applies geoip filtering on acces to the admin panel of the box. Order of filtering: block continents that are not allowed, block countries that are not allowed, allow countries that are allowed (overriding continent filtering). Edit /etc/nginx/conf.d/10-geoblock.conf to configure.
 * Add geoipblocking for ssh access  
@@ -17,12 +19,14 @@ Functionality changes and additions
 * Add xapian full text searching to dovecot (from https://github.com/grosjo/fts-xapian)
 * Add rkhunter for malware scanning
 * Configure domain names for which only www will be hosted  
-  Edit settings.yaml under the user-data folder to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider! If you want this box to handle the DNS entries, simply add a mail alias. (existing functionality of the vanilla Mail-in-a-Box)
+  Edit settings.yaml under the user-data folder to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider!
+* If you want this box to handle the DNS entries, that's also possible.
+  Edit settings.yaml under the user-data folder to configure.
 * Add some munin plugins
-* Update nextcloud to 29.0.8
+* Update nextcloud to 29.0.16
   And updated calendar and contacts apps
 * Add nextcloud notes app
-* Update roundcube to 1.6.10
+* Update roundcube to 1.6.11
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
 * Option to use shorter TTL values in the DNS server  
@@ -41,26 +45,26 @@ Functionality changes and additions
   set BACKUP_ROOT to the backup target folder (default is same as STORAGE_ROOT)
 * Add support for Spamhaus Data Query Service (https://info.spamhaus.com/getting-started-with-dqs)
   Set SPAMHAUS_DQS_KEY to the corresponding Datafeed Query Account Key in /etc/mailinabox.conf. The status checks page will then query the DQS instead of the public Spamhaus blocklist servers
+* Support for configuring a mail relay, which will be used as fallback relay, and in case mail is returned due to a blockist (i.e. if the remote server thinks the Mail-in-a-Box box is spamming)
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
-* Correct nextcloud carddav url [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1918) (update: included in upstream) 
-* Take into account non-standard spamhaus return codes (update: included in upstream)
 
 Maintenance (personal)
 * Automatically clean spam and trash folders after 120 days
 * Removed Z-Push
-* After a backup, restarting of services is moved to before the execution of the after-backup script. This enables mail delivery while the after-backup script runs.
 * Add weekly pflogsumm log analysis
 * Enable mail delivery to root, forwarded to administrator
-* Remove nextcloud skeleton to save disk space
-* Use actual configuration as reported by sshd instead of parsing the config file, for more robust configuration extraction. (update: included in upstream)
+* Ipset-blacklist, blocking the most reported abusing IPs, based on abuseipdb and others
+* Reporting of some fail2ban bans to abuseipdb
 
 Fun
 * Add option to define ADMIN_IP_ADDRESS  
   Currently only used to ignore fail2ban jails
 * Add dynamic dns tools in the tools directory  
   Can be used to control DNS entries on the mail-in-a-box to point to a machine with a non-fixed (e.g. residential) ip address
+* Support snappymail as webmail
+  If you install snappymail to `/usr/local/lib/snappymail`, Mail-in-a-Box automatically generates Nginx configuration so snappymail becomes available under box.domain.example/snappy
 
 Original mailinabox content starts here:
 
@@ -89,16 +93,16 @@ Additionally, this project has a [Code of Conduct](CODE_OF_CONDUCT.md), which su
 In The Box
 ----------
 
-Mail-in-a-Box turns a fresh Ubuntu 22.04 LTS 64-bit machine into a working mail server by installing and configuring various components.
+Mail-in-a-Box turns a fresh Ubuntu 24.04 LTS 64-bit machine into a working mail server by installing and configuring various components.
 
 It is a one-click email appliance. There are no user-configurable setup options. It "just works."
 
 The components installed are:
 
-* SMTP ([postfix](http://www.postfix.org/)), IMAP ([Dovecot](http://dovecot.org/)), CardDAV/CalDAV ([Nextcloud](https://nextcloud.com/)), and Exchange ActiveSync ([z-push](http://z-push.org/)) servers
+* SMTP ([postfix](http://www.postfix.org/)), IMAP ([Dovecot](http://dovecot.org/)), and CardDAV/CalDAV ([Nextcloud](https://nextcloud.com/)) servers
 * Webmail ([Roundcube](http://roundcube.net/)), mail filter rules (thanks to Roundcube and Dovecot), and email client autoconfig settings (served by [nginx](http://nginx.org/))
 * Spam filtering ([spamassassin](https://spamassassin.apache.org/)) and greylisting ([postgrey](http://postgrey.schweikert.ch/))
-* DNS ([nsd4](https://www.nlnetlabs.nl/projects/nsd/)) with [SPF](https://en.wikipedia.org/wiki/Sender_Policy_Framework), DKIM ([OpenDKIM](http://www.opendkim.org/)), [DMARC](https://en.wikipedia.org/wiki/DMARC), [DNSSEC](https://en.wikipedia.org/wiki/DNSSEC), [DANE TLSA](https://en.wikipedia.org/wiki/DNS-based_Authentication_of_Named_Entities), [MTA-STS](https://tools.ietf.org/html/rfc8461), and [SSHFP](https://tools.ietf.org/html/rfc4255) policy records automatically set
+* DNS ([nsd4](https://www.nlnetlabs.nl/projects/nsd/)) with [SPF](https://en.wikipedia.org/wiki/Sender_Policy_Framework), DKIM ([DKIMPy](https://launchpad.net/dkimpy-milter)), [DMARC](https://en.wikipedia.org/wiki/DMARC), [DNSSEC](https://en.wikipedia.org/wiki/DNSSEC), [DANE TLSA](https://en.wikipedia.org/wiki/DNS-based_Authentication_of_Named_Entities), [MTA-STS](https://tools.ietf.org/html/rfc8461), and [SSHFP](https://tools.ietf.org/html/rfc4255) policy records automatically set
 * TLS certificates are automatically provisioned using [Let's Encrypt](https://letsencrypt.org/) for protecting https and all of the other services on the box
 * Backups ([duplicity](http://duplicity.nongnu.org/)), firewall ([ufw](https://launchpad.net/ufw)), intrusion protection ([fail2ban](http://www.fail2ban.org/wiki/index.php/Main_Page)), and basic system monitoring ([munin](http://munin-monitoring.org/))
 
@@ -120,11 +124,11 @@ Installation
 
 See the [setup guide](https://mailinabox.email/guide.html) for detailed, user-friendly instructions.
 
-For experts, start with a completely fresh (really, I mean it) Ubuntu 22.04 LTS 64-bit machine. On the machine...
+For experts, start with a completely fresh (really, I mean it) Ubuntu 24.04 LTS 64-bit machine. On the machine...
 
 Clone this repository and checkout the tag corresponding to the most recent release (which you can find in the tags or releases lists on GitHub):
 
-	$ git clone https://github.com/mail-in-a-box/mailinabox
+	$ git clone https://github.com/kiekerjan/mailinabox
 	$ cd mailinabox
 	$ git checkout TAGNAME
 
@@ -133,10 +137,6 @@ Begin the installation.
 	$ sudo setup/start.sh
 
 The installation will install, uninstall, and configure packages to turn the machine into a working, good mail server.
-
-For help, DO NOT contact Josh directly --- I don't do tech support by email or tweet (no exceptions).
-
-Post your question on the [discussion forum](https://discourse.mailinabox.email/) instead, where maintainers and Mail-in-a-Box users may be able to help you.
 
 Note that while we want everything to "just work," we can't control the rest of the Internet. Other mail services might block or spam-filter email sent from your Mail-in-a-Box.
 This is a challenge faced by everyone who runs their own mail server, with or without Mail-in-a-Box. See our discussion forum for tips about that.
@@ -155,12 +155,3 @@ This project was inspired in part by the ["NSA-proof your email in 2 hours"](htt
 
 Mail-in-a-Box is similar to [iRedMail](http://www.iredmail.org/) and [Modoboa](https://github.com/tonioo/modoboa).
 
-
-The History
------------
-
-* In 2007 I wrote a relatively popular Mozilla Thunderbird extension that added client-side SPF and DKIM checks to mail to warn users about possible phishing: [add-on page](https://addons.mozilla.org/en-us/thunderbird/addon/sender-verification-anti-phish/), [source](https://github.com/JoshData/thunderbird-spf).
-* In August 2013 I began Mail-in-a-Box by combining my own mail server configuration with the setup in ["NSA-proof your email in 2 hours"](http://sealedabstract.com/code/nsa-proof-your-e-mail-in-2-hours/) and making the setup steps reproducible with bash scripts.
-* Mail-in-a-Box was a semifinalist in the 2014 [Knight News Challenge](https://www.newschallenge.org/challenge/2014/submissions/mail-in-a-box), but it was not selected as a winner.
-* Mail-in-a-Box hit the front page of Hacker News in [April](https://news.ycombinator.com/item?id=7634514) 2014, [September](https://news.ycombinator.com/item?id=8276171) 2014, [May](https://news.ycombinator.com/item?id=9624267) 2015, and [November](https://news.ycombinator.com/item?id=13050500) 2016.
-* FastCompany mentioned Mail-in-a-Box a [roundup of privacy projects](http://www.fastcompany.com/3047645/your-own-private-cloud) on June 26, 2015.
