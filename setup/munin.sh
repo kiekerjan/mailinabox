@@ -101,3 +101,6 @@ restart_service munin-node
 if [ ! -f /var/run/munin/munin-update.lock ]; then
 	sudo -H -u munin munin-cron
 fi
+
+# Fix ownership of munin folder
+chgrp -R www-data /var/lib/munin/cgi-tmp/
