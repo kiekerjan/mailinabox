@@ -1,14 +1,14 @@
 Mail-in-a-Box Security Guide
 ============================
 
-Mail-in-a-Box turns a fresh Ubuntu 22.04 LTS 64-bit machine into a mail server appliance by installing and configuring various components.
+Mail-in-a-Box turns a fresh Ubuntu 24.04 LTS 64-bit machine into a mail server appliance by installing and configuring various components.
 
 This page documents the security posture of Mail-in-a-Box. The term “box” is used below to mean a configured Mail-in-a-Box.
 
 Reporting Security Vulnerabilities
 ----------------------------------
 
-Security vulnerabilities should be reported to the [project's maintainer](https://joshdata.me) via email.
+Security vulnerabilities should be reported to the project's maintainer .
 
 Threat Model
 ------------
@@ -17,7 +17,7 @@ Nothing is perfectly secure, and an adversary with sufficient resources can alwa
 
 The primary goal of Mail-in-a-Box is to make deploying a good mail server easy, so we balance ― as everyone does ― privacy and security concerns with the practicality of actually deploying the system. That means we make certain assumptions about adversaries. We assume that adversaries . . .
 
-* Do not have physical access to the box (i.e., we do not aim to protect the box from physical access).
+* Do not have physical access to the box (i.e., we do not aim to protect the box from physical access). This includes the VPS providers.
 * Have not been given Unix accounts on the box (i.e., we assume all users with shell access are trusted).
 
 On the other hand, we do assume that adversaries are performing passive surveillance and, possibly, active man-in-the-middle attacks. And so:
@@ -46,6 +46,7 @@ The services all follow these rules:
 * TLS certificates are generated with 2048-bit RSA keys and SHA-256 fingerprints. The box provides a self-signed certificate by default. The [setup guide](https://mailinabox.email/guide.html) explains how to verify the certificate fingerprint on first login. Users are encouraged to replace the certificate with a proper CA-signed one. ([source](setup/ssl.sh))
 * Only TLSv1.2+ are offered (the older SSL protocols are not offered).
 * We track the [Mozilla Intermediate Ciphers Recommendation](https://wiki.mozilla.org/Security/Server_Side_TLS), balancing security with supporting a wide range of mail clients. Diffie-Hellman ciphers use a 2048-bit key for forward secrecy. For more details, see the [output of SSLyze for these ports](tests/tls_results.txt).
+* We track [internet.nl](https://internet.nl/) advice on web servers and email.
 
 Additionally:
 
@@ -71,6 +72,8 @@ If DNSSEC is enabled at the box's domain name's registrar, the SSHFP record that
 The following services are protected: SSH, IMAP (dovecot), SMTP submission (postfix), webmail (roundcube), Nextcloud/CalDAV/CardDAV (over HTTP), and the Mail-in-a-Box control panel (over HTTP).
 
 Some other services running on the box may be missing fail2ban filters.
+
+In addition, ip level blocking is implemented based on ip addresses collected by (amongst others) ([AbuseIPDB](https://www.abuseipdb.com/)) and ([FireHOL](https://iplists.firehol.org/)).
 
 Outbound Mail
 -------------
