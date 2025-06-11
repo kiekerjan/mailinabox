@@ -250,5 +250,10 @@ function git_clone {
 }
 
 function get_miab_setting {
-	echo $(/usr/local/lib/mailinabox/env/bin/python3 -c "from management.utils import get_setting; print(get_setting('$1'))")
+	if [ -f /usr/local/lib/mailinabox/env/bin/python3 ]; then
+		echo $(/usr/local/lib/mailinabox/env/bin/python3 -c "from management.utils import get_setting; print(get_setting('$1'))")
+	else
+		echo "Mail-in-a-Box python environment has not been initialized yet"
+		exit 1
+	fi
 }
