@@ -1,5 +1,6 @@
 CHANGELOG
 =========
+(note: this changelog follows the upstream changelog, it does not contain all repository specific changes)
 
 Version 72 (June 3, 2025)
 -------------------------
