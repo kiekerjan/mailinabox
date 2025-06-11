@@ -13,7 +13,6 @@ def do_daily_maintenance(env):
 	logging.debug("Do daily maintenance")
 
 	do_webmail_maintenance(env)
-	logging.debug(do_package_maintenance())
 
 
 def do_webmail_maintenance(env):
@@ -34,13 +33,6 @@ def do_webmail_maintenance(env):
 
 	if remove:
 		do_editconf([webmail_file, "-e", "$config['skin_logo']="])
-
-
-def do_package_maintenance():
-        utils.shell("check_call", ["/usr/bin/apt-get", "-qq", "update"])
-        return utils.shell("check_output", ["/usr/bin/apt-get", "-y", "upgrade"], env={
-                "DEBIAN_FRONTEND": "noninteractive"
-        })
 
 
 if __name__ == "__main__":

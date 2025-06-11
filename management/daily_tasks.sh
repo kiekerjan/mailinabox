@@ -26,6 +26,11 @@ management/backup.py 2>&1 | sed 's/'"$DUPLICITY_VALIDATION_INFO"'//g' | manageme
 # Provision any new certificates for new domains or domains with expiring certificates.
 management/ssl_certificates.py -q  2>&1 | management/email_administrator.py "TLS Certificate Provisioning Result"
 
+# Daily package update / upgrade
+export DEBIAN_FRONTEND=noninteractive
+apt-get -qq update
+apt-get -qq -y upgrade
+
 # Daily maintenance tasks
 management/daily_maintenance.py
 
