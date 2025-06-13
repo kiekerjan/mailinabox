@@ -79,7 +79,8 @@ apt_install curl php"${PHP_VER}" php"${PHP_VER}"-fpm \
 # Enable APC before Nextcloud tools are run.
 management/editconf.py /etc/php/"$PHP_VER"/mods-available/apcu.ini -c ';' \
 	apc.enabled=1 \
-	apc.enable_cli=1
+	apc.enable_cli=1 \
+	apc.shm_size=32M
 
 InstallNextcloud() {
 
@@ -485,7 +486,9 @@ management/editconf.py /etc/php/"$PHP_VER"/cli/conf.d/10-opcache.ini -c ';' \
 	opcache.max_accelerated_files=10000 \
 	opcache.memory_consumption=128 \
 	opcache.save_comments=1 \
-	opcache.revalidate_freq=1
+	opcache.revalidate_freq=1 \
+	opcache.jit=on \
+	opcache.jit_buffer_size=32M
 
 # Migrate users_external data from <0.6.0 to version 3.0.0
 # (see https://github.com/nextcloud/user_external).

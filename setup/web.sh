@@ -64,41 +64,50 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
 	env[PATH]=/usr/local/bin:/usr/bin:/bin \
 
 # Configure php-fpm based on the amount of memory the machine has
-# This is based on the nextcloud manual for performance tuning: https://docs.nextcloud.com/server/17/admin_manual/installation/server_tuning.html
-# Some synchronisation issues can occur when many people access the site at once.
+# This is based on https://spot13.com/pmcalculator/ (referenced by Nextcloud) using RAM Buffer = 10% and Process size = 50 MB
+# As there will be multiple pools, these numbers are halved. Also, min and max spare servers are decreased a little to decrease
+# memory pressure
 # The pm=ondemand setting is used for memory constrained machines < 2GB, this is copied over from PR: 1216
 TOTAL_PHYSICAL_MEM=$(head -n 1 /proc/meminfo | awk '{print $2}' || /bin/true)
 if [ "$TOTAL_PHYSICAL_MEM" -lt 1000000 ]
 then
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
                 pm=ondemand \
-                pm.max_children=8 \
-                pm.start_servers=2 \
-                pm.min_spare_servers=1 \
-                pm.max_spare_servers=3
+                pm.max_children=7 \
+                pm.process_idle_timeout=10s \
+                pm.max_requests=500
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 2000000 ]
 then
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
                 pm=ondemand \
-                pm.max_children=16 \
-                pm.start_servers=4 \
-                pm.min_spare_servers=1 \
-                pm.max_spare_servers=6
+                pm.max_children=14 \
+                pm.process_idle_timeout=10s \
+                pm.max_requests=500
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 3000000 ]
 then
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
                 pm=dynamic \
-                pm.max_children=60 \
-                pm.start_servers=6 \
+                pm.max_children=36 \
+                pm.start_servers=5 \
                 pm.min_spare_servers=3 \
-                pm.max_spare_servers=9
+                pm.max_spare_servers=10 \
+                pm.max_requests=1000
+elif [ "$TOTAL_PHYSICAL_MEM" -lt 5000000 ]
+        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
+                pm=dynamic \
+                pm.max_children=72 \
+                pm.start_servers=9 \
+                pm.min_spare_servers=6 \
+                pm.max_spare_servers=18 \
+                pm.max_requests=1000
 else
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
                 pm=dynamic \
                 pm.max_children=120 \
-                pm.start_servers=12 \
-                pm.min_spare_servers=6 \
-                pm.max_spare_servers=18
+                pm.start_servers=15 \
+                pm.min_spare_servers=10 \
+                pm.max_spare_servers=30 \
+                pm.max_requests=1000
 fi
 
 # Other nginx settings will be configured by the management service
