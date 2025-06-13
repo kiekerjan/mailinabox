@@ -417,6 +417,22 @@ chmod +x /etc/cron.daily/mailinabox-postgrey-whitelist
 management/editconf.py /etc/postfix/main.cf \
 	message_size_limit=134217728
 
+# Hardening by rejecting bad HELO 
+management/editconf.py /etc/postfix/main.cf -w \
+        smtpd_delay_reject=yes \
+        smtpd_helo_required=yes \
+        smtpd_helo_restrictions="permit_mynetworks,
+        check_helo_access hash:/etc/postfix/helo_access,
+        permit"
+
+cat > /etc/postfix/helo_access << EOF;
+$PUBLIC_IP  		REJECT This is not you
+$PUBLIC_IPV6  		REJECT This is not you
+$PRIMARY_HOSTNAME  	REJECT This is not you
+EOF
+
+postmap /etc/postfix/helo_access
+
 # Allow the two SMTP ports in the firewall.
 
 ufw_allow smtp
