@@ -465,6 +465,10 @@ hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable notes
 
 hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable twofactor_totp
 
+(sudo -u www-data php $CLOUD_DIR/occ app:install tasks) || true
+
+hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable tasks
+
 # upgrade apps
 sudo -u www-data php $CLOUD_DIR/occ app:update --all
 
