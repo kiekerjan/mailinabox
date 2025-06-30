@@ -141,30 +141,30 @@ InstallNextcloud() {
 	# Make sure permissions are correct or the upgrade step won't run.
 	# $STORAGE_ROOT/owncloud may not yet exist, so use -f to suppress
 	# that error.
-	chown -f -R www-data:www-data "$STORAGE_ROOT/owncloud" $INSTALL_DIR || /bin/true
+	chown -f -R nextcloud_php:www-data "$STORAGE_ROOT/owncloud" $INSTALL_DIR || /bin/true
 
 	# If this isn't a new installation, immediately run the upgrade script.
 	# Then check for success (0=ok and 3=no upgrade needed, both are success).
 	if [ -e "$STORAGE_ROOT/owncloud/owncloud.db" ]; then
 		# ownCloud 8.1.1 broke upgrades. It may fail on the first attempt, but
 		# that can be OK.
-		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
+		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
 		E=$?
 		if [ $E -ne 0 ] && [ $E -ne 3 ]; then
 			echo "Trying ownCloud upgrade again to work around ownCloud upgrade bug..."
-			sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
+			sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
 			E=$?
 			if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
-			sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ maintenance:mode --off
+			sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ maintenance:mode --off
 			echo "...which seemed to work."
 		fi
 
 		# Add missing indices. NextCloud didn't include this in the normal upgrade because it might take some time.
-		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
-		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
+		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
+		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
 
 		# Run conversion to BigInt identifiers, this process may take some time on large tables.
-		sudo -u www-data php"$NC_PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
+		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
 	fi
 }
 
@@ -370,12 +370,12 @@ EOF
 EOF
 
 	# Set permissions
-	chown -R www-data:www-data "$STORAGE_ROOT/owncloud" $CLOUD_DIR
+	chown -R nextcloud_php:www-data "$STORAGE_ROOT/owncloud" $CLOUD_DIR
 
 	# Execute Nextcloud's setup step, which creates the Nextcloud sqlite database.
 	# It also wipes it if it exists. And it updates config.php with database
 	# settings and deletes the autoconfig.php file.
-	(cd $CLOUD_DIR || exit; sudo -u www-data php"$PHP_VER" $CLOUD_DIR/index.php;)
+	(cd $CLOUD_DIR || exit; sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/index.php;)
 fi
 
 # Update config.php.
@@ -432,45 +432,45 @@ var_export(\$CONFIG);
 echo ";";
 ?>
 EOF
-chown www-data:www-data "$STORAGE_ROOT/owncloud/config.php"
+chown nextcloud_php:www-data "$STORAGE_ROOT/owncloud/config.php"
 
 # Enable/disable apps. Note that this must be done after the Nextcloud setup.
 # The firstrunwizard gave Josh all sorts of problems, so disabling that.
 # user_external is what allows Nextcloud to use IMAP for login. The contacts
 # and calendar apps are the extensions we really care about here.
-hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:disable firstrunwizard
-hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:enable user_external
-hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:enable contacts
-hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/console.php app:enable calendar
+hide_output sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/console.php app:disable firstrunwizard
+hide_output sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/console.php app:enable user_external
+hide_output sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/console.php app:enable contacts
+hide_output sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/console.php app:enable calendar
 
 # When upgrading, run the upgrade script again now that apps are enabled. It seems like
 # the first upgrade at the top won't work because apps may be disabled during upgrade?
 # Check for success (0=ok, 3=no upgrade needed).
-sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ upgrade
+sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ upgrade
 E=$?
 if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
 
 # Disable default apps that we don't support
-sudo -u www-data \
+sudo -u nextcloud_php \
 	php"$PHP_VER" $CLOUD_DIR/occ app:disable photos dashboard activity \
 	weather_status logreader \
 	| (grep -v "No such app enabled" || /bin/true)
 
 # Install interesting apps
-(sudo -u www-data php $CLOUD_DIR/occ app:install notes) || true
+(sudo -u nextcloud_php php $CLOUD_DIR/occ app:install notes) || true
 
-hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable notes
+hide_output sudo -u nextcloud_php php $CLOUD_DIR/console.php app:enable notes
 
-(sudo -u www-data php $CLOUD_DIR/occ app:install twofactor_totp) || true
+(sudo -u nextcloud_php php $CLOUD_DIR/occ app:install twofactor_totp) || true
 
-hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable twofactor_totp
+hide_output sudo -u nextcloud_php php $CLOUD_DIR/console.php app:enable twofactor_totp
 
-(sudo -u www-data php $CLOUD_DIR/occ app:install tasks) || true
+(sudo -u nextcloud_php php $CLOUD_DIR/occ app:install tasks) || true
 
-hide_output sudo -u www-data php $CLOUD_DIR/console.php app:enable tasks
+hide_output sudo -u nextcloud_php php $CLOUD_DIR/console.php app:enable tasks
 
 # upgrade apps
-sudo -u www-data php $CLOUD_DIR/occ app:update --all
+sudo -u nextcloud_php php $CLOUD_DIR/occ app:update --all
 
 # Set PHP FPM values to support large file uploads
 # (semicolon is the comment character in this file, hashes produce deprecation warnings)
@@ -507,17 +507,17 @@ sqlite3 "$STORAGE_ROOT/owncloud/owncloud.db" "UPDATE oc_users_external SET backe
 cat > /etc/cron.d/mailinabox-nextcloud << EOF;
 #!/bin/bash
 # Mail-in-a-Box
-*/5 * * * *	www-data	php$PHP_VER -f $CLOUD_DIR/cron.php
-*/5 * * * *	www-data	php$PHP_VER -f $CLOUD_DIR/occ dav:send-event-reminders
+*/5 * * * *	nextcloud_php	php$PHP_VER -f $CLOUD_DIR/cron.php
+*/5 * * * *	nextcloud_php	php$PHP_VER -f $CLOUD_DIR/occ dav:send-event-reminders
 EOF
 chmod +x /etc/cron.d/mailinabox-nextcloud
 
 # We also need to change the sending mode from background-job to occ.
 # Or else the reminders will just be sent as soon as possible when the background jobs run.
-hide_output sudo -u www-data php"$PHP_VER" -f $CLOUD_DIR/occ config:app:set dav sendEventRemindersMode --value occ
+hide_output sudo -u nextcloud_php php"$PHP_VER" -f $CLOUD_DIR/occ config:app:set dav sendEventRemindersMode --value occ
 
 # Run the maintenance command
-hide_output sudo -u www-data php"$PHP_VER" $CLOUD_DIR/occ maintenance:repair --include-expensive
+hide_output sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ maintenance:repair --include-expensive
 
 # Now set the config to read-only.
 # Do this only at the very bottom when no further occ commands are needed.
