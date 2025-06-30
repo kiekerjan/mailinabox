@@ -68,7 +68,8 @@ management/editconf.py /etc/default/spampd \
 management/editconf.py /etc/spamassassin/local.cf -s \
 	report_safe=0 \
 	"add_header all Report"=_REPORT_ \
-	"add_header all Score"=_SCORE_
+	"add_header all Score"=_SCORE_ \
+	"shortcircuit ALL_TRUSTED"=on
 
 
 # Authentication-Results SPF/Dmarc checks
