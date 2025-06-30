@@ -63,6 +63,14 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
 	env[PATH]=/usr/local/bin:/usr/bin:/bin \
 
+# We'll configure a php-fpm worker per php application. First do some generic php worker configuration to obtain a common baseline.
+# Then configure specific php workers.
+
+if [ -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf ]; then
+	# Change the extension, so it is not used by php anymore
+	mv /etc/php/"$PHP_VER"/fpm/pool.d/www.conf /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused
+fi
+
 # Configure php-fpm based on the amount of memory the machine has
 # This is based on https://spot13.com/pmcalculator/ (referenced by Nextcloud) using RAM Buffer = 10% and Process size = 50 MB
 # As there will be multiple pools, these numbers are halved. Also, min and max spare servers are decreased a little to decrease
@@ -71,21 +79,21 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
 TOTAL_PHYSICAL_MEM=$(head -n 1 /proc/meminfo | awk '{print $2}' || /bin/true)
 if [ "$TOTAL_PHYSICAL_MEM" -lt 1000000 ]
 then
-        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
+        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=ondemand \
                 pm.max_children=7 \
                 pm.process_idle_timeout=10s \
                 pm.max_requests=500
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 2000000 ]
 then
-        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
+        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=ondemand \
                 pm.max_children=14 \
                 pm.process_idle_timeout=10s \
                 pm.max_requests=500
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 3000000 ]
 then
-        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
+        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
                 pm.max_children=36 \
                 pm.start_servers=5 \
@@ -93,7 +101,7 @@ then
                 pm.max_spare_servers=10 \
                 pm.max_requests=1000
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 5000000 ]
-        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
+        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
                 pm.max_children=72 \
                 pm.start_servers=9 \
@@ -101,7 +109,7 @@ elif [ "$TOTAL_PHYSICAL_MEM" -lt 5000000 ]
                 pm.max_spare_servers=18 \
                 pm.max_requests=1000
 else
-        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
+        management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
                 pm.max_children=120 \
                 pm.start_servers=15 \
@@ -109,6 +117,53 @@ else
                 pm.max_spare_servers=30 \
                 pm.max_requests=1000
 fi
+
+# TODO We'll remove this later once all php workers are configured
+cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/www.conf
+
+# Configure Nextcloud
+cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/nextcloud.conf
+
+sed -i "s/\[www\]/\[nextcloud\]/" /etc/php/"$PHP_VER"/fpm/pool.d/nextcloud.conf
+
+if [ ! id -u nextcloud_php >/dev/null 2>&1 ]; then
+	adduser --system --disabled-login --shell /bin/false --no-create-home nextcloud_php
+	usermod -a -G www-data nextcloud_php
+fi
+
+management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/nextcloud.conf -c ';' \
+	user=nextcloud_php \
+	listen=/run/php/php8.3-fpm-nextcloud.sock
+
+# Configure Snappymail
+if [ -d /usr/local/share/snappymail/snappymail ]; then
+	cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf
+
+	sed -i "s/\[www\]/\[snappymail\]/" /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf
+
+	if [ ! id -u snappymail_php >/dev/null 2>&1 ]; then
+		adduser --system --disabled-login --shell /bin/false --no-create-home snappymail_php
+		usermod -a -G www-data snappymail_php
+	fi
+
+	management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf -c ';' \
+		user=snappymail_php \
+		listen=/run/php/php8.3-fpm-snappymail.sock
+fi
+
+# Configure Roundcube
+cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/roundcube.conf
+
+sed -i "s/\[www\]/\[roundcube\]/" /etc/php/"$PHP_VER"/fpm/pool.d/roundcube.conf
+
+if [ ! id -u roundcube_php >/dev/null 2>&1 ]; then
+	adduser --system --disabled-login --shell /bin/false --no-create-home roundcube_php
+	usermod -a -G www-data roundcube_php
+fi
+
+management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/roundcube.conf -c ';' \
+	user=roundcube_php \
+	listen=/run/php/php8.3-fpm-roundcube.sock
 
 # Other nginx settings will be configured by the management service
 # since it depends on what domains we're serving, which we don't know
