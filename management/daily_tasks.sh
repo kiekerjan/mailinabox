@@ -10,6 +10,7 @@ export LANG=en_US.UTF-8
 export LC_TYPE=en_US.UTF-8
 
 source /etc/mailinabox.conf
+source setup/functions.sh
 
 # On Mondays, i.e. once a week, send the administrator a report of total emails
 # sent and received so the admin might notice server abuse.
@@ -28,8 +29,8 @@ management/ssl_certificates.py -q  2>&1 | management/email_administrator.py "TLS
 
 # Daily package update / upgrade
 export DEBIAN_FRONTEND=noninteractive
-apt-get -qq update
-apt-get -qq -y upgrade
+hide_output apt-get -qq update
+hide_output apt-get -qq -y upgrade
 
 # Daily maintenance tasks
 management/daily_maintenance.py
