@@ -19,9 +19,9 @@ apt_get_quiet install locales
 
 if ! locale -a | grep en_US.utf8 > /dev/null; then
 	echo "Generating locales..."
-    # Generate locale if not exists
+	# Generate locale if not exists
 	echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-    hide_output locale-gen
+	hide_output locale-gen
 fi
 
 export LANGUAGE=en_US.UTF-8
@@ -66,9 +66,9 @@ source setup/questions.sh
 # Skip on existing installs since we don't want this to block the ability to
 # upgrade, and these checks are also in the control panel status checks.
 if [ -z "${DEFAULT_PRIMARY_HOSTNAME:-}" ]; then
-if [ -z "${SKIP_NETWORK_CHECKS:-}" ]; then
-	source setup/network-checks.sh
-fi
+	if [ -z "${SKIP_NETWORK_CHECKS:-}" ]; then
+		source setup/network-checks.sh
+	fi
 fi
 
 # Create the STORAGE_USER and STORAGE_ROOT directory if they don't already exist.
