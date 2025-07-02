@@ -95,31 +95,28 @@ elif [ "$TOTAL_PHYSICAL_MEM" -lt 3000000 ]
 then
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
-                pm.max_children=36 \
-                pm.start_servers=5 \
-                pm.min_spare_servers=3 \
+                pm.max_children=15 \
+                pm.start_servers=4 \
+                pm.min_spare_servers=2 \
                 pm.max_spare_servers=10 \
                 pm.max_requests=1000
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 5000000 ]
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
-                pm.max_children=72 \
-                pm.start_servers=9 \
-                pm.min_spare_servers=6 \
-                pm.max_spare_servers=18 \
+                pm.max_children=28 \
+                pm.start_servers=7 \
+                pm.min_spare_servers=4 \
+                pm.max_spare_servers=21 \
                 pm.max_requests=1000
 else
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
-                pm.max_children=120 \
-                pm.start_servers=15 \
-                pm.min_spare_servers=10 \
-                pm.max_spare_servers=30 \
+                pm.max_children=56 \
+                pm.start_servers=14 \
+                pm.min_spare_servers=7 \
+                pm.max_spare_servers=42 \
                 pm.max_requests=1000
 fi
-
-# TODO We'll remove this later once all php workers are configured
-cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/www.conf
 
 # Configure Nextcloud
 cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/nextcloud.conf
