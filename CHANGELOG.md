@@ -2,6 +2,35 @@ CHANGELOG
 =========
 (note: this changelog follows the upstream changelog, it does not contain all repository specific changes)
 
+Version 73 (July 11, 2025)
+--------------------------
+
+Mail:
+
+* Quotas for mail storage can now be set per user in the control panel.
+* Autoconfig now includes POP3 and CardDAV/CalDAV.
+
+Backups:
+
+* Fix for S3-compatible backups (other than AWS S3 itself).
+
+Control Panel:
+
+* Backup status is added to the status checks.
+* S3 backup credentials can now be stored in environment variables.
+* Fix for when an AAAA record is set up the box's own IP address.
+* Fix for when logged out of the control panel.
+* Fix link to Z-Push client compatibility list.
+
+Setup:
+
+* The Ubuntu version check is updated.
+
+Other:
+
+* Code cleanup using the Ruff Python linter.
+* Other minor changes.
+
 Version 72 (June 3, 2025)
 -------------------------
 
@@ -115,10 +144,6 @@ Version 64 (September 2, 2023)
 * Fixed setting B2 as a backup target with a slash in the application key.
 * Turned off OpenDMARC diagnostic reports sent in response to incoming mail.
 * Fixed some crashes when using an unreleased version of Mail-in-a-Box.
-<<<<<<< HEAD
-=======
-* Added z-push administration scripts.
->>>>>>> upstream/main
 
 Version 63 (July 27, 2023)
 --------------------------
