@@ -600,7 +600,7 @@ def check_certificate(domain, ssl_certificate, ssl_private_key, warn_if_expiring
 	# good.
 
 	# But is it expiring soon?
-	cert_expiration_date = cert.not_valid_after
+	cert_expiration_date = cert.not_valid_after_utc
 	ndays = (cert_expiration_date-now).days
 	if not rounded_time or ndays <= 10:
 		# Yikes better renew soon!
