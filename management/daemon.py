@@ -17,6 +17,7 @@ import logging
 from functools import wraps
 
 from flask import Flask, request, render_template, Response, send_from_directory, make_response
+from miab_proxy import proxy
 
 import auth, utils
 from mailconfig import get_mail_users, get_mail_users_ex, get_admins, add_mail_user, set_mail_password, remove_mail_user
@@ -734,19 +735,8 @@ def privacy_status_set():
 	utils.write_settings(config, env)
 	return "OK"
 
-# MUNIN
 
-@app.route('/munin/')
-@authorized_personnel_only
-def munin_start():
-	# Munin pages, static images, and dynamically generated images are served
-	# outside of the AJAX API. We'll start with a 'start' API that sets a cookie
-	# that subsequent requests will read for authorization. (We don't use cookies
-	# for the API to avoid CSRF vulnerabilities.)
-	response = make_response("OK")
-	response.set_cookie("session", auth_service.create_session_key(request.user_email, env, type='cookie'),
-		max_age=60*30, secure=True, httponly=True, samesite="Strict") # 30 minute duration
-	return response
+# Generic cookie functions
 
 def check_request_cookie_for_admin_access():
 	session = auth_service.get_session(None, request.cookies.get("session", ""), "cookie", env)
@@ -762,6 +752,40 @@ def authorized_personnel_only_via_cookie(f):
 			return Response("Unauthorized", status=403, mimetype='text/plain', headers={})
 		return f(*args, **kwargs)
 	return g
+
+
+# DMARC Report Viewer
+@app.route('/dmarc_report/', methods=["GET"])
+@authorized_personnel_only
+def dmarc_report_start():
+	app.logger.debug("Entering dmarc_report_start")
+	response = make_response("OK")
+	response.set_cookie("session", auth_service.create_session_key(request.user_email, env, type='cookie'),
+		max_age=60*30, secure=True, httponly=True, samesite="Strict") # 30 minute duration
+	return response
+
+
+@app.route('/dmarc_report/<path:path>', methods=["GET"])
+@authorized_personnel_only_via_cookie
+def dmarc_report_proxy(path=""):
+	app.logger.debug(f"Entering dmarc_report_proxy2 {path}")
+	return proxy("http://127.0.0.1:12321", path)
+
+
+# MUNIN
+
+@app.route('/munin/')
+@authorized_personnel_only
+def munin_start():
+	# Munin pages, static images, and dynamically generated images are served
+	# outside of the AJAX API. We'll start with a 'start' API that sets a cookie
+	# that subsequent requests will read for authorization. (We don't use cookies
+	# for the API to avoid CSRF vulnerabilities.)
+	response = make_response("OK")
+	response.set_cookie("session", auth_service.create_session_key(request.user_email, env, type='cookie'),
+		max_age=60*30, secure=True, httponly=True, samesite="Strict") # 30 minute duration
+	return response
+
 
 @app.route('/munin/<path:filename>')
 @authorized_personnel_only_via_cookie
@@ -848,8 +872,8 @@ if __name__ == '__main__':
 		# Turn on Flask debugging.
 		app.debug = True
 
-	if not app.debug:
-		app.logger.addHandler(utils.create_syslog_handler())
+#	if not app.debug:
+#		app.logger.addHandler(utils.create_syslog_handler())
 
 	#app.logger.info('API key: ' + auth_service.key)
 

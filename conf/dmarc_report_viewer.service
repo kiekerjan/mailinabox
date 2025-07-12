@@ -1,0 +1,17 @@
+[Unit]
+Description=DMARC and SMTP TLS Report Viewer
+After=multi-user.target
+
+[Service]
+Type=idle
+
+# Load configuration
+EnvironmentFile=/etc/default/dmarc_report
+
+# Load encrypted credentials
+LoadCredentialEncrypted=dmarc_report_imap_password:/etc/default/dmarc_report_password
+
+ExecStart=/bin/sh -c 'export IMAP_PASSWORD="$(cat ${CREDENTIALS_DIRECTORY}/dmarc_report_imap_password)"; /usr/local/bin/dmarc-report-viewer'
+
+[Install]
+WantedBy=multi-user.target

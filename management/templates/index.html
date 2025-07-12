@@ -120,6 +120,7 @@
                 <li><a href="#custom_dns">Custom DNS</a></li>
                 <li><a href="#external_dns">External DNS</a></li>
                 <li><a href="#munin">Munin Monitoring</a></li>
+                <li><a href="#dmarc_report">DMARC Report Viewer</a></li>
               </ul>
             </li>
             <li><a href="#mail-guide" class="if-logged-in-not-admin">Mail</a></li>
@@ -200,7 +201,11 @@
       <div id="panel_munin" class="admin_panel">
       {% include "munin.html" %}
       </div>
-
+      
+      <div id="panel_dmarc_report" class="admin_panel">
+      {% include "dmarc_report.html" %}
+      </div>
+      
       <hr>
 
       <footer>

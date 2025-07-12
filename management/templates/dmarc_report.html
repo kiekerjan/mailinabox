@@ -1,0 +1,20 @@
+<h2>DMARC and SMTP TLS report viewer</h2>
+
+<style>
+</style>
+
+<p>Opening dmarc report viewer in a new tab... You may need to allow pop-ups for this site.</p>
+
+<script>
+function show_dmarc_report() {
+  // Set the cookie.
+  api(
+    "/dmarc_report",
+    "GET",
+    { },
+    function(r) {
+      // Redirect.
+      window.open("/admin/dmarc_report/go", "_blank");
+    });
+}
+</script>
