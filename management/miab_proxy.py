@@ -11,7 +11,7 @@ cache = {}
 
 # Configure logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 # Define allowed and blocked domains
 WHITELISTED_DOMAINS = ['127.0.0.1']  # Add allowed domains here
