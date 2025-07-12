@@ -66,6 +66,22 @@ hide_output /usr/local/lib/ipset-blacklist/ipset-update
 cp -f conf/fail2ban/action.d/iptables-allports.local /etc/fail2ban/action.d/
 cp -f conf/fail2ban/action.d/iptables-multiport.local /etc/fail2ban/action.d/
 
+# ### DMARC Report Viewer
+wget_verify "https://github.com/cry-inc/dmarc-report-viewer/releases/download/2.0.0/linux-x86_64.zip" 558f0748b08add925f572d5a5a115c9a0c9bda78 /tmp/dmarc.zip
+unzip -q /tmp/dmarc.zip -d /tmp/dmarc
+hide_output install -m 755 /tmp/dmarc/dmarc-report-viewer /usr/local/bin/
+rm -f /tmp/dmarc.zip
+rm -rf /tmp/dmarc
+
+# On first installation,create configuration
+if [ ! -f /etc/default/dmarc_report ]; then
+        cp conf/dmarc_report /etc/default/
+        management/editconf.py /etc/default/dmarc_report IMAP_HOST=$PRIMARY_HOSTNAME
+        
+        cp conf/dmarc_report_viewer.service /etc/systemd/system
+        systemctl daemon-reload
+fi
+
 # ### rkhunter configuration
 
 # Adapt rkhunter cron job to reduce log file production

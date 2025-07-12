@@ -55,4 +55,10 @@ if [ -z "$(management/cli.py user)" ]; then
 
 	# Create an alias to which we'll direct all automatically-created administrative aliases.
 	management/cli.py alias add "administrator@$PRIMARY_HOSTNAME" "$EMAIL_ADDR" > /dev/null
+	
+	# Since this is the first admin user, it'll also be used as receiver for DMARC and SMTP TLS Reports.
+	# Configure the dmarc report viewer as such
+	management/editconf.py /etc/default/dmarc_report IMAP_USER=$EMAIL_ADDR
+	
+	systemd-creds --name=dmarc_report_imap_password encrypt - /etc/default/dmarc_report_password <<< $EMAIL_PW
 fi
