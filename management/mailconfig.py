@@ -378,6 +378,15 @@ def set_mail_password(email, pw, env):
 	if c.rowcount != 1:
 		return (f"That's not a user ({email}).", 400)
 	conn.commit()
+	
+	# Check whether this user receives the dmarc reports and if yes, update the password for the dmarc
+	# report viewer
+	# TODO
+	# get_dmarc_report_receiver
+	# store_dmarc_report_receiver (update it to be sure)
+	# store_dmarc_report_receiver_password
+	
+	
 	return "OK"
 
 def hash_password(pw):
@@ -704,6 +713,11 @@ def kick(env, mail_result=None):
 			and not auto:
 			remove_mail_alias(address, env, do_kick=False)
 			results.append(f"removed alias {address} (was to {forwards_to}; domain no longer used for email)\n")
+	
+	# Update dmarc report receiver if that changed
+	# TODO
+	# get_dmarc_report_receiver
+	# store_dmarc_report_receiver
 
 	# Update DNS and nginx in case any domains are added/removed.
 
