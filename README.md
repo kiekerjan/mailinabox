@@ -45,7 +45,10 @@ Functionality changes and additions
   set BACKUP_ROOT to the backup target folder (default is same as STORAGE_ROOT)
 * Add support for Spamhaus Data Query Service (https://info.spamhaus.com/getting-started-with-dqs)
   Set SPAMHAUS_DQS_KEY to the corresponding Datafeed Query Account Key in /etc/mailinabox.conf. The status checks page will then query the DQS instead of the public Spamhaus blocklist servers
-* Support for configuring a mail relay, which will be used as fallback relay, and in case mail is returned due to a blockist (i.e. if the remote server thinks the Mail-in-a-Box box is spamming)
+* Support for configuring a mail relay
+  The mail relay will be used as fallback relay, and in case mail is returned due to a blockist (i.e. if the remote server thinks the Mail-in-a-Box box is spamming)
+* Add dmarc report viewer (from https://github.com/cry-inc/dmarc-report-viewer)
+  Makes it possible to review dmarc and smtp tls reports received from other mail servers
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
