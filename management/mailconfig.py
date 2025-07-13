@@ -738,6 +738,56 @@ def validate_password(pw):
 		msg = "Passwords must be at least eight characters."
 		raise ValueError(msg)
 
+
+def get_dmarc_report_receiver(env):
+	c = open_database(env)
+
+	# first look for initial receiver
+	c.execute('SELECT destination FROM auto_aliases WHERE source like "dmarc%"')
+	rows = c.fetchall()
+	if len(rows) != 1:
+		return ""
+	
+	email = rows[0][0]
+
+	# loop over auto_aliases table until no longer found
+	while True:
+		c.execute(f'SELECT destination FROM auto_aliases WHERE source = {email}')
+		rows = c.fetchall()
+		if len(rows) == 0:
+			break
+		elif len(rows) == 1:
+			email = rows[0][0]
+		else:
+			return ""
+	
+	# Then loop over aliases table until no longer found
+	while True:
+		c.execute(f'SELECT destination FROM aliases WHERE source = {email}')
+		rows = c.fetchall()
+		if len(rows) == 0:
+			break
+		elif len(rows) == 1:
+			email = rows[0][0]
+		else:
+			return ""
+
+	return email
+	
+
+def store_dmarc_report_receiver(email):
+	from editconf import do_editconf
+	
+	# TODO: first check that we need to change it
+	do_editconf(["/etc/default/dmarc_report", f"IMAP_USER={email}"])
+
+
+def store_dmarc_report_receiver_password(email, password):
+	store_dmarc_report_receiver(email)
+	
+	shell('check_call', ["systemd-creds",  "--name=dmarc_report_imap_password", "encrypt", "-", "/etc/default/dmarc_report_password", "<<<", password])
+		
+
 if __name__ == "__main__":
 	import sys
 	if len(sys.argv) > 2 and sys.argv[1] == "validate-email":
