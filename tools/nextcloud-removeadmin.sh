@@ -19,4 +19,4 @@ echo
 echo "Press enter to continue."
 read
 
-sudo -u www-data php /usr/local/lib/nextcloud/cloud/occ group:removeuser admin "$ADMIN" && echo "Done."
+sudo -u nextcloud_php php /usr/local/lib/nextcloud/cloud/occ group:removeuser admin "$ADMIN" && echo "Done."

@@ -41,10 +41,10 @@ cp "$1/owncloud.db" "$STORAGE_ROOT/owncloud/"
 cp "$1/config.php" "$STORAGE_ROOT/owncloud/"
 
 ln -sf "$STORAGE_ROOT/owncloud/config.php" /usr/local/lib/owncloud/config/config.php
-chown -f -R www-data:www-data "$STORAGE_ROOT/owncloud" /usr/local/lib/owncloud
-chown www-data:www-data "$STORAGE_ROOT/owncloud/config.php"
+chown -f -R nextcloud_php:www-data "$STORAGE_ROOT/owncloud" /usr/local/lib/owncloud
+chown nextcloud_php:www-data "$STORAGE_ROOT/owncloud/config.php"
 
-sudo -u www-data php /usr/local/lib/owncloud/occ maintenance:mode --off
+sudo -u nextcloud_php php /usr/local/lib/owncloud/occ maintenance:mode --off
 
 service php"$PHP_VER"-fpm start
 echo "Done"
