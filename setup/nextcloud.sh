@@ -39,11 +39,11 @@ nextcloud_hash=e15210effc990176fa51310e7c4095da36858258
 # the error message when it doesn't match what is below:
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=6.0.5
+contacts_ver=7.2.0
 contacts_hash=01b5333670b2ebf7c0d093d3f30c1f19785e25ab
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=4.7.18
+calendar_ver=5.3.6
 calendar_hash=40af8f44f945f1f751d9c611f537447203028613
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
