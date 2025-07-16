@@ -24,8 +24,8 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=29.0.16
-nextcloud_hash=ceb3014aaddc70d3074d2c69bc6afc76eb1aeff0
+nextcloud_ver=31.0.7
+nextcloud_hash=e15210effc990176fa51310e7c4095da36858258
 
 # Nextcloud apps
 # --------------
@@ -39,16 +39,17 @@ nextcloud_hash=ceb3014aaddc70d3074d2c69bc6afc76eb1aeff0
 # the error message when it doesn't match what is below:
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=6.0.4
-contacts_hash=fee86bffa2a1b6ecd6145b5e637e2bae2ba1a65c
+contacts_ver=6.0.5
+contacts_hash=01b5333670b2ebf7c0d093d3f30c1f19785e25ab
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=4.7.16
-calendar_hash=1c39ce674027a8710800d056a7cdd0c5c974781d
+calendar_ver=4.7.18
+calendar_hash=40af8f44f945f1f751d9c611f537447203028613
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
-user_external_ver=3.4.0
-user_external_hash=7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
+# Temporary (or maybe not) add own forked version from github.com/kiekerjan/nc_user_external
+user_external_ver=3.5.9
+user_external_hash=479549f5e3186c6cb1be4d67b91fea3024da5d55
 
 # Developer advice (test plan)
 # ----------------------------
@@ -125,8 +126,12 @@ InstallNextcloud() {
 
 	# Starting with Nextcloud 15, the app user_external is no longer included in Nextcloud core,
 	# we will install from their github repository.
-	if [ -n "$version_user_external" ]; then
-		wget_verify "https://github.com/nextcloud-releases/user_external/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
+	if [ -n "$version_user_external" ] ; then
+		if [ "$version_user_external" == "3.5.9" ] ; then
+			wget_verify "https://github.com/kiekerjan/nc_user_external/raw/refs/heads/master/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
+		else
+			wget_verify "https://github.com/nextcloud-releases/user_external/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
+		fi
 		tar -xf /tmp/user_external.tgz -C $CLOUD_DIR/apps/
 		rm /tmp/user_external.tgz
 	fi
@@ -306,6 +311,19 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 28.0.10 24edd63bdc005ff39607831ed6cc2cac7278d41a 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.16 1c39ce674027a8710800d056a7cdd0c5c974781d 3.4.0 7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
 			CURRENT_NEXTCLOUD_VER="28.0.10"
 		fi
+
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^28 ]]; then
+			# Install nextcloud 29
+			InstallNextcloud 29.0.16 ceb3014aaddc70d3074d2c69bc6afc76eb1aeff0 6.0.5 01b5333670b2ebf7c0d093d3f30c1f19785e25ab 4.7.18 40af8f44f945f1f751d9c611f537447203028613 3.5.9 479549f5e3186c6cb1be4d67b91fea3024da5d55
+			CURRENT_NEXTCLOUD_VER="29.0.16"
+		fi
+
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^29 ]]; then
+			# Install nextcloud 30
+			InstallNextcloud 30.0.13 24499ea3f8c031b97224ee2950f7583a25c48788 6.0.5 01b5333670b2ebf7c0d093d3f30c1f19785e25ab 4.7.18 40af8f44f945f1f751d9c611f537447203028613 3.5.9 479549f5e3186c6cb1be4d67b91fea3024da5d55
+			CURRENT_NEXTCLOUD_VER="30.0.13"
+		fi
+		
 		# Hint: whenever you bump, remember this:
 		# - Run a server with the previous version
 		# - On a new if-else block, copy the versions/hashes from the previous version
