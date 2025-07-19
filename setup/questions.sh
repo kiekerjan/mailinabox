@@ -121,31 +121,6 @@ if [ -z "${PUBLIC_IP:-}" ]; then
 fi
 
 
-if [ -z "${ADMIN_HOME_IP:-}" ]; then
-        if [ -z "${DEFAULT_ADMIN_HOME_IP:-}" ]; then
-                input_box "Admin Home IP Address" \
-		        "Enter the public IP address of the admin home, as given to you by your ISP.
-                 This will be used to prevent banning of the administrator IP address.
-            		\n\nAdmin Home IP address:" \
-	   		"" \
-			ADMIN_HOME_IP
-	else
-		ADMIN_HOME_IP=$DEFAULT_ADMIN_HOME_IP
-        fi
-fi
-
-if [ -z "${ADMIN_HOME_IP:-}" ]; then
-	ADMIN_HOME_IP=""
-fi
-
-if [ -z "${ADMIN_HOME_IPV6:-}" ]; then
-	if [ -z "${DEFAULT_ADMIN_HOME_IPV6:-}" ]; then
-		ADMIN_HOME_IPV6=""
-	else
-		ADMIN_HOME_IPV6=$DEFAULT_ADMIN_HOME_IPV6
-	fi
-fi
-
 # Same for IPv6. But it's optional. Also, if it looks like the system
 # doesn't have an IPv6, don't ask for one.
 if [ -z "${PUBLIC_IPV6:-}" ]; then
@@ -183,15 +158,40 @@ fi
 # the public network interfaces (not loopback, not tunnel interfaces).
 if [ -z "${PRIVATE_IP:-}" ]; then
 	PRIVATE_IP=$(get_default_privateip 4)
-fi
-if [ -z "${PRIVATE_IPV6:-}" ]; then
-	# Do not override a configured IPv6
-	if [ ! -z "${DEFAULT_PRIVATE_IPV6:-}" ]; then
-		PRIVATE_IPV6=$DEFAULT_PRIVATE_IPV6
-	else
-		PRIVATE_IPV6=$(get_default_privateip 6)
+	
+	# No private IP? Use the default if configured
+	if [[ -z "$PRIVATE_IP" ]]; then
+		if [[ -n "${DEFAULT_PRIVATE_IP:-}" ]]; then
+			PRIVATE_IP="$DEFAULT_PRIVATE_IP"
+		fi	
+	# If the found IP is different from the configured IP, ask the user
+	elif [[ "${DEFAULT_PRIVATE_IP:-}" -ne "$PRIVATE_IP" ]]; then
+		input_box "Private IPv4 Address" \
+			"Enter the private IPv4 address of this machine.
+			\n\nPrivate IPv4 address:" \
+			"${DEFAULT_PRIVATE_IP:-}" \
+			PRIVATE_IP
 	fi
 fi
+
+if [ -z "${PRIVATE_IPV6:-}" ]; then
+	PRIVATE_IPV6=$(get_default_privateip 6)
+	
+	# No private IP found? Use the default if configured
+	if [[ -z "$PRIVATE_IPV6" ]]; then
+		if [[ -n "${DEFAULT_PRIVATE_IPV6:-}" ]]; then
+			PRIVATE_IP="$DEFAULT_PRIVATE_IPV6"
+		fi	
+	# If the found IP is different from the configured IP, ask the user
+	elif [[ "${DEFAULT_PRIVATE_IPV6:-}" -ne "$PRIVATE_IPV6" ]]; then
+		input_box "Private IPv6 Address" \
+			"Enter the private IPv6 address of this machine.
+			\n\nPrivate IPv6 address:" \
+			"${DEFAULT_PRIVATE_IPV6:-}" \
+			PRIVATE_IPV6
+	fi
+fi
+
 if [[ -z "$PRIVATE_IP" && -z "$PRIVATE_IPV6" ]]; then
 	echo
 	echo "I could not determine the IP or IPv6 address of the network interface"
@@ -214,6 +214,32 @@ if [ "$PUBLIC_IPV6" = "auto" ]; then
 fi
 if [ "$PRIMARY_HOSTNAME" = "auto" ]; then
 	PRIMARY_HOSTNAME=$(get_default_hostname)
+fi
+
+# Configure Administrator Home IP address. Used to prevent auto banning
+if [ -z "${ADMIN_HOME_IP:-}" ]; then
+        if [ -z "${DEFAULT_ADMIN_HOME_IP:-}" ]; then
+                input_box "Admin Home IP Address" \
+		        "Enter the public IP address of the admin home, as given to you by your ISP.
+                 This will be used to prevent banning of the administrator IP address.
+            		\n\nAdmin Home IP address:" \
+	   		"" \
+			ADMIN_HOME_IP
+	else
+		ADMIN_HOME_IP=$DEFAULT_ADMIN_HOME_IP
+        fi
+fi
+
+if [ -z "${ADMIN_HOME_IP:-}" ]; then
+	ADMIN_HOME_IP=""
+fi
+
+if [ -z "${ADMIN_HOME_IPV6:-}" ]; then
+	if [ -z "${DEFAULT_ADMIN_HOME_IPV6:-}" ]; then
+		ADMIN_HOME_IPV6=""
+	else
+		ADMIN_HOME_IPV6=$DEFAULT_ADMIN_HOME_IPV6
+	fi
 fi
 
 # Set STORAGE_USER and STORAGE_ROOT to default values (user-data and /home/user-data), unless
