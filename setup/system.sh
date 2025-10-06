@@ -420,6 +420,9 @@ cat conf/fail2ban/jails.conf \
 cp -f conf/fail2ban/filter.d/* /etc/fail2ban/filter.d/
 cp -f conf/fail2ban/jail.d/* /etc/fail2ban/jail.d/
 
+# Set php version for the snappymail filter
+sed -i.backup 's/REPLACE_WITH_PHP_VERSION/'$PHP_VER'/g' /etc/fail2ban/filter.d/snappymail-fpm-journal.conf
+
 # If SSH port is not default, add the not default to the ssh jail
 if [ ! -z "$SSH_PORT" ]; then
 	# create backup copy
