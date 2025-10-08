@@ -157,10 +157,10 @@ else
 	# Using Spamhaus DQS servers
 	
         # Get the source files
-        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/3.4.1%2B/SH.pm        8e58b56e8a34899b50ba1a7e3d047ad1bef2e69c /tmp/SH.pm
-        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/3.4.1%2B/sh.cf        bdee2576b2400e3b284f5ab4b9c99faa39ad49c7 /tmp/sh.cf
-        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/3.4.1%2B/sh.pre       c73b2d9b5dae37864acf5479966f248dc6be4ee9 /tmp/sh.pre
-        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/3.4.1%2B/sh_scores.cf 0e7360514245760754ee92172c275545a77a5860 /tmp/sh_scores.cf
+        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/4.0.0%2B/SH.pm        0178c5823e145c96a60ff50ff36cc725a74cf82c /tmp/SH.pm
+        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/4.0.0%2B/sh.cf        e309d4c22d4eb08ca0923481960c8841bf5c9738 /tmp/sh.cf
+        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/4.0.0%2B/sh.pre       a73ad5c26ff3ef026fd863a1a6b12d6f1da8d25e /tmp/sh.pre
+        wget_verify https://raw.githubusercontent.com/spamhaus/spamassassin-dqs/f1baa2597443bc99b2777050383717de50eca2ce/4.0.0%2B/sh_scores.cf f410c6d401218fadc5583413b0df79e74cf97e19 /tmp/sh_scores.cf
 
         # Insert the DQS Key
         sed -i -e 's/your_DQS_key/'$SPAMHAUS_DQS_KEY'/g' /tmp/sh.cf
