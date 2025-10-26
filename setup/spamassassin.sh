@@ -203,10 +203,15 @@ management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
 # from http://wiki2.dovecot.org/Plugins/Antispam
 rm -f /usr/bin/sa-learn-pipe.sh # legacy location #NODOC
 cat > /usr/local/bin/sa-learn-pipe.sh << EOF;
-cat<&0 >> /tmp/sendmail-msg-\$\$.txt
-/usr/bin/sa-learn \$* /tmp/sendmail-msg-\$\$.txt > /dev/null
-rm -f /tmp/sendmail-msg-\$\$.txt
-exit 0
+#!/bin/bash
+out=$(/bin/nice -n 19 /usr/bin/sa-learn "$@" - 2>&1)
+ret=$?
+
+if [ $ret -gt 0 ]; then
+    logger -p mail.err -i -t "${0##*/}" "${1//[^a-z]/}: $out"
+fi
+ 
+exit $ret
 EOF
 chmod a+x /usr/local/bin/sa-learn-pipe.sh
 
