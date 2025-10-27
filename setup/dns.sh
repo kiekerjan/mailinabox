@@ -22,7 +22,6 @@ cat > /etc/nsd/nsd.conf << EOF;
 # Do not edit. Overwritten by Mail-in-a-Box setup.
 server:
   hide-version: yes
-  logfile: "/var/log/nsd.log"
 
   # identify the server (CH TXT ID.SERVER entry).
   identity: ""
@@ -53,18 +52,6 @@ echo "include: /etc/nsd/nsd.conf.d/*.conf" >> /etc/nsd/nsd.conf;
 # Remove the old location of zones.conf that we generate. It will
 # now be stored in /etc/nsd/nsd.conf.d.
 rm -f /etc/nsd/zones.conf
-
-# Add log rotation
-cat > /etc/logrotate.d/nsd <<EOF;
-/var/log/nsd.log {
-  weekly
-  missingok
-  rotate 12
-  compress
-  delaycompress
-  notifempty
-}
-EOF
 
 # Install the packages.
 #
