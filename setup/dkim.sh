@@ -31,7 +31,7 @@ touch /etc/dkim/SigningTable
 management/editconf.py /etc/dkimpy-milter/dkimpy-milter.conf -s \
     "MacroList=daemon_name|ORIGINATING" \
     "MacroListVerify=daemon_name|VERIFYING" \
-    "Canonicalization=relaxed/simple" \
+    "Canonicalization=relaxed/relaxed" \
     "MinimumKeyBits=1024" \
     "InternalHosts=refile:/etc/dkim/TrustedHosts" \
     "KeyTable=refile:/etc/dkim/KeyTable" \
