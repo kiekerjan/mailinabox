@@ -24,8 +24,8 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=31.0.7
-nextcloud_hash=e15210effc990176fa51310e7c4095da36858258
+nextcloud_ver=31.0.10
+nextcloud_hash=43832ca4bc0b8040365f1a777533475e71459c8e
 
 # Nextcloud apps
 # --------------
@@ -39,12 +39,12 @@ nextcloud_hash=e15210effc990176fa51310e7c4095da36858258
 # the error message when it doesn't match what is below:
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=7.2.0
-contacts_hash=01b5333670b2ebf7c0d093d3f30c1f19785e25ab
+contacts_ver=7.3.5
+contacts_hash=3a6d7e6649018a1f7c0530672559f714768193af
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=5.3.6
-calendar_hash=40af8f44f945f1f751d9c611f537447203028613
+calendar_ver=5.5.7
+calendar_hash=2c1db0242208c48b0d9a03f13993ad3144739858
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
 # Temporary (or maybe not) add own forked version from github.com/kiekerjan/nc_user_external
