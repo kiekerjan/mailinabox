@@ -73,8 +73,13 @@ def scan_files(collector):
             continue
         if fn.endswith('.gz'):
             tmp_file = tempfile.NamedTemporaryFile()
-            with gzip.open(fn, 'rb') as f:
-                shutil.copyfileobj(f, tmp_file)
+            try:
+                with gzip.open(fn, 'rb') as f:
+                    shutil.copyfileobj(f, tmp_file)
+            except PermissionError:
+                print(f"No permission to read {fn}")
+                continue
+            
 
         if VERBOSE:
             print("Processing file", fn, "...")
@@ -317,7 +322,7 @@ def scan_mail_log(env):
             latest=[u["latest"] for u in data.values()],
         )
 
-    if collector["other-services"] and False:
+    if collector["other-services"] and VERBOSE:
         print_header("Other services")
         print("The following unknown services were found in the log file.")
         print(" ", *sorted(collector["other-services"]), sep='\n│ ')
@@ -326,36 +331,42 @@ def scan_mail_log(env):
 def scan_mail_log_line(line, collector):
     """ Scan a log line and extract interesting data """
 
-    m = re.match(r"(\w+[\s]+\d+ \d+:\d+:\d+) ([\w]+ )?([\w\-/]+)[^:]*: (.*)", line)
+    m = re.match(r"(.*) ([\w]+ )([\w\-\/]+)[^:]*: (.*)", line)
 
     if not m:
         return True
 
     date, _system, service, log = m.groups()
+    if " " in date:
+        m = re.match(r"(\w+[\s]+\d+ \d+:\d+:\d+) ([\w]+ )?([\w\-/]+)[^:]*: (.*)", line)
+        if not m:
+            return True
+        date, _system, service, log = m.groups()
+    
     collector["scan_count"] += 1
 
-    # print()
-    # print("date:", date)
-    # print("host:", system)
-    # print("service:", service)
-    # print("log:", log)
+    #print()
+    #print("date:", date)
+    #print("host:", _system)
+    #print("service:", service)
+    #print("log:", log)
 
     # Replaced the dateutil parser for a less clever way of parser that is roughly 4 times faster.
-    # date = dateutil.parser.parse(date)
+    date = dateutil.parser.parse(date)
 
     # strptime fails on Feb 29 with ValueError: day is out of range for month if correct year is not provided.
     # See https://bugs.python.org/issue26460
-    date = datetime.datetime.strptime(str(NOW.year) + ' ' + date, '%Y %b %d %H:%M:%S')
+#    date = datetime.datetime.strptime(str(NOW.year) + ' ' + date, '%Y %b %d %H:%M:%S')
     # if log date in future, step back a year
-    if date > NOW:
-      date = date.replace(year = NOW.year - 1)
+#    if date > NOW:
+#      date = date.replace(year = NOW.year - 1)
     #print("date:", date)
 
     # Check if the found date is within the time span we are scanning
-    if date > END_DATE:
+    if date.timestamp() > END_DATE.timestamp():
         # Don't process, and halt
         return False
-    if date < START_DATE:
+    if date.timestamp() < START_DATE.timestamp():
         # Don't process, but continue
         return True
 
@@ -365,7 +376,7 @@ def scan_mail_log_line(line, collector):
     elif service == "postfix/lmtp":
         if SCAN_IN:
             scan_postfix_lmtp_line(date, log, collector)
-    elif service.endswith("-login"):
+    elif service.endswith("dovecot"):
         if SCAN_DOVECOT_LOGIN:
             scan_dovecot_login_line(date, log, collector, service[:4])
     elif service == "postgrey":
@@ -466,8 +477,7 @@ def scan_postfix_smtpd_line(date, log, collector):
 
 def scan_dovecot_login_line(date, log, collector, protocol_name):
     """ Scan a dovecot login log line and extract interesting data """
-
-    m = re.match(r"Info: Login: user=<(.*?)>, method=PLAIN, rip=(.*?),", log)
+    m = re.match(r"imap-login: Login: user=<(.*?)>, method=PLAIN, rip=(.*?),", log)
 
     if m:
         # TODO: CHECK DIT
@@ -585,12 +595,15 @@ def scan_postfix_submission_line(date, log, collector):
 def readline(filename):
     """ A generator that returns the lines of a file
     """
-    with open(filename, errors='replace', encoding='utf-8') as file:
-        while True:
-          line = file.readline()
-          if not line:
-              break
-          yield line
+    try:
+        with open(filename, errors='replace', encoding='utf-8') as file:
+            while True:
+              line = file.readline()
+              if not line:
+                  break
+              yield line
+    except PermissionError:
+        print(f"No permission to access {filename}")
 
 
 def user_match(user):
