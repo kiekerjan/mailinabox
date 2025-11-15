@@ -112,7 +112,7 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 	"ssl_cert=<$STORAGE_ROOT/ssl/ssl_certificate.pem" \
 	"ssl_key=<$STORAGE_ROOT/ssl/ssl_private_key.pem" \
 	"ssl_min_protocol=TLSv1.2" \
-	"ssl_cipher_list=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305" \
+	"ssl_cipher_list=ALL:!kRSA:!SRP:!kDHd:!DSS:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK:!RC4:!ADH:!CAMELLIA:!ARIA:!CBC:!AESCCM:!LOW@STRENGTH" \
 	"ssl_curve_list=X25519:prime256v1:secp384r1" \
 	"ssl_prefer_server_ciphers=yes" \
 	"ssl_dh=<$STORAGE_ROOT/ssl/dh4096.pem"
