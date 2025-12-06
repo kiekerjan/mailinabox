@@ -712,7 +712,7 @@ def sign_zone(domain, zonefile, env):
 		"-e", expiry_date,
 
 		# use NSEC3
-		"-n",
+		"-n", "-t", "0",
 
 		# zonefile to sign
 		"/etc/nsd/zones/" + zonefile,
