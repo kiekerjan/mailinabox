@@ -73,12 +73,14 @@ mkdir -p "$STORAGE_ROOT/dns/dnssec";
 # so that trust isn't broken with deployed DS records, but we won't generate those
 # keys on new systems.
 FIRST=1 #NODOC
-for algo in RSASHA256 ECDSAP256SHA256; do
+for algo in RSASHA256 ECDSAP256SHA256 ED25519; do
 if [ ! -f "$STORAGE_ROOT/dns/dnssec/$algo.conf" ]; then
 	if [ $FIRST == 1 ]; then
 		echo "Generating DNSSEC signing keys..."
 		FIRST=0 #NODOC
 	fi
+	
+	echo "Generating $algo"
 
 	# Create the Key-Signing Key (KSK) (with `-k`) which is the so-called
 	# Secure Entry Point. The domain name we provide ("_domain_") doesn't
