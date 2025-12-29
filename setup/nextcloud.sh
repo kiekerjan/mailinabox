@@ -525,6 +525,7 @@ sqlite3 "$STORAGE_ROOT/owncloud/owncloud.db" "UPDATE oc_users_external SET backe
 cat > /etc/cron.d/mailinabox-nextcloud << EOF;
 #!/bin/bash
 # Mail-in-a-Box
+MAILTO="administrator@$PRIMARY_HOSTNAME"
 */5 * * * *	nextcloud_php	php$PHP_VER -f $CLOUD_DIR/cron.php
 */5 * * * *	nextcloud_php	php$PHP_VER -f $CLOUD_DIR/occ dav:send-event-reminders
 EOF
