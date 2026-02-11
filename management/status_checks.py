@@ -730,8 +730,9 @@ def check_dnssec(domain, env, output, dns_zonefiles, is_checking_primary=False):
 	# several hashing algorithms. We've pre-generated all possible valid DS
 	# records, although some will be preferred.
 
-	alg_name_map = { '7': 'RSASHA1-NSEC3-SHA1', '8': 'RSASHA256', '13': 'ECDSAP256SHA256' }
-	digalg_name_map = { '1': 'SHA-1', '2': 'SHA-256', '4': 'SHA-384' }
+	alg_name_map = { '7': 'RSASHA1-NSEC3-SHA1', '8': 'RSASHA256', '13': 'ECDSAP256SHA256', '14': 'ECDSAP384SHA384',
+			 '15': 'ED25519', '16': 'ED448' }
+	digalg_name_map = { '1': 'SHA-1', '2': 'SHA-256', '4': 'SHA-384', '5': 'GOST R 24.11-2012', '6': 'SM3' }
 
 	# Read in the pre-generated DS records
 	expected_ds_records = { }
@@ -803,7 +804,7 @@ def check_dnssec(domain, env, output, dns_zonefiles, is_checking_primary=False):
 
 	output.print_line("""Follow the instructions provided by your domain name registrar to set a DS record.
 		Registrars support different sorts of DS records. Use the first option that works:""")
-	preferred_ds_order = [(7, 2), (8, 4), (13, 4), (8, 2), (13, 2)] # low to high, see https://github.com/mail-in-a-box/mailinabox/issues/1998
+	preferred_ds_order = [(7, 2), (8, 4), (13, 4), (8, 2), (13, 2), (15, 2), (15, 4)] # low to high, see https://github.com/mail-in-a-box/mailinabox/issues/1998
 
 	def preferred_ds_order_func(ds_suggestion):
 		k = (int(ds_suggestion['alg']), int(ds_suggestion['digalg']))
@@ -1312,3 +1313,11 @@ if __name__ == "__main__":
 	elif sys.argv[1] == "--only":
 		with multiprocessing.pool.Pool(processes=10) as pool:
 			run_checks(False, env, ConsoleOutput(), pool, domains_to_check=sys.argv[2:])
+	
+	else:
+		print("By default shows the status of the system")
+		print("Options:")
+		print("\t--show-changes\t\t\tShow changes compared to the previous time this was run")
+		print(f"\t--check-primary-hostname\tOnly check the primary hostname {env["PRIMARY_HOSTNAME"]}")
+		print("\t--version\t\t\tShow the installed version of Mail-in-a-Box")
+		

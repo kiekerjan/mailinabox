@@ -73,7 +73,7 @@ mkdir -p "$STORAGE_ROOT/dns/dnssec";
 # so that trust isn't broken with deployed DS records, but we won't generate those
 # keys on new systems.
 FIRST=1 #NODOC
-for algo in RSASHA256 ECDSAP256SHA256 ED25519; do
+for algo in ECDSAP256SHA256 ED25519; do
 if [ ! -f "$STORAGE_ROOT/dns/dnssec/$algo.conf" ]; then
 	if [ $FIRST == 1 ]; then
 		echo "Generating DNSSEC signing keys..."
@@ -92,17 +92,12 @@ if [ ! -f "$STORAGE_ROOT/dns/dnssec/$algo.conf" ]; then
 	# ldns-keygen uses /dev/random for generating random numbers by default.
 	# This is slow and unnecessary if we ensure /dev/urandom is seeded properly,
 	# so we use /dev/urandom. See system.sh for an explanation. See #596, #115.
-	# (This previously used -b 2048 but it's unclear if this setting makes sense
-	# for non-RSA keys, so it's removed. The RSA-based keys are not recommended
-	# anymore anyway.)
 	KSK=$(umask 077; cd "$STORAGE_ROOT/dns/dnssec"; ldns-keygen -r /dev/urandom -a $algo -k _domain_);
 
 	# Now create a Zone-Signing Key (ZSK) which is expected to be
 	# rotated more often than a KSK, although we have no plans to
 	# rotate it (and doing so would be difficult to do without
 	# disturbing DNS availability.) Omit `-k`.
-	# (This previously used -b 1024 but it's unclear if this setting makes sense
-	# for non-RSA keys, so it's removed.)
 	ZSK=$(umask 077; cd "$STORAGE_ROOT/dns/dnssec"; ldns-keygen -r /dev/urandom -a $algo _domain_);
 
 	# These generate two sets of files like:

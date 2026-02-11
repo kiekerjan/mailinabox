@@ -859,7 +859,7 @@ def sign_zone(domain, zonefile, env):
 	# in the status checks.
 	with open("/etc/nsd/zones/" + zonefile + ".ds", "w", encoding="utf-8") as f:
 		for key in ksk_keys:
-			for digest_type in ('1', '2', '4'):
+			for digest_type in ('2', '4'):
 				rr_ds = shell('check_output', ["/usr/bin/ldns-key2ds",
 					"-n", # output to stdout
 					"-" + digest_type, # 1=SHA1, 2=SHA256, 4=SHA384
