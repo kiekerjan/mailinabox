@@ -2,6 +2,14 @@ CHANGELOG
 =========
 (note: this changelog follows the upstream changelog, it does not contain all repository specific changes)
 
+Version 75 (April 20, 2026)
+---------------------------
+
+* Updated Roundcube to 1.6.15, fixing a security vulnerability.
+* Fixed error when configuring S3 backups on empty buckets.
+* Fixed issue in management daemon name resolution.
+* Fixed accessibility issues in the control panel.
+
 Version 74 (January 4, 2026)
 ----------------------------
 
