@@ -83,6 +83,16 @@ management/editconf.py /etc/php/"$PHP_VER"/mods-available/apcu.ini -c ';' \
 	apc.enable_cli=1 \
 	apc.shm_size=32M
 
+# Allow php to write to the nextcloud folder
+# Override systemd's ProtectSystem=full to allow PHP-FPM write access to the Nextcloud install dir.
+OVERRIDE_DIR="/etc/systemd/system/php${PHP_VER}-fpm.service.d"
+mkdir -p "$OVERRIDE_DIR"
+cat > "$OVERRIDE_DIR/override.conf" << EOF
+[Service]
+ReadWritePaths=/usr/local/lib/nextcloud/cloud
+EOF
+hide_output systemctl daemon-reload
+
 InstallNextcloud() {
 
 	version=$1
