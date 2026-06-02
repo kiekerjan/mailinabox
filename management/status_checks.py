@@ -324,30 +324,30 @@ def check_free_memory(rounded_values, env, output):
 def check_backup(rounded_values, env, output):
 	# Check backups
 	backup_config = get_backup_config(env, for_ui=True)
-	
+
 	# Is the backup enabled?
 	if backup_config.get("target", "off") == "off":
 		output.print_warning("Backups are disabled. It is recommended to enable a backup for your box.")
 		return
 	else:
 		output.print_ok("Backups are enabled")
-	
+
 	# Get the age of the most recent backup
 	try:
 		backup_stat = backup_status(env)
 	except Exception  as e:
 		output.print_warning(f"Could not retrieve backup status, check logfiles for errors ({str(e)})")
 		return
-	
+
 	backups = backup_stat.get("backups", {})
 	if backups and len(backups) > 0:
 		most_recent = backups[0]["date"]
-		
+
 		# Calculate time between most recent backup and current time
 		now = datetime.datetime.now(dateutil.tz.tzlocal())
 		bk_date = dateutil.parser.parse(most_recent).astimezone(dateutil.tz.tzlocal())
 		bk_age = dateutil.relativedelta.relativedelta(now, bk_date)
-		
+
 		if bk_age.days > 7:
 			output.print_error("Backup is more than a week old")
 	else:
@@ -392,7 +392,7 @@ def run_network_checks(env, output):
 	rev_ip6 = ".".join(reversed(IPv6Address(env['PUBLIC_IPV6']).exploded.split(':')))
 	zen = query_dns(rev_ip6+get_spamhaus_query_url(env, 'zen'), 'A', nxdomain=None, retry = False)
 	evaluate_spamhaus_lookup(env['PUBLIC_IPV6'], 'IPv6', rev_ip6, output, zen)
-	
+
 
 def get_spamhaus_query_url(env, selector):
 	# Filter on valid selectors
@@ -403,13 +403,13 @@ def get_spamhaus_query_url(env, selector):
 
 	# Default public block list
 	spamhaus_url = '.'+selector+'.spamhaus.org'
-	
+
 	# Check if system makes use of Spamhaus Data Query Service, see https://portal.spamhaus.com/dqs/?ft=1#3.1
 	env_key = 'SPAMHAUS_DQS_KEY'
 	if env_key in env and len(env[env_key]) > 0:
 		dqs_key = env[env_key]
 		spamhaus_url = '.'+dqs_key+'.'+selector+'.dq.spamhaus.net'
-	
+
 	return spamhaus_url
 
 
@@ -666,7 +666,7 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 
 	if custom_secondary_ns and not probably_external_dns:
 		SOARecord = query_dns(domain, "SOA", at=env['PUBLIC_IP'])# Explicitly ask the local dns server.
-		
+
 		for ns in custom_secondary_ns:
 			# We must first resolve the nameserver to an IP address so we can query it.
 			ns_ips = query_dns(ns, "A")
@@ -675,11 +675,11 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 				continue
 			# Choose the first IP if nameserver returns multiple
 			ns_ip = ns_ips.split('; ')[0]
-			
+
 			# No need to check if we could not obtain the SOA record
 			if SOARecord == '[timeout]':
 				checkSOA = False
-			else:			
+			else:
 				checkSOA = True
 
 			# Now query it to see what it says about this domain.
@@ -782,16 +782,18 @@ def check_dnssec(domain, env, output, dns_zonefiles, is_checking_primary=False):
 			# At least one DS record matches one that corresponds with one of the ways we signed
 			# the zone, so it is valid.
 			#
-			# But it may not be preferred. Only algorithm 13 is preferred. Warn if any of the
-			# matched zones uses a different algorithm.
-			if {r[1] for r in matched_ds} == { '13' } and {r[2] for r in matched_ds} <= { '2', '4' }: # all are alg 13 and digest type 2 or 4
+			# But it may not be preferred. Algorithms ED25519 (15) and ECDSAP256SHA256 (13) and digests SHA-256/384 (2 and 4)
+			# are preferred.
+			#
+			# Warn if any of the matched zones uses a different algorithm.
+			if {r[1] for r in matched_ds} <= { '13', '15' } and {r[2] for r in matched_ds} <= { '2', '4' }:
 				output.print_ok("DNSSEC 'DS' record is set correctly at registrar.")
 				return
-			if len([r for r in matched_ds if r[1] == '13' and r[2] in { '2', '4' }]) > 0: # some but not all are alg 13
-				output.print_ok("DNSSEC 'DS' record is set correctly at registrar. (Records using algorithm other than ECDSAP256SHA256 and digest types other than SHA-256/384 should be removed.)")
+			if len([r for r in matched_ds if r[1] in {'13', '15'} and r[2] in { '2', '4' }]) > 0: # some but not all are alg 13 or 15
+				output.print_ok("DNSSEC 'DS' record is set correctly at registrar. (Records using algorithm other than ED25519 or ECDSAP256SHA256 and digest types other than SHA-256/384 should be removed.)")
 				return
-			# no record uses alg 13
-			output.print_warning("""DNSSEC 'DS' record set at registrar is valid but should be updated to ECDSAP256SHA256 and SHA-256 (see below).
+			# no record uses alg 13 or 15
+			output.print_warning("""DNSSEC 'DS' record set at registrar is valid but should be updated to ED25519 or ECDSAP256SHA256 (see below).
 				IMPORTANT: Do not delete existing DNSSEC 'DS' records for this domain until confirmation that the new DNSSEC 'DS' record
 				for this domain is valid.""")
 		else:
@@ -904,7 +906,7 @@ def check_mail_domain(domain, env, output):
 	# See https://www.spamhaus.org/news/article/807/using-our-public-mirrors-check-your-return-codes-now. for
 	# information on spamhaus return codes
 	dbl = query_dns(domain+get_spamhaus_query_url(env, 'dbl'), "A", nxdomain=None, retry = False)
-	
+
 	if dbl is None:
 		output.print_ok("Domain is not blacklisted by dbl.spamhaus.org.")
 	elif dbl == "[timeout]":
@@ -1313,11 +1315,10 @@ if __name__ == "__main__":
 	elif sys.argv[1] == "--only":
 		with multiprocessing.pool.Pool(processes=10) as pool:
 			run_checks(False, env, ConsoleOutput(), pool, domains_to_check=sys.argv[2:])
-	
+
 	else:
 		print("By default shows the status of the system")
 		print("Options:")
 		print("\t--show-changes\t\t\tShow changes compared to the previous time this was run")
 		print(f"\t--check-primary-hostname\tOnly check the primary hostname {env["PRIMARY_HOSTNAME"]}")
 		print("\t--version\t\t\tShow the installed version of Mail-in-a-Box")
-		
