@@ -59,10 +59,6 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
         default_socket_timeout=180
 
-# Configure the path environment for php-fpm
-management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf -c ';' \
-	env[PATH]=/usr/local/bin:/usr/bin:/bin \
-
 # We'll configure a php-fpm worker per php application. First do some generic php worker configuration to obtain a common baseline.
 # Then configure specific php workers.
 
@@ -70,6 +66,10 @@ if [ -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf ]; then
 	# Change the extension, so it is not used by php anymore
 	mv /etc/php/"$PHP_VER"/fpm/pool.d/www.conf /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused
 fi
+
+# Configure the path environment for php-fpm
+management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
+	env[PATH]=/usr/local/bin:/usr/bin:/bin \
 
 # Configure php-fpm based on the amount of memory the machine has
 # This is based on https://spot13.com/pmcalculator/ (referenced by Nextcloud) using RAM Buffer = 10% and Process size = 50 MB
@@ -101,6 +101,7 @@ then
                 pm.max_spare_servers=10 \
                 pm.max_requests=1000
 elif [ "$TOTAL_PHYSICAL_MEM" -lt 5000000 ]
+then
         management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused -c ';' \
                 pm=dynamic \
                 pm.max_children=28 \
@@ -130,7 +131,7 @@ fi
 
 management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/nextcloud.conf -c ';' \
 	user=nextcloud_php \
-	listen=/run/php/php8.3-fpm-nextcloud.sock
+	listen=/run/php/php"$PHP_VER"-fpm-nextcloud.sock
 
 # Configure Snappymail
 if [ -d /usr/local/share/snappymail/snappymail ]; then
@@ -145,7 +146,7 @@ if [ -d /usr/local/share/snappymail/snappymail ]; then
 
 	management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf -c ';' \
 		user=snappymail_php \
-		listen=/run/php/php8.3-fpm-snappymail.sock
+		listen=/run/php/php"$PHP_VER"-fpm-snappymail.sock
 fi
 
 # Configure Roundcube
@@ -160,7 +161,7 @@ fi
 
 management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/roundcube.conf -c ';' \
 	user=roundcube_php \
-	listen=/run/php/php8.3-fpm-roundcube.sock
+	listen=/run/php/php"$PHP_VER"-fpm-roundcube.sock
 
 # Other nginx settings will be configured by the management service
 # since it depends on what domains we're serving, which we don't know
