@@ -81,9 +81,9 @@ if [ ! -f /etc/default/dmarc_report ]; then
         cp conf/dmarc_report_viewer.service /etc/systemd/system
         systemctl daemon-reload
         
-        systemctl start dmarc-report-viewer.service
+        systemctl start dmarc_report_viewer.service
 else
-	systemctl restart dmarc-report-viewer.service
+	systemctl restart dmarc_report_viewer.service
 fi
 
 # ### rkhunter configuration
