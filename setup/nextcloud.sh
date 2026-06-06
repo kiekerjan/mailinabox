@@ -24,8 +24,8 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=32.0.11
-nextcloud_hash=e1b3ab4beb7011d7ca257eb38ff675028dcfc612
+nextcloud_ver=33.0.5
+nextcloud_hash=321580c08d769d69d9af851d9fa3bae189577a7c
 
 # Nextcloud apps
 # --------------
@@ -123,7 +123,7 @@ InstallNextcloud() {
 #	rm -rf $CLOUD_DIR/core/skeleton/*
 
 	# Starting with version 32, we take contacts and calendar app from the built-in app store
-	if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^3[23456789] ]]; then	
+	if ! [[ ${version} =~ ^3[23456789] ]]; then	
 		# The two apps we actually want are not in Nextcloud core. Download the releases from
 		# their github repositories.
 		mkdir -p $CLOUD_DIR/apps
@@ -342,8 +342,14 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 31.0.14 a891fede2cd4cb3347a406da3fb4f99cd62c89ce 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
 			CURRENT_NEXTCLOUD_VER="31.0.14"
 		fi
-
-# Hint: whenever you bump, remember this:
+		
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^31 ]]; then
+			# Install nextcloud 32
+			InstallNextcloud 32.0.11 e1b3ab4beb7011d7ca257eb38ff675028dcfc612 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
+			CURRENT_NEXTCLOUD_VER="32.0.11"
+		fi
+		
+		# Hint: whenever you bump, remember this:
 		# - Run a server with the previous version
 		# - On a new if-else block, copy the versions/hashes from the previous version
 		# - Run sudo ./setup/start.sh on the new machine. Upon completion, test its basic functionalities.
@@ -486,6 +492,7 @@ hide_output sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/console.php app:enabl
 sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ upgrade
 E=$?
 if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
+sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ maintenance:mode --off
 
 # Disable default apps that we don't support
 sudo -u nextcloud_php \
