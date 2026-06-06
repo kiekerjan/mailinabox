@@ -25,7 +25,7 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
 nextcloud_ver=32.0.11
-nextcloud_hash=a891fede2cd4cb3347a406da3fb4f99cd62c89ce
+nextcloud_hash=e1b3ab4beb7011d7ca257eb38ff675028dcfc612
 
 # Nextcloud apps
 # --------------
@@ -40,11 +40,11 @@ nextcloud_hash=a891fede2cd4cb3347a406da3fb4f99cd62c89ce
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
 contacts_ver=8.3.12
-contacts_hash=3a6d7e6649018a1f7c0530672559f714768193af
+contacts_hash=24c63367a1f093ac89c7d388e4a103b8fad4e325
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
 calendar_ver=6.4.2
-calendar_hash=5728ae56cea3ab39e70fb328dd6dc7269e58678a
+calendar_hash=887cb300718f01a7e54dad7788d8a8c2027003a9
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
 # Temporary (or maybe not) add own forked version from github.com/kiekerjan/nc_user_external
@@ -122,18 +122,21 @@ InstallNextcloud() {
 	# Empty the skeleton dir to save some space for each new user
 #	rm -rf $CLOUD_DIR/core/skeleton/*
 
-	# The two apps we actually want are not in Nextcloud core. Download the releases from
-	# their github repositories.
-	mkdir -p $CLOUD_DIR/apps
+	# Starting with version 32, we take contacts and calendar app from the built-in app store
+	if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^3[23456789] ]]; then	
+		# The two apps we actually want are not in Nextcloud core. Download the releases from
+		# their github repositories.
+		mkdir -p $CLOUD_DIR/apps
 
-	wget_verify "https://github.com/nextcloud-releases/contacts/archive/refs/tags/v$version_contacts.tar.gz" "$hash_contacts" /tmp/contacts.tgz
-	tar xf /tmp/contacts.tgz -C $CLOUD_DIR/apps/
-	rm /tmp/contacts.tgz
+		wget_verify "https://github.com/nextcloud-releases/contacts/archive/refs/tags/v$version_contacts.tar.gz" "$hash_contacts" /tmp/contacts.tgz
+		tar xf /tmp/contacts.tgz -C $CLOUD_DIR/apps/
+		rm /tmp/contacts.tgz
 
-	wget_verify "https://github.com/nextcloud-releases/calendar/archive/refs/tags/v$version_calendar.tar.gz" "$hash_calendar" /tmp/calendar.tgz
-	tar xf /tmp/calendar.tgz -C $CLOUD_DIR/apps/
-	rm /tmp/calendar.tgz
-
+		wget_verify "https://github.com/nextcloud-releases/calendar/archive/refs/tags/v$version_calendar.tar.gz" "$hash_calendar" /tmp/calendar.tgz
+		tar xf /tmp/calendar.tgz -C $CLOUD_DIR/apps/
+		rm /tmp/calendar.tgz
+	fi
+	
 	# Starting with Nextcloud 15, the app user_external is no longer included in Nextcloud core,
 	# we will install from their github repository.
 	if [ -n "$version_user_external" ] ; then
