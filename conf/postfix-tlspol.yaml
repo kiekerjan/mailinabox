@@ -1,4 +1,3 @@
-$ cat /etc/postfix-tlspol/config.yaml
 server:
   # server:port to listen as a socketmap server
   # or unix:/run/postfix-tlspol/tlspol.sock for Unix Domain Socket
