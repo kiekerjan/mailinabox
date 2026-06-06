@@ -2,6 +2,12 @@ CHANGELOG
 =========
 (note: this changelog follows the upstream changelog, it does not contain all repository specific changes)
 
+Version 76 (May 24, 2026)
+-------------------------
+
+* Fixed Nextcloud broken after PHP update by updating Nextcloud settings.
+* Fixed invalid HTML in the control panel broken by the last version.
+
 Version 75 (April 20, 2026)
 ---------------------------
 
