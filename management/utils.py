@@ -183,7 +183,7 @@ def wait_for_service(port, public, env, timeout):
 
 def get_php_version():
 	# Gets the version of PHP used by Mail-in-a-Box
-	return "8.3"
+	return "8.5"
 
 
 def get_ssh_port():

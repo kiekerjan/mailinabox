@@ -527,7 +527,10 @@ management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 	short_open_tag=On
 
 # Set Nextcloud recommended opcache settings
-management/editconf.py /etc/php/"$PHP_VER"/cli/conf.d/10-opcache.ini -c ';' \
+# if php < 8.5
+#management/editconf.py /etc/php/"$PHP_VER"/cli/conf.d/10-opcache.ini -c ';' \
+# else
+management/editconf.py /etc/php/"$PHP_VER"/fpm/php.ini -c ';' \
 	opcache.enable=1 \
 	opcache.enable_cli=1 \
 	opcache.interned_strings_buffer=16 \
