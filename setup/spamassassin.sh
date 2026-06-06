@@ -23,7 +23,7 @@ echo "Installing SpamAssassin..."
 apt_install spampd razor pyzor dovecot-antispam libmail-dkim-perl
 
 # Allow spamassassin to download new rules.
-systemctl enable spamassassin.maintenance.timer
+systemctl enable spamassassin-maintenance.timer
 
 # Configure pyzor, which is a client to a live database of hashes of
 # spam emails. Set the pyzor configuration directory to something sane.
@@ -202,7 +202,7 @@ management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
 # a temporary file and then runs sa-learn on it.
 # from http://wiki2.dovecot.org/Plugins/Antispam
 rm -f /usr/bin/sa-learn-pipe.sh # legacy location #NODOC
-cat > /usr/local/bin/sa-learn-pipe.sh << EOF;
+cat > /usr/local/bin/sa-learn-pipe.sh << 'EOF';
 #!/bin/bash
 out=$(/bin/nice -n 19 /usr/bin/sa-learn "$@" - 2>&1)
 ret=$?
