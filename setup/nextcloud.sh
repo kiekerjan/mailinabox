@@ -24,7 +24,7 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=31.0.14
+nextcloud_ver=32.0.11
 nextcloud_hash=a891fede2cd4cb3347a406da3fb4f99cd62c89ce
 
 # Nextcloud apps
@@ -39,11 +39,11 @@ nextcloud_hash=a891fede2cd4cb3347a406da3fb4f99cd62c89ce
 # the error message when it doesn't match what is below:
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=7.3.5
+contacts_ver=8.3.12
 contacts_hash=3a6d7e6649018a1f7c0530672559f714768193af
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=5.5.18
+calendar_ver=6.4.2
 calendar_hash=5728ae56cea3ab39e70fb328dd6dc7269e58678a
 
 # Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
@@ -334,7 +334,13 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			CURRENT_NEXTCLOUD_VER="30.0.13"
 		fi
 		
-		# Hint: whenever you bump, remember this:
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^30 ]]; then
+			# Install nextcloud 31
+			InstallNextcloud 31.0.14 a891fede2cd4cb3347a406da3fb4f99cd62c89ce 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
+			CURRENT_NEXTCLOUD_VER="31.0.14"
+		fi
+
+# Hint: whenever you bump, remember this:
 		# - Run a server with the previous version
 		# - On a new if-else block, copy the versions/hashes from the previous version
 		# - Run sudo ./setup/start.sh on the new machine. Upon completion, test its basic functionalities.
