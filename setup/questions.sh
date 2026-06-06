@@ -165,7 +165,7 @@ if [ -z "${PRIVATE_IP:-}" ]; then
 			PRIVATE_IP="$DEFAULT_PRIVATE_IP"
 		fi	
 	# If the found IP is different from the configured IP, ask the user
-	elif [[ "${DEFAULT_PRIVATE_IP:-}" -ne "$PRIVATE_IP" ]]; then
+	elif [[ "${DEFAULT_PRIVATE_IP:-}" != "$PRIVATE_IP" ]]; then
 		input_box "Private IPv4 Address" \
 			"Enter the private IPv4 address of this machine.
 			\n\nPrivate IPv4 address:" \
@@ -183,7 +183,7 @@ if [ -z "${PRIVATE_IPV6:-}" ]; then
 			PRIVATE_IP="$DEFAULT_PRIVATE_IPV6"
 		fi	
 	# If the found IP is different from the configured IP, ask the user
-	elif [[ "${DEFAULT_PRIVATE_IPV6:-}" -ne "$PRIVATE_IPV6" ]]; then
+	elif [[ "${DEFAULT_PRIVATE_IPV6:-}" != "$PRIVATE_IPV6" ]]; then
 		input_box "Private IPv6 Address" \
 			"Enter the private IPv6 address of this machine.
 			\n\nPrivate IPv6 address:" \
