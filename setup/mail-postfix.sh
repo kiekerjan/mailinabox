@@ -438,8 +438,8 @@ postmap /etc/postfix/helo_access
 # prioritizing DANE if it is present.
 
 # install the software
-git_clone https://github.com/Zuplu/postfix-tlspol v1.8.22 '' /tmp/postfix-tlspol
-(cd /tmp/postfix-tlspol; scripts/build.sh systemd;)
+git_clone https://github.com/Zuplu/postfix-tlspol v1.10.0 '' /tmp/postfix-tlspol
+(cd /tmp/postfix-tlspol; scripts/build.sh systemd;) || exit 0
 rm -rf /tmp/postfix-tlspol
 
 # Configuration
@@ -447,8 +447,8 @@ mkdir -p /etc/postfix-tlspol
 hide_output install -m 644 conf/postfix-tlspol.yaml /etc/postfix-tlspol/config.yaml
 
 management/editconf.py /etc/postfix/main.cf -w \
-	smtp_tls_dane_insecure_mx_policy = dane \
-	smtp_tls_policy_maps = socketmap:inet:127.0.0.1:8642:QUERY
+	smtp_tls_dane_insecure_mx_policy=dane \
+	smtp_tls_policy_maps=socketmap:inet:127.0.0.1:8642:QUERY
   
 ## Allow the two SMTP ports in the firewall.
 
@@ -460,3 +460,4 @@ ufw_allow submission
 
 restart_service postfix
 restart_service postgrey
+
