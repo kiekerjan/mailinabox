@@ -6,7 +6,7 @@ I made a number of modifications to the original Mail-in-a-Box, some to fix bugs
 
 Functionality changes and additions
 * Use Ubuntu 24.04
-* Use PHP 8.3
+* Use PHP 8.5
 * Add geoipblocking on the admin web console  
   This applies geoip filtering on acces to the admin panel of the box. Order of filtering: block continents that are not allowed, block countries that are not allowed, allow countries that are allowed (overriding continent filtering). Edit /etc/nginx/conf.d/10-geoblock.conf to configure.
 * Add geoipblocking for ssh access  
@@ -23,10 +23,10 @@ Functionality changes and additions
 * If you want this box to handle the DNS entries, that's also possible.
   Edit settings.yaml under the user-data folder to configure.
 * Add some munin plugins
-* Update nextcloud to 31.0.7
+* Update nextcloud to 33.0.5
   And updated calendar and contacts apps
 * Add nextcloud notes app
-* Update roundcube to 1.6.11
+* Update roundcube to 1.6.16
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
 * Option to use shorter TTL values in the DNS server  
@@ -49,6 +49,8 @@ Functionality changes and additions
   The mail relay will be used as fallback relay, and in case mail is returned due to a blockist (i.e. if the remote server thinks the Mail-in-a-Box box is spamming)
 * Add dmarc report viewer (from https://github.com/cry-inc/dmarc-report-viewer)
   Makes it possible to review dmarc and smtp tls reports received from other mail servers
+* Implement TLS policy server
+  Use a lightweight MTA-STS + DANE/TLSA resolver and TLS policy server for Postfix, prioritizing DANE (https://github.com/Zuplu/postfix-tlspol)
 
 Bug fixes
 * Munin error report fixed [see github issue](https://github.com/mail-in-a-box/mailinabox/issues/1555)
