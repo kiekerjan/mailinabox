@@ -128,7 +128,7 @@ def backup_status(env):
 		est_time_of_next_full = first_date + datetime.timedelta(days=est_days_to_next_full)
 
 		# ...And then the part of the algorithm based on full backup age:
-		est_time_of_next_full = min(est_time_of_next_full, first_full_date + datetime.timedelta(days=config["min_age_in_days"]*10+1))
+		est_time_of_next_full = min(est_time_of_next_full, first_full_date + datetime.timedelta(days=config["min_age_in_days"]*5+1))
 
 		# It still can't be deleted until it's old enough.
 		est_deleted_on = max(est_time_of_next_full, first_date + datetime.timedelta(days=config["min_age_in_days"]))
@@ -178,7 +178,7 @@ def should_force_full(config, env):
 			if weekend:
 				if inc_size > .5*bak["size"]:
 					return True
-				if dateutil.parser.parse(bak["date"]) + datetime.timedelta(days=config["min_age_in_days"]*10+1) < datetime.datetime.now(dateutil.tz.tzlocal()):
+				if dateutil.parser.parse(bak["date"]) + datetime.timedelta(days=config["min_age_in_days"]*5+1) < datetime.datetime.now(dateutil.tz.tzlocal()):
 					return True
 			return False
 	# If we got here there are no (full) backups, so make one.
