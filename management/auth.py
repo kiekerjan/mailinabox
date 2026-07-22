@@ -4,6 +4,7 @@ from datetime import timedelta
 from expiringdict import ExpiringDict
 
 import utils
+import logging
 from mailconfig import get_mail_password, get_mail_user_privileges
 from mfa import get_hash_mfa_state, validate_auth_mfa
 
@@ -35,7 +36,7 @@ class AuthService:
 
 		def parse_http_authorization_basic(header):
 			def decode(s):
-				return base64.b64decode(s.encode('ascii')).decode('ascii')
+				return base64.b64decode(s.encode('ascii')).decode('utf-8')
 			if " " not in header:
 				return None, None
 			scheme, credentials = header.split(maxsplit=1)
@@ -46,8 +47,14 @@ class AuthService:
 				return None, None
 			username, password = credentials.split(':', maxsplit=1)
 			return username, password
-
-		username, password = parse_http_authorization_basic(request.headers.get('Authorization', ''))
+		
+		try:
+			username, password = parse_http_authorization_basic(request.headers.get('Authorization', ''))
+		except Exception as e:
+			msg = f"Unexpected error during authorization"
+			logging.exception(msg)
+			raise ValueError(msg)
+		
 		if username in {None, ""}:
 			msg = "Authorization header invalid."
 			raise ValueError(msg)
