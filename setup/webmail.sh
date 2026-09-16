@@ -38,12 +38,12 @@ apt_install \
 #   https://github.com/alexandregz/twofactor_gauthenticator
 # The easiest way to get the package hashes is to run this script and get the hash from
 # the error message.
-VERSION=1.6.18
-HASH=f1aa86070215c6efe36d706085e395c96512fd46
+VERSION=1.6.19
+HASH=d30d11f91857b1962879e06a19ef217dceeb506c
 PERSISTENT_LOGIN_VERSION=bde7b6840c7d91de627ea14e81cf4133cbb3c07a # version 5.3
 HTML5_NOTIFIER_VERSION=68d9ca194212e15b3c7225eb6085dbcf02fd13d7   # version 0.6.4+
-CARDDAV_VERSION=5.1.0
-CARDDAV_HASH=9f977d319db13ea1b4ca6c9bb98aaef0feb9eebe
+CARDDAV_VERSION=5.1.3
+CARDDAV_HASH=7cef0bde5b8cee2a33f8033a0c8c9ad888abccb3
 CONTEXT_MENU_VERSION=dd13a92a9d8910cce7b2234f45a0b2158214956c     # version 3.3.1
 TWOFACT_COMMIT=8012e8ef63daffa6ea5d8ad7d4f4657f31182096      # master @ 09-02-2025
 
