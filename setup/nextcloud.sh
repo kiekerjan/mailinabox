@@ -52,9 +52,7 @@ user_external_hash=214497dd8691f279ba3740797c565310f0793054
 # 5.3 You still can create, edit and delete users
 # 5.4 Go to Administration > Logs and ensure no new errors are shown
 
-# Clear prior packages and install dependencies from apt.
-apt-get purge -qq -y owncloud* # we used to use the package manager
-
+# Install dependencies from apt.
 apt_install curl php"${PHP_VER}" php"${PHP_VER}"-fpm \
 	php"${PHP_VER}"-cli php"${PHP_VER}"-sqlite3 php"${PHP_VER}"-gd php"${PHP_VER}"-curl \
 	php"${PHP_VER}"-dev php"${PHP_VER}"-xml php"${PHP_VER}"-mbstring php"${PHP_VER}"-zip php"${PHP_VER}"-apcu \

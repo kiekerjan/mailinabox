@@ -484,9 +484,10 @@ def build_sshfp_records():
 	#
 	# See https://github.com/xelerance/sshfp for inspiration.
 
+	# Numbers are IANA assigned (RFC 4255/6594/7479); DSA (2) is left out
+	# because OpenSSH no longer ships it.
 	algorithm_number = {
 		"ssh-rsa": 1,
-		"ssh-dss": 2,
 		"ecdsa-sha2-nistp256": 3,
 		"ssh-ed25519": 4,
 	}
@@ -521,7 +522,7 @@ def build_sshfp_records():
 
 		try:
 			keys = shell("check_output",
-						 ["ssh-keyscan", f"-{iptype}", "-t", "rsa,dsa,ecdsa,ed25519", "-p", str(port), ipaddr])
+						 ["ssh-keyscan", f"-{iptype}", "-t", "rsa,ecdsa,ed25519", "-p", str(port), ipaddr])
 			if len(keys) > 0:
 				# Found something, assume it's ok and do early exit
 				break

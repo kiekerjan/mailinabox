@@ -237,7 +237,35 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
 - [ ] No php8.0 packages are installed and nothing is held:
       `dpkg -l 'php8.0*'`, `apt-mark showhold`.
 
-## Steps 7-9
+## Step 7 - management daemon on Python 3.14
+
+- [ ] The virtualenv builds: `/usr/local/lib/mailinabox/env/bin/python -V`
+      reports 3.14.x and `pip list` shows every package from system.sh.
+      Watch for anything falling back to a source build.
+- [ ] Binary wheels resolve rather than compile (all three publish
+      forward-compatible abi3 wheels, so this should be clean):
+      `env/bin/python -c "import cryptography, psutil, PIL; print(cryptography.__version__, psutil.__version__, PIL.__version__)"`
+- [ ] `systemctl status mailinabox` is running and the admin panel loads.
+- [ ] Nightly job works: run `management/daily_tasks.sh` (or whatever
+      cron.daily entry MiaB installs) by hand and confirm backup + status
+      checks + the admin email all complete.
+- [ ] Status checks page is clean, or at least only shows things you expect.
+- [ ] **[unverified] certbot 4.0.** MiaB calls `certbot certonly` with
+      `--csr/--cert-path/--chain-path/--fullchain-path/--webroot` and
+      `--register-unsafely-without-email`. Those flags have been stable, but
+      4.0 is a major bump and this was not verified against its changelog.
+      - `certbot --version`
+      - `certbot register --register-unsafely-without-email --agree-tos --config-dir $STORAGE_ROOT/ssl/lets_encrypt` (setup does this)
+      - Provision a real certificate from the admin panel for a real domain
+        and confirm it installs, not just that the command exits 0.
+- [ ] SSHFP records: `dig SSHFP $PRIMARY_HOSTNAME` returns records for RSA (1),
+      ECDSA (3) and Ed25519 (4), with no DSA (2). Verify the fingerprints match
+      `ssh-keyscan -D localhost`, and that `ssh -o VerifyHostKeyDNS=yes` is
+      happy. The algorithm numbers are IANA-assigned, so 3 and 4 must NOT be
+      renumbered when DSA is dropped.
+- [ ] `ssh-keyscan -t rsa,ecdsa,ed25519` returns keys at all on OpenSSH 10.x.
+
+## Steps 8-9
 
 To be filled in as those steps land.
 
