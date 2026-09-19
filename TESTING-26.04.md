@@ -183,7 +183,36 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
       IMAP operation.
 - [ ] Spamhaus DQS path still works if `SPAMHAUS_DQS_KEY` is set.
 
-## Steps 5-9
+## Step 5 - flatcurve full text search
+
+- [ ] `doveconf -n` shows `fts = yes` and `fts_flatcurve = yes` in the global
+      `mail_plugins` (these come from the package's own
+      conf.d/90-fts-flatcurve.conf, not from us).
+- [ ] Indexing actually runs: after setup, `doveadm index -A -q '*'` queues
+      work and `/var/log/mail.log` shows indexer-worker activity. Index files
+      appear under each mailbox.
+- [ ] Search in Roundcube and in an IMAP client returns hits on message
+      bodies, and hits appear for mail received *after* indexing (autoindex).
+- [ ] **[unverified]** Exclusions: `mailbox Trash/Junk/Spam { fts_autoindex = no }`
+      replaced 2.3's `fts_autoindex_exclude`. Confirm in `doveconf -n`, and
+      confirm no index files are created for those folders.
+- [ ] **[unverified]** `fts_search_add_missing = yes` replaced `fts_enforced`.
+      Search a mailbox that was never indexed and confirm results still come
+      back rather than an empty result set.
+- [ ] **[unverified] Attachment decoding.** Dovecot 2.4 stopped shipping
+      decode2text.sh, so conf/dovecot-decode2text.sh is our own copy of the
+      2.3 one; `xml2text` still ships in dovecot-core.
+      - `echo | /usr/lib/dovecot/decode2text.sh` lists the supported formats.
+      - Mail yourself a PDF and a .docx, reindex, then search for a word that
+        only occurs inside the attachment.
+      - `/var/log/mail.log` has no decode2text socket errors.
+- [ ] `/etc/cron.daily/miab_dovecot` runs clean: `doveadm fts optimize -A`.
+- [ ] Old xapian leftovers are gone: no `dovecot-fts-xapian` package,
+      no `/etc/dovecot/conf.d/90-plugin-fts.conf`. On a box restored from a
+      24.04 backup the old xapian index files under each mailbox are dead
+      weight and can be removed.
+
+## Steps 6-9
 
 To be filled in as those steps land.
 
