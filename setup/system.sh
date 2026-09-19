@@ -109,9 +109,8 @@ fi
 # come from there and minimal Ubuntu installs may have it turned off.
 hide_output add-apt-repository -y universe
 
-# Stock PHP is now 8.3, but we're transitioning through 8.0 because
-# of Nextcloud.
-hide_output add-apt-repository --y ppa:ondrej/php
+# PHP 8.5 is the stock PHP in Ubuntu 26.04 (php8.5 8.5.4-0ubuntu1, main),
+# so no third-party PHP repository is required.
 
 # ### Minimize installations
 cat > /etc/apt/apt.conf.d/90norecommends <<EOF;
@@ -122,12 +121,10 @@ EOF
 # ### Update Packages
 
 # Update system packages to make sure we have the latest upstream versions
-# of things from Ubuntu, as well as the directory of packages provide by the
-# PPAs so we can install those packages later.
-# --allow-releaseinfo-change is added because ppa:ondrej/php changed its Label.
+# of things from Ubuntu.
 
 echo "Updating system packages..."
-hide_output apt-get update --allow-releaseinfo-change
+hide_output apt-get update
 apt_get_quiet upgrade
 
 # Old kernels pile up over time and take up a lot of disk space, and because of Mail-in-a-Box
@@ -145,7 +142,7 @@ apt_get_quiet autoremove
 #	         ldns-keygen).
 # * unattended-upgrades: Apt tool to install security updates automatically.
 # * cron: Runs background processes periodically.
-# * ntp: keeps the system time correct
+# * chrony: keeps the system time correct
 # * fail2ban: scans log files for repeated failed login attempts and blocks the remote IP at the firewall
 # * netcat-openbsd: `nc` command line networking tool
 # * git: we install some things directly from github
@@ -158,7 +155,12 @@ echo "Installing system packages..."
 apt_install python3 python3-dev python3-pip python3-setuptools \
 	netcat-openbsd wget curl git sudo coreutils bc \
 	haveged pollinate openssh-client unzip \
-	unattended-upgrades cron ntp fail2ban rsyslog file
+	unattended-upgrades cron chrony fail2ban rsyslog file
+
+# chrony declares Provides/Conflicts/Replaces: time-daemon, so apt removes
+# systemd-timesyncd when it is installed. Ubuntu 26.04 ships an NTS-secured
+# default source list in /etc/chrony/conf.d/ubuntu-nts.conf.
+hide_output systemctl enable --now chrony
 
 # ### Suppress Upgrade Prompts
 # When Ubuntu 20 comes out, we don't want users to be prompted to upgrade,
@@ -481,12 +483,12 @@ fi
 #
 # certbot installs EFF's certbot which we use to
 # provision free TLS certificates.
-apt_install duplicity python3-pip virtualenv certbot rsync
-
-# b2sdk is used for backblaze backups.
-# boto3 is used for amazon aws backups.
-# Both are installed outside the pipenv, so they can be used by duplicity
-hide_output pip3 install --break-system-packages --upgrade b2sdk boto3
+#
+# b2sdk is used for backblaze backups, boto3 for amazon aws backups. Both
+# must live outside the virtualenv so duplicity can import them; under
+# PEP 668 we take the distro packages rather than writing to system python.
+apt_install duplicity python3-gnupg python3-pip virtualenv certbot rsync \
+	python3-b2sdk python3-boto3
 
 # Create a virtualenv for the installation of Python 3 packages
 # used by the management daemon.

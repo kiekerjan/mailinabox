@@ -21,10 +21,16 @@ if [ -z "$TAG" ]; then
 	# want to display in status checks.
 	#
 	# Allow point-release versions of the major releases, e.g. 22.04.1 is OK.
-	UBUNTU_VERSION=$( lsb_release -d | sed 's/.*:\s*//' | sed 's/\([0-9]*\.[0-9]*\)\.[0-9]/\1/' )"
-	if [ "$UBUNTU_VERSION" == "Ubuntu 22.04 LTS" ]; then
-		# This machine is running Ubuntu 22.04, which is supported by
-		# Mail-in-a-Box versions 60 and later.
+	UBUNTU_VERSION=$( lsb_release -d | sed 's/.*:\s*//' | sed 's/\([0-9]*\.[0-9]*\)\.[0-9]/\1/' )
+	if [ "$UBUNTU_VERSION" == "Ubuntu 26.04 LTS" ]; then
+		# This machine is running Ubuntu 26.04, which is supported by
+		# this fork from v77 and later.
+		TAG=v77
+	elif [ "$UBUNTU_VERSION" == "Ubuntu 24.04 LTS" ]; then
+		# This machine is running Ubuntu 24.04, which is supported up to v76.
+		echo "Support is ending for Ubuntu 24.04."
+		echo "Please begin to migrate your data to"
+		echo "a new machine running Ubuntu 26.04."
 		TAG=v76
 	elif [ "$UBUNTU_VERSION" == "Ubuntu 18.04 LTS" ]; then
 		# This machine is running Ubuntu 18.04, which is supported by
@@ -42,7 +48,7 @@ if [ -z "$TAG" ]; then
 		echo "The last version of Mail-in-a-Box supporting Ubuntu 14.04 will be installed."
 		TAG=v0.30
 	else
-		echo "This script may be used only on a machine running Ubuntu 14.04, 18.04, or 22.04."
+		echo "This script may be used only on a machine running Ubuntu 18.04, 24.04, or 26.04."
 		exit 1
 	fi
 fi
