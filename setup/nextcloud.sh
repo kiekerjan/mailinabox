@@ -24,7 +24,7 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 #   we automatically install intermediate versions as needed.
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
-nextcloud_ver=33.0.9
+nextcloud_ver=34.0.4
 nextcloud_hash=2a49b0cd4ebcdea70df46260104e949e29f937ba
 
 # Nextcloud apps
@@ -123,7 +123,8 @@ InstallNextcloud() {
 #	rm -rf $CLOUD_DIR/core/skeleton/*
 
 	# Starting with version 32, we take contacts and calendar app from the built-in app store
-	if ! [[ ${version} =~ ^3[23456789] ]]; then	
+	major=${version%%.*}
+    if [[ ! ${major} =~ ^[0-9]+$ ]] || (( 10#${major} < 32 )); then
 		# The two apps we actually want are not in Nextcloud core. Download the releases from
 		# their github repositories.
 		mkdir -p $CLOUD_DIR/apps
@@ -136,7 +137,7 @@ InstallNextcloud() {
 		tar xf /tmp/calendar.tgz -C $CLOUD_DIR/apps/
 		rm /tmp/calendar.tgz
 	fi
-	
+
 	# Starting with Nextcloud 15, the app user_external is no longer included in Nextcloud core,
 	# we will install from their github repository.
 	if [ -n "$version_user_external" ] ; then
@@ -314,11 +315,11 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
 				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
 				php8.0-common php8.0-opcache php8.0-readline
-				
+
 			# Unhold packages
 			hide_output apt-mark unhold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
 		fi
-		
+
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^27 ]]; then
 			# Install nextcloud 28
 			InstallNextcloud 28.0.10 24edd63bdc005ff39607831ed6cc2cac7278d41a 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.16 1c39ce674027a8710800d056a7cdd0c5c974781d 3.4.0 7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
@@ -336,19 +337,25 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			InstallNextcloud 30.0.13 24499ea3f8c031b97224ee2950f7583a25c48788 6.0.5 01b5333670b2ebf7c0d093d3f30c1f19785e25ab 4.7.18 40af8f44f945f1f751d9c611f537447203028613 3.5.9 479549f5e3186c6cb1be4d67b91fea3024da5d55
 			CURRENT_NEXTCLOUD_VER="30.0.13"
 		fi
-		
+
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^30 ]]; then
 			# Install nextcloud 31
 			InstallNextcloud 31.0.14 a891fede2cd4cb3347a406da3fb4f99cd62c89ce 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
 			CURRENT_NEXTCLOUD_VER="31.0.14"
 		fi
-		
+
 		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^31 ]]; then
 			# Install nextcloud 32
 			InstallNextcloud 32.0.11 e1b3ab4beb7011d7ca257eb38ff675028dcfc612 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
 			CURRENT_NEXTCLOUD_VER="32.0.11"
 		fi
-		
+
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^32 ]]; then
+			# Install nextcloud 33
+			InstallNextcloud 33.0.9 2a49b0cd4ebcdea70df46260104e949e29f937ba 8.3.12 24c63367a1f093ac89c7d388e4a103b8fad4e325 6.4.2 887cb300718f01a7e54dad7788d8a8c2027003a9 4.0.0 214497dd8691f279ba3740797c565310f0793054
+			CURRENT_NEXTCLOUD_VER="33.0.9"
+		fi
+
 		# Hint: whenever you bump, remember this:
 		# - Run a server with the previous version
 		# - On a new if-else block, copy the versions/hashes from the previous version
