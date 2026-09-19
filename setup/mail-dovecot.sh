@@ -53,47 +53,63 @@ management/editconf.py /etc/dovecot/conf.d/10-master.conf \
 # The inotify `max_user_instances` default is 128, which constrains
 # the total number of watched (IMAP IDLE push) folders by open connections.
 # See http://www.dovecot.org/pipermail/dovecot/2013-March/088834.html.
-# A reboot is required for this to take effect (which we don't do as
-# as a part of setup). Test with `cat /proc/sys/fs/inotify/max_user_instances`.
-management/editconf.py /etc/sysctl.conf \
-	fs.inotify.max_user_instances=1024
+# Ubuntu 26.04 no longer ships /etc/sysctl.conf, so we drop our setting into
+# /etc/sysctl.d/ instead, and apply it right away rather than at the next
+# boot. Test with `cat /proc/sys/fs/inotify/max_user_instances`.
+cat > /etc/sysctl.d/60-mailinabox.conf << EOF;
+fs.inotify.max_user_instances=1024
+EOF
+hide_output sysctl --system
 
-# Set the location where we'll store user mailboxes. '%d' is the domain name and '%n' is the
-# username part of the user's email address. We'll ensure that no bad domains or email addresses
-# are created within the management daemon.
+# Set the location where we'll store user mailboxes. Dovecot 2.4 splits the
+# old mail_location setting into mail_driver/mail_path, and the one-letter
+# %variables are gone: '%{user|domain}' is the domain name and
+# '%{user|username}' the username part of the user's email address. We'll
+# ensure that no bad domains or email addresses are created within the
+# management daemon.
 management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
-	mail_location="maildir:$STORAGE_ROOT/mail/mailboxes/%d/%n" \
+	mail_driver=maildir \
+	mail_path="$STORAGE_ROOT/mail/mailboxes/%{user|domain}/%{user|username}" \
 	mail_privileged_group=mail \
 	first_valid_uid=0
 
+# The Ubuntu package ships an *active* mbox configuration. mail_driver and
+# mail_path are overridden above, but mail_inbox_path would still point INBOX
+# at /var/mail/<user>, so clear it.
+management/editconf.py -e /etc/dovecot/conf.d/10-mail.conf \
+	mail_inbox_path=
+
 # Create, subscribe, and mark as special folders: INBOX, Drafts, Sent, Trash, Spam and Archive.
 cp conf/dovecot-mailboxes.conf /etc/dovecot/conf.d/15-mailboxes.conf
-sed -i "s/#mail_plugins =\(.*\)/mail_plugins =\1 \$mail_plugins quota/" /etc/dovecot/conf.d/10-mail.conf
-if ! grep -q "mail_plugins.* imap_quota" /etc/dovecot/conf.d/20-imap.conf; then
-  sed -i "s/\(mail_plugins =.*\)/\1\n  mail_plugins = \$mail_plugins imap_quota/" /etc/dovecot/conf.d/20-imap.conf
-fi
 
-# configure stuff for quota support
-if ! grep -q "quota_status_success = DUNNO" /etc/dovecot/conf.d/90-quota.conf; then
-    cat > /etc/dovecot/conf.d/90-quota.conf << EOF;
-plugin {
-  quota = maildir
-
-  quota_grace = 10%%
-
-  quota_status_success = DUNNO
-  quota_status_nouser = DUNNO
-  quota_status_overquota = "522 5.2.2 Mailbox is full"
+# Quota support. Dovecot 2.4 removed the plugin {} block: a quota root is now
+# a named `quota` filter and the quota-status replies are global settings.
+# We keep the Maildir++ driver rather than the new default 'count' driver
+# because the management daemon reads each mailbox's `maildirsize` file to
+# report usage in the admin panel (see management/mailconfig.py).
+#
+# Per-user limits come from the userdb as `userdb_quota_storage_size`, see
+# setup/mail-users.sh, so the quota root itself sets no size.
+cat > /etc/dovecot/conf.d/99-local-quota.conf << EOF;
+quota miab {
+  driver = maildir
 }
+
+# Let a single delivery exceed the quota by this much. Dovecot 2.4 only
+# accepts an absolute size here; in 2.3 this was quota_grace = 10%%.
+quota_storage_grace = 100 M
+
+quota_status_success = DUNNO
+quota_status_nouser = DUNNO
+quota_status_overquota = "522 5.2.2 Mailbox is full"
 
 service quota-status {
-    executable = quota-status -p postfix
-    inet_listener {
-        port = 12340
-    }
+  executable = quota-status -p postfix
+  inet_listener quota-status {
+    port = 12340
+  }
 }
 EOF
-fi
 
 # ### IMAP/POP
 
@@ -101,21 +117,23 @@ fi
 # The LOGIN mechanism is supposedly for Microsoft products like Outlook to do SMTP login (I guess
 # since we're using Dovecot to handle SMTP authentication?).
 management/editconf.py /etc/dovecot/conf.d/10-auth.conf \
-	disable_plaintext_auth=yes \
+	auth_allow_cleartext=no \
 	"auth_mechanisms=plain login"
 
 # Enable SSL, specify the location of the SSL certificate and private key files.
-# Use Mozilla's "Intermediate" recommendations at https://ssl-config.mozilla.org/#server=dovecot&version=2.3.16&config=intermediate&openssl=3.0.2&guideline=5.7,
-# except that the current version of Dovecot does not have a TLSv1.3 setting, so we only use TLSv1.2.
+# Use Mozilla's "Intermediate" recommendations at https://ssl-config.mozilla.org/#server=dovecot&config=intermediate
+# Dovecot 2.4 renamed these: ssl_cert -> ssl_server_cert_file, ssl_key ->
+# ssl_server_key_file, ssl_dh -> ssl_server_dh_file, and the '<' file-read
+# prefix is gone (the *_file settings take a path directly).
 management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 	ssl=required \
-	"ssl_cert=<$STORAGE_ROOT/ssl/ssl_certificate.pem" \
-	"ssl_key=<$STORAGE_ROOT/ssl/ssl_private_key.pem" \
+	"ssl_server_cert_file=$STORAGE_ROOT/ssl/ssl_certificate.pem" \
+	"ssl_server_key_file=$STORAGE_ROOT/ssl/ssl_private_key.pem" \
 	"ssl_min_protocol=TLSv1.2" \
 	"ssl_cipher_list=ALL:!kRSA:!SRP:!kDHd:!DSS:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK:!RC4:!ADH:!CAMELLIA:!ARIA:!CBC:!AESCCM:!LOW@STRENGTH" \
 	"ssl_curve_list=X25519:prime256v1:secp384r1" \
-	"ssl_prefer_server_ciphers=yes" \
-	"ssl_dh=<$STORAGE_ROOT/ssl/dh4096.pem"
+	"ssl_server_prefer_ciphers=client" \
+	"ssl_server_dh_file=$STORAGE_ROOT/ssl/dh4096.pem"
 
 # Disable in-the-clear IMAP/POP because there is no reason for a user to transmit
 # login credentials outside of an encrypted connection. Only the over-TLS versions
@@ -123,22 +141,11 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 sed -i "s/#port = 143/port = 0/" /etc/dovecot/conf.d/10-master.conf
 sed -i "s/#port = 110/port = 0/" /etc/dovecot/conf.d/10-master.conf
 
-# Make IMAP IDLE slightly more efficient. By default, Dovecot says "still here"
-# every two minutes. With K-9 mail, the bandwidth and battery usage due to
-# this are minimal. But for good measure, let's go to 4 minutes to halve the
-# bandwidth and number of times the device's networking might be woken up.
-# The risk is that if the connection is silent for too long it might be reset
-# by a peer. See [#129](https://github.com/mail-in-a-box/mailinabox/issues/129)
-# and [How bad is IMAP IDLE](http://razor.occams.info/blog/2014/08/09/how-bad-is-imap-idle/).
-management/editconf.py /etc/dovecot/conf.d/20-imap.conf \
-	imap_idle_notify_interval="4 mins"
-
-# Set POP3 UIDL.
-# UIDLs are used by POP3 clients to keep track of what messages they've downloaded.
-# For new POP3 servers, the easiest way to set up UIDLs is to use IMAP's UIDVALIDITY
-# and UID values, the default in Dovecot.
-management/editconf.py /etc/dovecot/conf.d/20-pop3.conf \
-	pop3_uidl_format="%08Xu%08Xv"
+# Dovecot 2.4 no longer ships conf.d/20-imap.conf, 20-pop3.conf or 20-lmtp.conf;
+# the per-protocol settings that used to live there are set in 99-local.conf
+# below. pop3_uidl_format is dropped entirely: its value used the one-letter
+# %variables that 2.4 removed, and the 2.4 default is already IMAP's
+# UIDVALIDITY/UID, which is what we wanted in the first place.
 
 # ### LDA (LMTP)
 
@@ -151,14 +158,22 @@ management/editconf.py /etc/dovecot/conf.d/20-pop3.conf \
 #
 # Also increase the number of allowed IMAP connections per mailbox because
 # we all have so many devices lately.
+#
+# Dovecot 2.4 notes: inet_listener's `address` is now `listen`, and
+# mail_plugins is a boolean map instead of a space separated string.
 cat > /etc/dovecot/conf.d/99-local.conf << EOF;
+# Load the quota plugin for every service, and its IMAP counterpart for IMAP.
+mail_plugins {
+  quota = yes
+}
+
 service lmtp {
   #unix_listener /var/spool/postfix/private/dovecot-lmtp {
   #  user = postfix
   #  group = postfix
   #}
   inet_listener lmtp {
-    address = 127.0.0.1
+    listen = 127.0.0.1
     port = 10026
   }
 }
@@ -167,12 +182,33 @@ service lmtp {
 # for Nextcloud to do imap authentication. (See #1577)
 service imap-login {
   inet_listener imap {
-    address = 127.0.0.1
+    listen = 127.0.0.1
     port = 143
   }
 }
+
 protocol imap {
+  mail_plugins {
+    imap_quota = yes
+  }
+
+  # Make IMAP IDLE slightly more efficient. By default, Dovecot says "still
+  # here" every two minutes. With K-9 mail, the bandwidth and battery usage
+  # due to this are minimal. But for good measure, let's go to 4 minutes to
+  # halve the bandwidth and number of times the device's networking might be
+  # woken up. The risk is that if the connection is silent for too long it
+  # might be reset by a peer. See
+  # https://github.com/mail-in-a-box/mailinabox/issues/129 and
+  # http://razor.occams.info/blog/2014/08/09/how-bad-is-imap-idle/
+  imap_idle_notify_interval = 4 mins
+
   mail_max_userip_connections = 40
+}
+
+protocol lmtp {
+  mail_plugins {
+    sieve = yes
+  }
 }
 EOF
 
@@ -183,37 +219,51 @@ management/editconf.py /etc/dovecot/conf.d/15-lda.conf \
 
 # ### Sieve
 
-# Enable the Dovecot sieve plugin which let's users run scripts that process
-# mail as it comes in.
-sed -i "s/#mail_plugins = .*/mail_plugins = \$mail_plugins sieve/" /etc/dovecot/conf.d/20-lmtp.conf
-
+# The sieve plugin is enabled for LMTP in 99-local.conf above.
+#
 # Configure sieve. We'll create a global script that moves mail marked
 # as spam by Spamassassin into the user's Spam folder.
 #
-# * `sieve_before`: The path to our global sieve which handles moving spam to the Spam folder.
+# Dovecot 2.4 replaced sieve_before/sieve_before2/sieve_after/sieve/sieve_dir
+# with named `sieve_script` filters carrying a `type`. Scripts of the same
+# type run in the order they are defined here (sieve_script_precedence can
+# override that), so spam-global keeps running before global_before, as
+# sieve_before did before sieve_before2 under 2.3.
 #
-# * `sieve_before2`: The path to our global sieve directory for sieve which can contain .sieve files
-# to run globally for every user before their own sieve files run.
+# * `spam-global`: our global sieve which moves spam to the Spam folder.
 #
-# * `sieve_after`: The path to our global sieve directory which can contain .sieve files
-# to run globally for every user after their own sieve files run.
+# * `global-before` / `global-after`: directories of .sieve files that run
+# globally for every user before resp. after their own sieve files run.
 #
-# * `sieve`: The path to the user's main active script. ManageSieve will create a symbolic
-# link here to the actual sieve script. It should not be in the mailbox directory
-# (because then it might appear as a folder) and it should not be in the sieve_dir
-# (because then I suppose it might appear to the user as one of their scripts).
-#
-# * `sieve_dir`: Directory for :personal include scripts for the include extension. This
-# is also where the ManageSieve service stores the user's scripts.
+# * `personal`: the user's own scripts. ManageSieve stores them under `path`
+# and symlinks the active one to `active_path`. `path` should not be in the
+# mailbox directory (because then it might appear as a folder) and
+# `active_path` should not be inside `path` (because then it might appear to
+# the user as one of their scripts).
 cat > /etc/dovecot/conf.d/99-local-sieve.conf << EOF;
-plugin {
-  sieve_before = /etc/dovecot/sieve-spam.sieve
-  sieve_before2 = $STORAGE_ROOT/mail/sieve/global_before
-  sieve_after = $STORAGE_ROOT/mail/sieve/global_after
-  sieve = $STORAGE_ROOT/mail/sieve/%d/%n.sieve
-  sieve_dir = $STORAGE_ROOT/mail/sieve/%d/%n
-  sieve_redirect_envelope_from = recipient
+sieve_script spam-global {
+  type = before
+  driver = file
+  path = /etc/dovecot/sieve-spam.sieve
 }
+sieve_script global-before {
+  type = before
+  driver = file
+  path = $STORAGE_ROOT/mail/sieve/global_before
+}
+sieve_script global-after {
+  type = after
+  driver = file
+  path = $STORAGE_ROOT/mail/sieve/global_after
+}
+sieve_script personal {
+  type = personal
+  driver = file
+  path = $STORAGE_ROOT/mail/sieve/%{user|domain}/%{user|username}
+  active_path = $STORAGE_ROOT/mail/sieve/%{user|domain}/%{user|username}.sieve
+}
+
+sieve_redirect_envelope_from = recipient
 EOF
 
 # Copy the global sieve script into where we've told Dovecot to look for it. Then

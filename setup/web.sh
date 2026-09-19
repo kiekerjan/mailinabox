@@ -174,7 +174,7 @@ cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/poo
 
 sed -i "s/\[www\]/\[roundcube\]/" /etc/php/"$PHP_VER"/fpm/pool.d/roundcube.conf
 
-if [ ! id -u roundcube_php >/dev/null 2>&1 ]; then
+if ! id -u roundcube_php >/dev/null 2>&1; then
 	adduser --system --disabled-login --shell /bin/false --no-create-home roundcube_php
 	usermod -a -G www-data roundcube_php
 fi

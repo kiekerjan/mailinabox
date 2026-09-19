@@ -34,27 +34,31 @@ sed -i "s/#\(\!include auth-sql.conf.ext\)/\1/"  /etc/dovecot/conf.d/10-auth.con
 
 # Specify how the database is to be queried for user authentication (passdb)
 # and where user mailboxes are stored (userdb).
+#
+# Dovecot 2.4 dropped the separate dovecot-sql.conf.ext file: the driver and
+# connection settings are global and the queries live inside the passdb/userdb
+# filters. The one-letter %variables are gone too -- %u is %{user}, %d is
+# %{user|domain} and %n is %{user|username}.
+#
+# Per-user quota is no longer passed as a `quota_rule` extra field; a userdb
+# field overrides a setting by name, so the limit is returned as
+# userdb_quota_storage_size. The stored value is a bare number or a number
+# with a G/M suffix (see validate_quota in management/mailconfig.py), and 0
+# means unlimited, which is what Dovecot understands as well.
 cat > /etc/dovecot/conf.d/auth-sql.conf.ext << EOF;
-passdb {
-  driver = sql
-  args = /etc/dovecot/dovecot-sql.conf.ext
-}
-userdb {
-  driver = sql
-  args = /etc/dovecot/dovecot-sql.conf.ext
-}
-EOF
+sql_driver = sqlite
+sqlite_path = $db_path
 
-# Configure the SQL to query for a user's metadata and password.
-cat > /etc/dovecot/dovecot-sql.conf.ext << EOF;
-driver = sqlite
-connect = $db_path
-default_pass_scheme = SHA512-CRYPT
-password_query = SELECT email as user, password FROM users WHERE email='%u';
-user_query = SELECT email AS user, "mail" as uid, "mail" as gid, "$STORAGE_ROOT/mail/mailboxes/%d/%n" as home, '*:bytes=' || quota AS quota_rule FROM users WHERE email='%u';
-iterate_query = SELECT email AS user FROM users;
+passdb sql {
+  default_password_scheme = SHA512-CRYPT
+  query = SELECT email AS user, password FROM users WHERE email='%{user}';
+}
+userdb sql {
+  query = SELECT email AS user, 'mail' AS uid, 'mail' AS gid, '$STORAGE_ROOT/mail/mailboxes/%{user|domain}/%{user|username}' AS home, quota AS userdb_quota_storage_size FROM users WHERE email='%{user}';
+  iterate_query = SELECT email AS user FROM users;
+}
 EOF
-chmod 0600 /etc/dovecot/dovecot-sql.conf.ext # per Dovecot instructions
+chmod 0600 /etc/dovecot/conf.d/auth-sql.conf.ext # per Dovecot instructions
 
 # Have Dovecot provide an authorization service that Postfix can access & use.
 cat > /etc/dovecot/conf.d/99-local-auth.conf << EOF;
