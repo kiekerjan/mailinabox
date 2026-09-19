@@ -35,16 +35,10 @@ sed -i "s/#\(\!include auth-sql.conf.ext\)/\1/"  /etc/dovecot/conf.d/10-auth.con
 # Specify how the database is to be queried for user authentication (passdb)
 # and where user mailboxes are stored (userdb).
 #
-# Dovecot 2.4 dropped the separate dovecot-sql.conf.ext file: the driver and
-# connection settings are global and the queries live inside the passdb/userdb
-# filters. The one-letter %variables are gone too -- %u is %{user}, %d is
-# %{user|domain} and %n is %{user|username}.
-#
-# Per-user quota is no longer passed as a `quota_rule` extra field; a userdb
-# field overrides a setting by name, so the limit is returned as
-# userdb_quota_storage_size. The stored value is a bare number or a number
-# with a G/M suffix (see validate_quota in management/mailconfig.py), and 0
-# means unlimited, which is what Dovecot understands as well.
+# 2.4 dropped dovecot-sql.conf.ext: driver and connection are global, queries
+# live in the passdb/userdb filters, and %u/%d/%n became %{user},
+# %{user|domain}, %{user|username}. Per-user quota is no longer a quota_rule
+# extra field but a userdb override of the setting itself.
 cat > /etc/dovecot/conf.d/auth-sql.conf.ext << EOF;
 sql_driver = sqlite
 sqlite_path = $db_path

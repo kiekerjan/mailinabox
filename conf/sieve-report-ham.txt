@@ -1,12 +1,5 @@
-# Run by Dovecot's IMAPSieve when a user copies a message back out of the
-# Spam (or Junk) folder. Pipes the message to the sa-learn wrapper so that
-# SpamAssassin's bayes database learns it as ham.
-#
-# Deleting spam is a move from Spam to Trash, which must not be learned as
-# ham. The old dovecot-antispam plugin expressed that as
-# antispam_trash_pattern_ignorecase = trash;Deleted *
-#
-# Installed by setup/spamassassin.sh as /usr/lib/dovecot/sieve/report-ham.sieve.
+# IMAPSieve: message copied out of Spam or Junk -> learn as ham, unless it is
+# just being deleted (moved to Trash).
 
 require ["vnd.dovecot.pipe", "copy", "imapsieve", "environment", "variables"];
 

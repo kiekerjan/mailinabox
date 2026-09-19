@@ -61,35 +61,27 @@ fs.inotify.max_user_instances=1024
 EOF
 hide_output sysctl --system
 
-# Set the location where we'll store user mailboxes. Dovecot 2.4 splits the
-# old mail_location setting into mail_driver/mail_path, and the one-letter
-# %variables are gone: '%{user|domain}' is the domain name and
-# '%{user|username}' the username part of the user's email address. We'll
-# ensure that no bad domains or email addresses are created within the
-# management daemon.
+# Set the location where we'll store user mailboxes. 2.4 split mail_location
+# into mail_driver/mail_path and replaced %d/%n with %{user|domain} and
+# %{user|username}. The management daemon validates domains and addresses.
 management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
 	mail_driver=maildir \
 	mail_path="$STORAGE_ROOT/mail/mailboxes/%{user|domain}/%{user|username}" \
 	mail_privileged_group=mail \
 	first_valid_uid=0
 
-# The Ubuntu package ships an *active* mbox configuration. mail_driver and
-# mail_path are overridden above, but mail_inbox_path would still point INBOX
-# at /var/mail/<user>, so clear it.
+# The package ships an active mbox config; mail_inbox_path would still point
+# INBOX at /var/mail, so clear it.
 management/editconf.py -e /etc/dovecot/conf.d/10-mail.conf \
 	mail_inbox_path=
 
 # Create, subscribe, and mark as special folders: INBOX, Drafts, Sent, Trash, Spam and Archive.
 cp conf/dovecot-mailboxes.conf /etc/dovecot/conf.d/15-mailboxes.conf
 
-# Quota support. Dovecot 2.4 removed the plugin {} block: a quota root is now
-# a named `quota` filter and the quota-status replies are global settings.
-# We keep the Maildir++ driver rather than the new default 'count' driver
-# because the management daemon reads each mailbox's `maildirsize` file to
-# report usage in the admin panel (see management/mailconfig.py).
-#
-# Per-user limits come from the userdb as `userdb_quota_storage_size`, see
-# setup/mail-users.sh, so the quota root itself sets no size.
+# Quota. 2.4 dropped plugin {}: a quota root is a named filter and the
+# quota-status replies are global. Keep the Maildir++ driver -- the management
+# daemon reads maildirsize to report usage. Per-user limits arrive from the
+# userdb as userdb_quota_storage_size (setup/mail-users.sh).
 cat > /etc/dovecot/conf.d/99-local-quota.conf << EOF;
 quota miab {
   driver = maildir
@@ -121,10 +113,9 @@ management/editconf.py /etc/dovecot/conf.d/10-auth.conf \
 	"auth_mechanisms=plain login"
 
 # Enable SSL, specify the location of the SSL certificate and private key files.
-# Use Mozilla's "Intermediate" recommendations at https://ssl-config.mozilla.org/#server=dovecot&config=intermediate
-# Dovecot 2.4 renamed these: ssl_cert -> ssl_server_cert_file, ssl_key ->
-# ssl_server_key_file, ssl_dh -> ssl_server_dh_file, and the '<' file-read
-# prefix is gone (the *_file settings take a path directly).
+# Mozilla "Intermediate": https://ssl-config.mozilla.org/#server=dovecot&config=intermediate
+# 2.4 renamed ssl_cert/ssl_key/ssl_dh to ssl_server_*_file and dropped the '<'
+# file-read prefix.
 management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 	ssl=required \
 	"ssl_server_cert_file=$STORAGE_ROOT/ssl/ssl_certificate.pem" \
@@ -141,11 +132,9 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 sed -i "s/#port = 143/port = 0/" /etc/dovecot/conf.d/10-master.conf
 sed -i "s/#port = 110/port = 0/" /etc/dovecot/conf.d/10-master.conf
 
-# Dovecot 2.4 no longer ships conf.d/20-imap.conf, 20-pop3.conf or 20-lmtp.conf;
-# the per-protocol settings that used to live there are set in 99-local.conf
-# below. pop3_uidl_format is dropped entirely: its value used the one-letter
-# %variables that 2.4 removed, and the 2.4 default is already IMAP's
-# UIDVALIDITY/UID, which is what we wanted in the first place.
+# 2.4 ships no conf.d/20-{imap,pop3,lmtp}.conf; those settings moved to
+# 99-local.conf below. pop3_uidl_format is dropped: it used the removed
+# one-letter %variables, and 2.4 already defaults to UIDVALIDITY/UID.
 
 # ### LDA (LMTP)
 
@@ -194,14 +183,8 @@ protocol imap {
     imap_sieve = yes
   }
 
-  # Make IMAP IDLE slightly more efficient. By default, Dovecot says "still
-  # here" every two minutes. With K-9 mail, the bandwidth and battery usage
-  # due to this are minimal. But for good measure, let's go to 4 minutes to
-  # halve the bandwidth and number of times the device's networking might be
-  # woken up. The risk is that if the connection is silent for too long it
-  # might be reset by a peer. See
-  # https://github.com/mail-in-a-box/mailinabox/issues/129 and
-  # http://razor.occams.info/blog/2014/08/09/how-bad-is-imap-idle/
+  # Halve IMAP IDLE keepalive chatter (default 2 mins). See
+  # https://github.com/mail-in-a-box/mailinabox/issues/129
   imap_idle_notify_interval = 4 mins
 
   mail_max_userip_connections = 40
@@ -226,22 +209,11 @@ management/editconf.py /etc/dovecot/conf.d/15-lda.conf \
 # Configure sieve. We'll create a global script that moves mail marked
 # as spam by Spamassassin into the user's Spam folder.
 #
-# Dovecot 2.4 replaced sieve_before/sieve_before2/sieve_after/sieve/sieve_dir
-# with named `sieve_script` filters carrying a `type`. Scripts of the same
-# type run in the order they are defined here (sieve_script_precedence can
-# override that), so spam-global keeps running before global_before, as
-# sieve_before did before sieve_before2 under 2.3.
-#
-# * `spam-global`: our global sieve which moves spam to the Spam folder.
-#
-# * `global-before` / `global-after`: directories of .sieve files that run
-# globally for every user before resp. after their own sieve files run.
-#
-# * `personal`: the user's own scripts. ManageSieve stores them under `path`
-# and symlinks the active one to `active_path`. `path` should not be in the
-# mailbox directory (because then it might appear as a folder) and
-# `active_path` should not be inside `path` (because then it might appear to
-# the user as one of their scripts).
+# 2.4 replaced sieve_before/sieve_after/sieve/sieve_dir with named
+# sieve_script filters. Same-type scripts run in definition order, so
+# spam-global stays ahead of global-before. ManageSieve writes the user's
+# scripts under the personal `path` and symlinks the active one to
+# `active_path`, which is kept out of both the mailbox dir and `path`.
 cat > /etc/dovecot/conf.d/99-local-sieve.conf << EOF;
 sieve_script spam-global {
   type = before

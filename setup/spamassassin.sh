@@ -174,18 +174,9 @@ else
         mv -f /tmp/sh_scores.cf /etc/spamassassin/
 fi
 
-# To mark mail as spam or ham, just drag it in or out of the Spam folder.
-# The dovecot-antispam plugin that used to detect that move is no longer
-# packaged for Ubuntu, so we use Dovecot's own IMAPSieve instead: moving or
-# copying a message into Spam/Junk runs report-spam.sieve, and copying one
-# back out of Spam/Junk runs report-ham.sieve. Each pipes the message to a
-# small wrapper around sa-learn.
-#
-# The imap_sieve plugin itself is enabled for IMAP in setup/mail-dovecot.sh.
-#
-# Scripts using vnd.dovecot.pipe have to be global scripts, and they may only
-# run programs found in sieve_pipe_bin_dir, which is why the wrappers get a
-# directory of their own.
+# Drag mail in or out of the Spam folder to train it. dovecot-antispam is no
+# longer packaged, so we use IMAPSieve. vnd.dovecot.pipe only runs programs
+# from sieve_pipe_bin_dir, hence the separate directory.
 mkdir -p /usr/lib/dovecot/sieve /usr/lib/dovecot/sieve-pipe
 
 cp -f conf/sieve-report-spam.txt /usr/lib/dovecot/sieve/report-spam.sieve
@@ -244,8 +235,7 @@ imapsieve_from Junk {
 }
 EOF
 
-# Compile the global scripts now: the mail process cannot write to
-# /usr/lib/dovecot/sieve and would otherwise recompile them on every run.
+# Precompile: the mail process cannot write to /usr/lib/dovecot/sieve.
 sievec /usr/lib/dovecot/sieve/report-spam.sieve
 sievec /usr/lib/dovecot/sieve/report-ham.sieve
 
