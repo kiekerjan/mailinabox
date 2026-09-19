@@ -136,7 +136,54 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
 - [ ] `roundcube_php` system user exists (the `if [ ! id -u ... ]` test in
       web.sh was never actually running `adduser` before this branch).
 
-## Steps 4-9
+## Step 4 - SpamAssassin / spampd / IMAPSieve learning
+
+- [ ] spampd starts and is reachable: `systemctl status spampd`,
+      `nc -vz 127.0.0.1 10025`.
+- [ ] `/etc/spampd.cfg` ended up with `local-only 0`, `maxsize 2000` and
+      `relayport 10026` (the old `/etc/default/spampd` is gone in this version).
+- [ ] Network checks are actually running, i.e. local-only really is off: send
+      a GTUBE message and confirm the `X-Spam-Status` header lists network
+      rules (Pyzor / DNSBL / DKIM), not just local ones.
+- [ ] A >64 KB message still gets scanned (proves `maxsize` took effect).
+- [ ] Rule updates: `systemctl list-timers spamassassin-maintenance.timer`
+      shows it enabled, and `systemctl start spamassassin-maintenance.service`
+      completes without error.
+- [ ] **[unverified] IMAPSieve spam learning.** dovecot-antispam is gone; this
+      is an entirely new mechanism, so test all four directions:
+      - `doveconf -n` shows `imap_sieve = yes` **and** `imap_quota = yes` under
+        `protocol imap` -- if the second `mail_plugins` block replaced rather
+        than merged, quota silently stops working.
+      - `doveconf -n` shows the `mailbox Spam`/`mailbox Junk` and
+        `imapsieve_from Spam`/`imapsieve_from Junk` blocks.
+      - Move a message from INBOX to Spam. `/var/log/mail.log` should show the
+        sieve pipe running; `sa-learn --dump magic` (as the spampd user) should
+        show nspam incrementing.
+      - Move it back from Spam to INBOX -> nham increments.
+      - Move a message from Spam to **Trash** -> nham must NOT increment
+        (report-ham.sieve stops on Trash and `Deleted*`).
+      - APPEND directly into Spam (what Roundcube's markasjunk does) also
+        learns as spam.
+- [ ] Roundcube's markasjunk button ends up doing the same thing as a manual
+      drag to Spam.
+- [ ] Compiled scripts exist and the mail process is not recompiling them on
+      every run: `ls -l /usr/lib/dovecot/sieve/report-*.svbin`, and no
+      "failed to compile" lines in `/var/log/mail.log`.
+- [ ] Bayes file permissions survive a learn cycle. The wrappers run as the
+      `mail` user, which only reaches the files through the `spampd`
+      supplementary group (`mail_access_groups = spampd`):
+      `ls -l $STORAGE_ROOT/mail/spamassassin/` -> `spampd:spampd`, files 0660,
+      directory 0770, and still so **after** a learn.
+- [ ] sa-learn as the `mail` user does not try to create `~mail/.spamassassin`
+      (bayes_path in `/etc/spamassassin/local.cf` should keep everything under
+      `$STORAGE_ROOT`).
+- [ ] Deliberately break it -- e.g. `chmod 000` the bayes files -- and confirm
+      the IMAP move still succeeds and an error appears in mail.err. The
+      wrappers exit 0 on purpose so a broken bayes DB can never fail a user's
+      IMAP operation.
+- [ ] Spamhaus DQS path still works if `SPAMHAUS_DQS_KEY` is set.
+
+## Steps 5-9
 
 To be filled in as those steps land.
 

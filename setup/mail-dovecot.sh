@@ -190,6 +190,8 @@ service imap-login {
 protocol imap {
   mail_plugins {
     imap_quota = yes
+    # Drives the spam/ham learning scripts, see setup/spamassassin.sh.
+    imap_sieve = yes
   }
 
   # Make IMAP IDLE slightly more efficient. By default, Dovecot says "still
