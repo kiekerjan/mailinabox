@@ -29,25 +29,11 @@ nextcloud_hash=3912a29d610e159439b9b0962c169f207df3bf0b
 
 # Nextcloud apps
 # --------------
-# * Find the most recent tag that is compatible with the Nextcloud version above by:
-#   https://github.com/nextcloud-releases/contacts/tags
-#   https://github.com/nextcloud-releases/calendar/tags
-#   https://github.com/nextcloud/user_external/tags
+# contacts and calendar ship with Nextcloud core since version 32.
 #
-# * For these three packages, contact, calendar and user_external, the hash is the SHA1 hash of
-# the ZIP package, which you can find by just running this script and copying it from
-# the error message when it doesn't match what is below:
-
-# Always ensure the versions are supported, see https://apps.nextcloud.com/apps/contacts
-contacts_ver=8.9.0
-contacts_hash=24c63367a1f093ac89c7d388e4a103b8fad4e325
-
-# Always ensure the versions are supported, see https://apps.nextcloud.com/apps/calendar
-calendar_ver=6.5.4
-calendar_hash=887cb300718f01a7e54dad7788d8a8c2027003a9
-
-# Always ensure the versions are supported, see https://apps.nextcloud.com/apps/user_external
-# Temporary (or maybe not) add own forked version from github.com/kiekerjan/nc_user_external
+# * Find the most recent tag compatible with the Nextcloud version above:
+#   https://github.com/nextcloud/user_external/tags
+# * The hash is the SHA1 hash of the tarball.
 user_external_ver=4.0.0
 user_external_hash=214497dd8691f279ba3740797c565310f0793054
 
@@ -66,14 +52,11 @@ user_external_hash=214497dd8691f279ba3740797c565310f0793054
 # 5.3 You still can create, edit and delete users
 # 5.4 Go to Administration > Logs and ensure no new errors are shown
 
-# Set a local variable for the PHP version
-NC_PHP_VER=$PHP_VER
-
 # Clear prior packages and install dependencies from apt.
 apt-get purge -qq -y owncloud* # we used to use the package manager
 
 apt_install curl php"${PHP_VER}" php"${PHP_VER}"-fpm \
-	php"${PHP_VER}"-cli php"${PHP_VER}"-sqlite3 php"${PHP_VER}"-gd php"${PHP_VER}"-imap php"${PHP_VER}"-curl \
+	php"${PHP_VER}"-cli php"${PHP_VER}"-sqlite3 php"${PHP_VER}"-gd php"${PHP_VER}"-curl \
 	php"${PHP_VER}"-dev php"${PHP_VER}"-xml php"${PHP_VER}"-mbstring php"${PHP_VER}"-zip php"${PHP_VER}"-apcu \
 	php"${PHP_VER}"-intl php"${PHP_VER}"-imagick php"${PHP_VER}"-gmp php"${PHP_VER}"-bcmath
 
@@ -97,12 +80,8 @@ InstallNextcloud() {
 
 	version=$1
 	hash=$2
-	version_contacts=$3
-	hash_contacts=$4
-	version_calendar=$5
-	hash_calendar=$6
-	version_user_external=${7:-}
-	hash_user_external=${8:-}
+	version_user_external=${3:-}
+	hash_user_external=${4:-}
 
 	echo
 	echo "Upgrading to Nextcloud version $version"
@@ -122,30 +101,9 @@ InstallNextcloud() {
 	# Empty the skeleton dir to save some space for each new user
 #	rm -rf $CLOUD_DIR/core/skeleton/*
 
-	# Starting with version 32, we take contacts and calendar app from the built-in app store
-	major=${version%%.*}
-    if [[ ! ${major} =~ ^[0-9]+$ ]] || (( 10#${major} < 32 )); then
-		# The two apps we actually want are not in Nextcloud core. Download the releases from
-		# their github repositories.
-		mkdir -p $CLOUD_DIR/apps
-
-		wget_verify "https://github.com/nextcloud-releases/contacts/archive/refs/tags/v$version_contacts.tar.gz" "$hash_contacts" /tmp/contacts.tgz
-		tar xf /tmp/contacts.tgz -C $CLOUD_DIR/apps/
-		rm /tmp/contacts.tgz
-
-		wget_verify "https://github.com/nextcloud-releases/calendar/archive/refs/tags/v$version_calendar.tar.gz" "$hash_calendar" /tmp/calendar.tgz
-		tar xf /tmp/calendar.tgz -C $CLOUD_DIR/apps/
-		rm /tmp/calendar.tgz
-	fi
-
-	# Starting with Nextcloud 15, the app user_external is no longer included in Nextcloud core,
-	# we will install from their github repository.
+	# user_external is not part of Nextcloud core.
 	if [ -n "$version_user_external" ] ; then
-		if [ "$version_user_external" == "3.5.9" ] ; then
-			wget_verify "https://github.com/kiekerjan/nc_user_external/raw/refs/heads/master/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
-		else
-			wget_verify "https://github.com/nextcloud-releases/user_external/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
-		fi
+		wget_verify "https://github.com/nextcloud-releases/user_external/releases/download/v$version_user_external/user_external-v$version_user_external.tar.gz" "$hash_user_external" /tmp/user_external.tgz
 		tar -xf /tmp/user_external.tgz -C $CLOUD_DIR/apps/
 		rm /tmp/user_external.tgz
 	fi
@@ -167,23 +125,23 @@ InstallNextcloud() {
 	if [ -e "$STORAGE_ROOT/owncloud/owncloud.db" ]; then
 		# ownCloud 8.1.1 broke upgrades. It may fail on the first attempt, but
 		# that can be OK.
-		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
+		sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ upgrade
 		E=$?
 		if [ $E -ne 0 ] && [ $E -ne 3 ]; then
 			echo "Trying ownCloud upgrade again to work around ownCloud upgrade bug..."
-			sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ upgrade
+			sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ upgrade
 			E=$?
 			if [ $E -ne 0 ] && [ $E -ne 3 ]; then exit 1; fi
-			sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ maintenance:mode --off
+			sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ maintenance:mode --off
 			echo "...which seemed to work."
 		fi
 
 		# Add missing indices. NextCloud didn't include this in the normal upgrade because it might take some time.
-		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
-		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
+		sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ db:add-missing-indices
+		sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ db:add-missing-primary-keys
 
 		# Run conversion to BigInt identifiers, this process may take some time on large tables.
-		sudo -u nextcloud_php php"$NC_PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
+		sudo -u nextcloud_php php"$PHP_VER" $CLOUD_DIR/occ db:convert-filecache-bigint --no-interaction
 	fi
 }
 
@@ -235,126 +193,24 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 			sed -i -e '/config_is_read_only/d' "$STORAGE_ROOT/owncloud/config.php"
 		fi
 
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^[89] ]]; then
-			echo "Upgrades from Mail-in-a-Box prior to v0.28 (dated July 30, 2018) with Nextcloud < 13.0.6 (you have ownCloud 8 or 9) are not supported. Upgrade to Mail-in-a-Box version v0.30 first. Setup will continue, but skip the Nextcloud migration."
+		# This branch starts at Nextcloud 33. Older installs have to be brought
+		# up to date on a 24.04 box before migrating.
+		nc_major=${CURRENT_NEXTCLOUD_VER%%.*}
+		if [[ ! ${nc_major} =~ ^[0-9]+$ ]] || (( 10#${nc_major} < 33 )); then
+			echo "Nextcloud ${CURRENT_NEXTCLOUD_VER} is too old for this version of Mail-in-a-Box."
+			echo "Upgrade to at least Nextcloud 33 on Ubuntu 24.04 first, then migrate to 26.04."
+			echo "Setup will continue, but skip the Nextcloud migration."
 			return 0
-		elif [[ ${CURRENT_NEXTCLOUD_VER} =~ ^1[012] ]]; then
-			echo "Upgrades from Mail-in-a-Box prior to v0.28 (dated July 30, 2018) with Nextcloud < 13.0.6 (you have ownCloud 10, 11 or 12) are not supported. Upgrade to Mail-in-a-Box version v0.30 first. Setup will continue, but skip the Nextcloud migration."
-			return 0
-		elif [[ ${CURRENT_NEXTCLOUD_VER} =~ ^1[3456789] ]]; then
-			echo "Upgrades from Mail-in-a-Box prior to v60 with Nextcloud 19 or earlier are not supported. Upgrade to the latest Mail-in-a-Box version supported on your machine first. Setup will continue, but skip the Nextcloud migration."
-			return 0
 		fi
 
-		# Install php 8.0 for older versions of nextcloud that don't support 8.3
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[0123456] ]]; then
-			# Version 20 is the latest version from the 18.04 version of miab. To upgrade to version 21, install php8.0. This is
-			# not supported by version 20, but that does not matter, as the InstallNextcloud function only runs the version 21 code.
-			# We need php 8.0 for installing nextcloud 21-27. From version 28 on, we can use the default PHP version 8.3
-
-			# Prevent installation of old packages
-			hide_output apt-mark hold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
-
-			# Install php version 8.0
-			apt_install php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd php8.0-imap \
-				php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip
-
-			# set php version 8.0 as default
-			NC_PHP_VER=8.0
-
-			# Make sure apc is enabled
-			management/editconf.py /etc/php/"$NC_PHP_VER"/mods-available/apcu.ini -c ';' \
-				apc.enabled=1	\
-				apc.enable_cli=1
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^20 ]]; then
-			# Install nextcloud, this also updates user_external to 2.1.0
-			InstallNextcloud 21.0.7 f5c7079c5b56ce1e301c6a27c0d975d608bb01c9 4.0.7 45e7cf4bfe99cd8d03625cf9e5a1bb2e90549136 3.0.4 d0284b68135777ec9ca713c307216165b294d0fe 2.1.0 41d4c57371bd085d68421b52ab232092d7dfc882
-			CURRENT_NEXTCLOUD_VER="21.0.7"
-		fi
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^21 ]]; then
-			# Nextcloud version 22
-			InstallNextcloud 22.2.3 58d2d897ba22a057aa03d29c762c5306211fefd2 4.0.7 45e7cf4bfe99cd8d03625cf9e5a1bb2e90549136 3.0.4 d0284b68135777ec9ca713c307216165b294d0fe 2.1.0 41d4c57371bd085d68421b52ab232092d7dfc882
-			CURRENT_NEXTCLOUD_VER="22.2.3"
-		fi
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^22 ]]; then
-			# Nextcloud version 23
-			InstallNextcloud 23.0.12 d138641b8e7aabebe69bb3ec7c79a714d122f729 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.0.0 0df781b261f55bbde73d8c92da3f99397000972f
-			CURRENT_NEXTCLOUD_VER="23.0.12"
-		fi
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^23 ]]; then
-			# Install nextcloud 24
-			InstallNextcloud 24.0.12 7aa5d61632c1ccf4ca3ff00fb6b295d318c05599 4.1.0 697f6b4a664e928d72414ea2731cb2c9d1dc3077 3.2.2 ce4030ab57f523f33d5396c6a81396d440756f5f 3.1.0 399fe1150b28a69aaf5bfcad3227e85706604a44
-			CURRENT_NEXTCLOUD_VER="24.0.12"
-		fi
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^24 ]]; then
-			# Install nextcloud 25
-			InstallNextcloud 25.0.7 a5a565c916355005c7b408dd41a1e53505e1a080 5.3.0 4b0a6666374e3b55cfd2ae9b72e1d458b87d4c8c 4.4.2 21a42e15806adc9b2618760ef94f1797ef399e2f 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
-			CURRENT_NEXTCLOUD_VER="25.0.7"
-		fi
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^25 ]]; then
-			# Install nextcloud 26
-			InstallNextcloud 26.0.8 a8eacbd39cf4a34a6247d3bf479ff6efc0fef3c8 5.4.2 d38c9e16b377c05b5114e70b3b0c3d3f1f1d10f6 4.5.3 7c974d4f092886e8932c6c3ae34532c30a3fcea9 3.2.0 67ce8cbf8990b9d6517523d7236dcfb7f74b0201
-			CURRENT_NEXTCLOUD_VER="26.0.8"
-		fi
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^26 ]]; then
-			# Install nextcloud 27
-			InstallNextcloud 27.1.9 4797a2f1f7ffcedca7c0917f913d983b75ed22fd 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.2 9222953e5654c151604e082c0d5907dcc651d3d7 3.3.0 49800e8ca61391965ce8a75eaaf92a8037185375
-			CURRENT_NEXTCLOUD_VER="27.1.9"
-		fi
-
-		# Match not only version 27, but also 28 and 29 to make sure the cleanup runs
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^2[789] ]]; then
-			# From nextcloud 28 and higher, php8.3 is supported, so we can now remove the php8.0 ppa and packages
-
-			# Reset the default php version used
-			NC_PHP_VER=$PHP_VER
-
-			# Remove older php version
-			apt-get purge -qq -y php8.0 php8.0-fpm php8.0-apcu php8.0-cli php8.0-sqlite3 php8.0-gd \
-				php8.0-imap php8.0-curl php8.0-dev php8.0-xml php8.0-mbstring php8.0-zip \
-				php8.0-common php8.0-opcache php8.0-readline
-
-			# Unhold packages
-			hide_output apt-mark unhold php7.0-apcu php7.1-apcu php7.2-apcu php7.3-apcu php7.4-apcu
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^27 ]]; then
-			# Install nextcloud 28
-			InstallNextcloud 28.0.10 24edd63bdc005ff39607831ed6cc2cac7278d41a 5.5.3 799550f38e46764d90fa32ca1a6535dccd8316e5 4.7.16 1c39ce674027a8710800d056a7cdd0c5c974781d 3.4.0 7f9d8f4dd6adb85a0e3d7622d85eeb7bfe53f3b4
-			CURRENT_NEXTCLOUD_VER="28.0.10"
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^28 ]]; then
-			# Install nextcloud 29
-			InstallNextcloud 29.0.16 ceb3014aaddc70d3074d2c69bc6afc76eb1aeff0 6.0.5 01b5333670b2ebf7c0d093d3f30c1f19785e25ab 4.7.18 40af8f44f945f1f751d9c611f537447203028613 3.5.9 479549f5e3186c6cb1be4d67b91fea3024da5d55
-			CURRENT_NEXTCLOUD_VER="29.0.16"
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^29 ]]; then
-			# Install nextcloud 30
-			InstallNextcloud 30.0.13 24499ea3f8c031b97224ee2950f7583a25c48788 6.0.5 01b5333670b2ebf7c0d093d3f30c1f19785e25ab 4.7.18 40af8f44f945f1f751d9c611f537447203028613 3.5.9 479549f5e3186c6cb1be4d67b91fea3024da5d55
-			CURRENT_NEXTCLOUD_VER="30.0.13"
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^30 ]]; then
-			# Install nextcloud 31
-			InstallNextcloud 31.0.14 a891fede2cd4cb3347a406da3fb4f99cd62c89ce 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
-			CURRENT_NEXTCLOUD_VER="31.0.14"
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^31 ]]; then
-			# Install nextcloud 32
-			InstallNextcloud 32.0.11 e1b3ab4beb7011d7ca257eb38ff675028dcfc612 7.3.5 3a6d7e6649018a1f7c0530672559f714768193af 5.5.18 5728ae56cea3ab39e70fb328dd6dc7269e58678a 4.0.0 214497dd8691f279ba3740797c565310f0793054
-			CURRENT_NEXTCLOUD_VER="32.0.11"
-		fi
-
-		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^32 ]]; then
-			# Install nextcloud 33
-			InstallNextcloud 33.0.9 2a49b0cd4ebcdea70df46260104e949e29f937ba 8.3.12 24c63367a1f093ac89c7d388e4a103b8fad4e325 6.4.2 887cb300718f01a7e54dad7788d8a8c2027003a9 4.0.0 214497dd8691f279ba3740797c565310f0793054
-			CURRENT_NEXTCLOUD_VER="33.0.9"
-		fi
+		# Nextcloud only upgrades between consecutive major versions, so add one
+		# rung here per major below $nextcloud_ver. The final InstallNextcloud
+		# call below makes the last hop.
+		#
+		# if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^33 ]]; then
+		# 	InstallNextcloud 34.0.4 3912a29d610e159439b9b0962c169f207df3bf0b 4.0.0 214497dd8691f279ba3740797c565310f0793054
+		# 	CURRENT_NEXTCLOUD_VER="34.0.4"
+		# fi
 
 		# Hint: whenever you bump, remember this:
 		# - Run a server with the previous version
@@ -363,7 +219,7 @@ if [ ! -d $CLOUD_DIR ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; t
 	fi
 
 	# ### Install latest nextcloud
-	InstallNextcloud $nextcloud_ver $nextcloud_hash $contacts_ver $contacts_hash $calendar_ver $calendar_hash $user_external_ver $user_external_hash
+	InstallNextcloud $nextcloud_ver $nextcloud_hash $user_external_ver $user_external_hash
 fi
 
 # ### Configuring Nextcloud
@@ -439,7 +295,7 @@ fi
 # * mail_domain' needs to be set every time we run the setup. Making sure we are setting
 #   the correct domain name if the domain is being change from the previous setup.
 # Use PHP to read the settings file, modify it, and write out the new settings array.
-TIMEZONE=$(cat /etc/timezone)
+TIMEZONE=$(timedatectl show -p Timezone --value)
 CONFIG_TEMP=$(/bin/mktemp)
 php"$PHP_VER" <<EOF > "$CONFIG_TEMP" && mv "$CONFIG_TEMP" "$STORAGE_ROOT/owncloud/config.php";
 <?php

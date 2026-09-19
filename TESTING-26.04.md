@@ -212,7 +212,32 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
       24.04 backup the old xapian index files under each mailbox are dead
       weight and can be removed.
 
-## Steps 6-9
+## Step 6 - PHP 8.5 / Nextcloud
+
+- [ ] Fresh install lands on Nextcloud 34.0.4 and the web UI works.
+- [ ] Restore a 24.04 backup whose Nextcloud is 33.x and confirm the upgrade
+      to 34 runs (this is the only supported upgrade path now).
+- [ ] Restore/fake a config.php with an older version (e.g. 31) and confirm
+      setup prints the "too old, upgrade on 24.04 first" message and continues
+      rather than failing.
+- [ ] contacts and calendar are enabled and usable. They now come from
+      Nextcloud core rather than being downloaded, so check the app list shows
+      them and CardDAV/CalDAV still sync.
+- [ ] `occ app:list` shows user_external 4.0.0 enabled, and logging in to
+      Nextcloud with a mail password works -- it authenticates over cURL's
+      IMAP against 127.0.0.1:143, not ext/imap.
+- [ ] `php -m | grep -i opcache` shows Zend OPcache even though there is no
+      php8.5-opcache package and no conf.d/10-opcache.ini (it is compiled
+      into the binary on 26.04).
+- [ ] `occ` and the Nextcloud cron job run without OPcache or APCu warnings
+      in Administration > Overview.
+- [ ] Nextcloud's timezone is right: `grep logtimezone $STORAGE_ROOT/owncloud/config.php`
+      matches `timedatectl show -p Timezone --value`.
+- [ ] Sending mail from Nextcloud works (sendmail mode).
+- [ ] No php8.0 packages are installed and nothing is held:
+      `dpkg -l 'php8.0*'`, `apt-mark showhold`.
+
+## Steps 7-9
 
 To be filled in as those steps land.
 
