@@ -210,6 +210,9 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 							proxy_for_photoprism = True
 						elif pttype == "immich":
 							proxy_for_immich = True
+				nginx_conf_geoblock = False
+				if yaml.get("geoblock", {}):
+					nginx_conf_geoblock = True
 				
 				if proxy_for_photoprism:
 					web_sockets = True
