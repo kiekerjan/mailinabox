@@ -265,9 +265,66 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
       renumbered when DSA is dropped.
 - [ ] `ssh-keyscan -t rsa,ecdsa,ed25519` returns keys at all on OpenSSH 10.x.
 
-## Steps 8-9
+## Step 8 - fork-specific extras
 
-To be filled in as those steps land.
+Most of this step turned out to be verification rather than change. Every
+package the setup scripts install exists in 26.04, and several things that
+looked like they would break do not (see the notes at the end).
+
+- [ ] Setup gets past `geoiptoolssetup.sh`. On a fresh 26.04 box neither
+      /etc/hosts.allow nor /etc/hosts.deny exists, and the `sed -i` there
+      aborted the whole run under `set -e`. Confirm both files exist
+      afterwards and contain the sshd lines.
+- [ ] **SSH geo-filtering is almost certainly inert** - see the note below.
+      Decide whether to keep or remove it. To check on the running box:
+      `ldd $(which sshd) | grep -i wrap` (expect no output).
+- [ ] ipset blacklist: `ipset list -n`, `iptables -L -n | head`, and the
+      cron job in /etc/cron.d/miab-ipset-blacklist runs clean.
+- [ ] fail2ban 1.1.0 starts and all jails load: `fail2ban-client status`.
+      Check for `allowipv6` notices in the log; it is not set in jails.conf.
+- [ ] fail2ban subnet blocker: `/usr/local/bin/fail2ban-block-ip-range.py`
+      runs under Python 3.14.
+- [ ] rkhunter: `/etc/default/rkhunter` exists (ucf creates it, the deb does
+      not ship it), `rkhunter --propupd` and the daily cron run without
+      warnings.
+- [ ] postgrey: `/etc/default/postgrey` exists (also ucf), greylisting works,
+      `systemctl status postgrey`.
+- [ ] Logging: `/var/log/mail.log` and `/var/log/syslog` are being written
+      (rsyslog still ucf-installs the mail.* routing), and the additionals.sh
+      seds against 50-default.conf and 20-ufw.conf took effect.
+- [ ] stunnel relay, if you use it: `systemctl status stunnel@miabrelay`,
+      and the daily cert-combining cron job.
+- [ ] dmarc-report-viewer service starts and the UI loads.
+- [ ] munin graphs render (munin 2.0.76, same series as 24.04).
+- [ ] smartmontools: `/etc/default/smartmontools` handling still applies.
+
+## Step 9 - full run
+
+- [ ] `setup/start.sh` completes end to end with no manual intervention.
+- [ ] `management/status_checks.py` output is clean or only shows expected items.
+- [ ] Round trip: send mail in, read over IMAP, reply out, check DKIM/SPF/DMARC
+      pass at an external checker.
+- [ ] Reboot the box and confirm every service comes back.
+
+---
+
+## Notes carried out of step 8
+
+**SSH geo-filtering via hosts.allow is dead code.** `geoiptoolssetup.sh`
+installs `sshd: ALL: aclexec /usr/local/bin/geoipfilter.sh %a %s` into
+/etc/hosts.allow. That only works for daemons built against libwrap, and
+OpenSSH dropped libwrap support in 6.7 (2014). 26.04's openssh-server
+1:10.2p1 does not depend on libwrap0, so nothing reads those lines. This is
+not a 26.04 regression - it has not worked for a long time - but if the intent
+is to actually geo-restrict SSH it needs a different mechanism (ufw/ipset
+rules, or sshd Match blocks). The nginx geo-blocking of the admin panel is
+separate and unaffected.
+
+**Things that looked broken but are not**: /etc/default/postgrey and
+/etc/default/rkhunter are not shipped in their .debs but are created by ucf at
+install time, so the editconf.py calls still work. rsyslog still ucf-installs
+50-default.conf with `mail.* -/var/log/mail.log`, so mail.log and syslog still
+exist. /etc/rsyslog.d/20-ufw.conf still ships with ufw.
 
 ---
 
