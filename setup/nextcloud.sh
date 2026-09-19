@@ -25,7 +25,7 @@ CLOUD_DIR=$INSTALL_DIR/cloud
 # * The hash is the SHA1 hash of the ZIP package, which you can find by just running this script and
 #   copying it from the error message when it doesn't match what is below.
 nextcloud_ver=34.0.4
-nextcloud_hash=2a49b0cd4ebcdea70df46260104e949e29f937ba
+nextcloud_hash=3912a29d610e159439b9b0962c169f207df3bf0b
 
 # Nextcloud apps
 # --------------
