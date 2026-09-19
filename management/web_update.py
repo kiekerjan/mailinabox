@@ -102,6 +102,12 @@ def do_web_update(env):
 	else:
 		template1 = re.sub("[ \t]*# SNAPPYMAIL DIRECTIVES HERE *\n", "", template1)
 
+	if os.path.exists("/usr/local/share/tachyonmail/tachyon"):
+		# Insert the tachyonmail configuration
+		template1 = re.sub("[ \t]*# TACHYONMAIL DIRECTIVES HERE *\n", open(os.path.join(os.path.dirname(__file__), "../conf/nginx-tachyonmail.conf")).read(), template1)
+	else:
+		template1 = re.sub("[ \t]*# TACHYONMAIL DIRECTIVES HERE *\n", "", template1)
+
 	# Add the PRIMARY_HOST configuration first so it becomes nginx's default server.
 	nginx_conf += make_domain_config(env['PRIMARY_HOSTNAME'], [template0, template1, template2], ssl_certificates, env)
 
@@ -109,7 +115,7 @@ def do_web_update(env):
 	has_root_proxy_or_redirect = get_web_domains_with_root_overrides(env)
 	web_domains_not_redirect = get_web_domains(env, include_www_redirects=False)
 	web_only_domains = get_www_domains(get_mail_domains(env), env)
-	
+
 	for domain in get_web_domains(env):
 		if domain == env['PRIMARY_HOSTNAME']:
 			# PRIMARY_HOSTNAME is handled above.
@@ -171,7 +177,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 
 	# Add in any user customizations in YAML format.
 	hsts = "yes"
-	
+
 	nginx_conf_custom_fn = os.path.join(env["STORAGE_ROOT"], "www/custom.yaml")
 	if os.path.exists(nginx_conf_custom_fn):
 		with open(nginx_conf_custom_fn, encoding='utf-8') as f:
@@ -201,7 +207,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 
 				nginx_conf_extra += f"\tlocation {path} {{"
 				nginx_conf_extra += f"\n\t\tproxy_pass {url};"
-				
+
 				proxy_for_photoprism = False
 				proxy_for_immich = False
 				for ptpath, pttype in yaml.get("proxytypes", {}).items():
@@ -210,6 +216,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 							proxy_for_photoprism = True
 						elif pttype == "immich":
 							proxy_for_immich = True
+
 				nginx_conf_geoblock = False
 				if yaml.get("geoblock", {}):
 					nginx_conf_geoblock = True
@@ -251,7 +258,7 @@ def make_domain_config(domain, templates, ssl_certificates, env):
 		nginx_conf_extra += '\tadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;\n'
 	elif hsts == "preload":
 		nginx_conf_extra += '\tadd_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;\n'
-		
+
 	nginx_conf_extra += '\tadd_header X-Frame-Options "SAMEORIGIN" always;\n'
 	nginx_conf_extra += "\tadd_header X-Content-Type-Options nosniff;\n"
 	nginx_conf_extra += "\tadd_header Content-Security-Policy-Report-Only \"default-src 'self'; font-src *;img-src * data:; script-src *; style-src *;frame-ancestors 'self'\";\n"
