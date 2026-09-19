@@ -275,9 +275,12 @@ looked like they would break do not (see the notes at the end).
       /etc/hosts.allow nor /etc/hosts.deny exists, and the `sed -i` there
       aborted the whole run under `set -e`. Confirm both files exist
       afterwards and contain the sshd lines.
-- [ ] **SSH geo-filtering is almost certainly inert** - see the note below.
-      Decide whether to keep or remove it. To check on the running box:
-      `ldd $(which sshd) | grep -i wrap` (expect no output).
+- [ ] SSH geo-filtering still works. OpenSSH 9.8+ split sshd, so the TCP
+      Wrappers check now lives in sshd-session:
+      `ldd /usr/lib/openssh/sshd-session | grep -i wrap` (expect libwrap.so.0).
+      Then connect from a blocked country and confirm a
+      "DENY geoipblocked connection from <ip>" line in syslog and a
+      geoipblockssh ban in `fail2ban-client status geoipblockssh`.
 - [ ] ipset blacklist: `ipset list -n`, `iptables -L -n | head`, and the
       cron job in /etc/cron.d/miab-ipset-blacklist runs clean.
 - [ ] fail2ban 1.1.0 starts and all jails load: `fail2ban-client status`.
@@ -310,15 +313,15 @@ looked like they would break do not (see the notes at the end).
 
 ## Notes carried out of step 8
 
-**SSH geo-filtering via hosts.allow is dead code.** `geoiptoolssetup.sh`
-installs `sshd: ALL: aclexec /usr/local/bin/geoipfilter.sh %a %s` into
-/etc/hosts.allow. That only works for daemons built against libwrap, and
-OpenSSH dropped libwrap support in 6.7 (2014). 26.04's openssh-server
-1:10.2p1 does not depend on libwrap0, so nothing reads those lines. This is
-not a 26.04 regression - it has not worked for a long time - but if the intent
-is to actually geo-restrict SSH it needs a different mechanism (ufw/ipset
-rules, or sshd Match blocks). The nginx geo-blocking of the admin panel is
-separate and unaffected.
+**SSH geo-filtering keeps working, but the binary to check moved.** Debian
+and Ubuntu carry a TCP Wrappers patch for OpenSSH. In 24.04 /usr/sbin/sshd
+itself linked libwrap.so.0; since the OpenSSH 9.8 split the per-connection
+work happens in /usr/lib/openssh/sshd-session, and that is the binary linking
+libwrap and importing hosts_access on 26.04. openssh-server still depends on
+libwrap0 (>= 7.6-4~). So hosts.allow/aclexec, geoipfilter.sh and the
+geoipblockssh fail2ban jail all still function; only the diagnostic command
+changes. Note that this rests on a distro patch, not upstream OpenSSH, so it
+is worth re-checking at the next LTS.
 
 **Things that looked broken but are not**: /etc/default/postgrey and
 /etc/default/rkhunter are not shipped in their .debs but are created by ucf at
