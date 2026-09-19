@@ -22,7 +22,7 @@ source /etc/mailinabox.conf # load global vars
 echo "Installing Roundcube (webmail)..."
 apt_install \
 	dbconfig-common \
-	php"${PHP_VER}"-cli php"${PHP_VER}"-sqlite3 php"${PHP_VER}"-intl php"${PHP_VER}"-common php"${PHP_VER}"-curl php"${PHP_VER}"-imap \
+	php"${PHP_VER}"-cli php"${PHP_VER}"-sqlite3 php"${PHP_VER}"-intl php"${PHP_VER}"-common php"${PHP_VER}"-curl \
 	php"${PHP_VER}"-gd php"${PHP_VER}"-pspell php"${PHP_VER}"-mbstring php"${PHP_VER}"-xml libjs-jquery libjs-jquery-mousewheel libmagic1 \
 	sqlite3
 
@@ -32,22 +32,20 @@ apt_install \
 # For the latest versions, see:
 #   https://github.com/roundcube/roundcubemail/releases
 #   https://github.com/mfreiholz/persistent_login/commits/master
-#   https://github.com/stremlau/html5_notifier/commits/master
 #   https://github.com/mstilkerich/rcmcarddav/releases
 #   https://github.com/johndoh/roundcube-contextmenu
 #   https://github.com/alexandregz/twofactor_gauthenticator
 # The easiest way to get the package hashes is to run this script and get the hash from
 # the error message.
-VERSION=1.6.19
-HASH=d30d11f91857b1962879e06a19ef217dceeb506c
+VERSION=1.7.4
+HASH=c78db73a8c1699e77879ec8352c9fdb26067d4c1
 PERSISTENT_LOGIN_VERSION=bde7b6840c7d91de627ea14e81cf4133cbb3c07a # version 5.3
-HTML5_NOTIFIER_VERSION=68d9ca194212e15b3c7225eb6085dbcf02fd13d7   # version 0.6.4+
 CARDDAV_VERSION=5.1.3
 CARDDAV_HASH=7cef0bde5b8cee2a33f8033a0c8c9ad888abccb3
 CONTEXT_MENU_VERSION=dd13a92a9d8910cce7b2234f45a0b2158214956c     # version 3.3.1
 TWOFACT_COMMIT=8012e8ef63daffa6ea5d8ad7d4f4657f31182096      # master @ 09-02-2025
 
-UPDATE_KEY=$VERSION:$PERSISTENT_LOGIN_VERSION:$HTML5_NOTIFIER_VERSION:$CARDDAV_VERSION:$CONTEXT_MENU_VERSION:$TWOFACT_COMMIT
+UPDATE_KEY=$VERSION:$PERSISTENT_LOGIN_VERSION:$CARDDAV_VERSION:$CONTEXT_MENU_VERSION:$TWOFACT_COMMIT
 
 # paths that are often reused.
 RCM_DIR=/usr/local/lib/roundcubemail
@@ -80,11 +78,13 @@ if [ $needs_update == 1 ]; then
 	mv /usr/local/lib/roundcubemail-$VERSION/ $RCM_DIR
 	rm -f /tmp/roundcube.tgz
 
+	# Roundcube 1.7 exposes public_html/installer.php directly under the
+	# document root. We never use the web installer, and installer.php 404s
+	# by itself when installer/ is absent, so just remove it.
+	rm -rf ${RCM_DIR}/installer
+
 	# install roundcube persistent_login plugin
 	git_clone https://github.com/mfreiholz/Roundcube-Persistent-Login-Plugin.git $PERSISTENT_LOGIN_VERSION '' ${RCM_PLUGIN_DIR}/persistent_login
-
-	# install roundcube html5_notifier plugin
-	git_clone https://github.com/stremlau/html5_notifier.git $HTML5_NOTIFIER_VERSION '' ${RCM_PLUGIN_DIR}/html5_notifier
 
 	# download and verify the full release of the carddav plugin. Can't use git_clone because repository does not include all dependencies
 	wget_verify \
@@ -145,7 +145,7 @@ cat > $RCM_CONFIG <<EOF;
 \$config['product_name'] = '$PRIMARY_HOSTNAME Webmail';
 \$config['cipher_method'] = 'AES-256-CBC'; # persistent login cookie and potentially other things
 \$config['des_key'] = '$SECRET_KEY'; # 37 characters -> ~256 bits for AES-256, see above
-\$config['plugins'] = array('html5_notifier', 'archive', 'zipdownload', 'password', 'managesieve', 'jqueryui', 'persistent_login', 'carddav', 'markasjunk', 'contextmenu', 'twofactor_gauthenticator');
+\$config['plugins'] = array('newmail_notifier', 'archive', 'zipdownload', 'password', 'managesieve', 'jqueryui', 'persistent_login', 'carddav', 'markasjunk', 'contextmenu', 'twofactor_gauthenticator');
 \$config['skin'] = 'elastic';
 \$config['login_autocomplete'] = 2;
 \$config['login_username_filter'] = 'email';
@@ -227,6 +227,4 @@ sed -i.miabold 's/^[^#]\+.\+PRAGMA journal_mode = WAL.\+$/#&/' \
 # Database should exist, created by migration script
 hide_output sqlite3 "$STORAGE_ROOT/mail/roundcube/roundcube.sqlite" 'PRAGMA journal_mode=WAL;'
 
-# Enable PHP modules.
-phpenmod -v php imap
 restart_service php$PHP_VER-fpm
