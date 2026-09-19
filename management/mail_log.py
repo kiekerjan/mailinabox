@@ -58,7 +58,7 @@ SCAN_IN = True  # Incoming email
 SCAN_DOVECOT_LOGIN = True  # Dovecot Logins
 SCAN_GREY = False  # Greylisted email
 SCAN_BLOCKED = False  # Rejected email
-
+SCAN_TLS = False # TLS Statistics
 
 def scan_files(collector):
     """ Scan files until they run out or the earliest date is reached """
@@ -115,6 +115,7 @@ def scan_mail_log(env):
         "postgrey": {},  # Data about greylisting of email addresses
         "rejected": OrderedDict(),  # Emails that were blocked
         "known_addresses": None,  # Addresses handled by the Miab installation
+        "tls_statistics": OrderedDict(), # TLS Statistics
         "other-services": set(),
     }
 
@@ -322,6 +323,31 @@ def scan_mail_log(env):
             latest=[u["latest"] for u in data.values()],
         )
 
+
+    # TODO
+    if collector["tls_statistics"]:
+        msg = "TLS Statistics {:%Y-%m-%d %H:%M:%S} and {:%Y-%m-%d %H:%M:%S}"
+        print_header(msg.format(START_DATE, END_DATE))
+
+        # TODO Is sorting needed?
+        data = OrderedDict(sorted(collector["tls_statistics"].items(), key=email_sort))
+
+        # TODO Needs updating to understand the tls_statistics collector
+        print_user_table(
+            data.keys(),
+            data=[
+                ("blocked", [len(u["blocked"]) for u in data.values()]),
+            ],
+            sub_data=[
+                ("blocked emails", rejects),
+            ],
+            earliest=[u["earliest"] for u in data.values()],
+            latest=[u["latest"] for u in data.values()],
+        )
+    # TODO
+
+
+
     if collector["other-services"] and VERBOSE:
         print_header("Other services")
         print("The following unknown services were found in the log file.")
@@ -373,6 +399,8 @@ def scan_mail_log_line(line, collector):
     if service == "postfix/submission/smtpd":
         if SCAN_OUT:
             scan_postfix_submission_line(date, log, collector)
+        if SCAN_TLS:
+            scan_postfix_tls(date, log, collector, "submission/smtpd")
     elif service == "postfix/lmtp":
         if SCAN_IN:
             scan_postfix_lmtp_line(date, log, collector)
@@ -385,9 +413,14 @@ def scan_mail_log_line(line, collector):
     elif service == "postfix/smtpd":
         if SCAN_BLOCKED:
             scan_postfix_smtpd_line(date, log, collector)
+        if SCAN_TLS:
+            scan_postfix_tls(date, log, collector, "smtpd")
+    elif service == "postfix/smtp":
+        if SCAN_TLS:
+            scan_postfix_tls(date, log, collector, "smtp")
     elif service in {"postfix/qmgr", "postfix/pickup", "postfix/cleanup", "postfix/scache",
-                     "spampd", "postfix/anvil", "postfix/master", "dkimpy", "postfix/lmtp",
-                     "postfix/tlsmgr", "anvil"}:
+                     "spampd", "postfix/anvil", "postfix/master", "dkimpy", "postfix/tlsmgr",
+                     "anvil"}:
         # nothing to look at
         return True
     else:
@@ -589,6 +622,10 @@ def scan_postfix_submission_line(date, log, collector):
 
             # Also log this as a login.
             add_login(user, date, "smtp", client, collector)
+
+
+def scan_postfix_tls(date, log, collector, service):
+    pass
 
 # Utility functions
 
@@ -826,6 +863,8 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("-b", "--blocked", help="Scan for blocked emails.",
                         action="store_true")
+    parser.add_argument("-c", "--tls-statistics", help="Collect SMTP TLS Statistics.",
+                        action="store_true")
 
     parser.add_argument("-t", "--timespan", choices=TIME_DELTAS.keys(), default='today',
                         metavar='<time span>',
@@ -858,7 +897,7 @@ if __name__ == "__main__":
 
     VERBOSE = args.verbose
 
-    if args.received or args.sent or args.logins or args.grey or args.blocked:
+    if args.received or args.sent or args.logins or args.grey or args.blocked or args.tls_statistics:
         SCAN_IN = args.received
         if not SCAN_IN:
             print("Ignoring received emails")
@@ -878,6 +917,10 @@ if __name__ == "__main__":
         SCAN_BLOCKED = args.blocked
         if SCAN_BLOCKED:
             print("Showing blocked emails")
+        
+        SCAN_TLS = args.tls_statistics
+        if SCAN_TLS:
+            print("Collecting SMTP TLS Statistics")
 
     if args.users is not None:
         FILTERS = args.users.strip().split(',')
