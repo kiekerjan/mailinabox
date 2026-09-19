@@ -372,9 +372,9 @@ systemctl restart unbound
 
 unbound-control -q status
 
-# Only reset the local dns settings if unbound server is running, otherwise we'll 
+# Only reset the local dns settings if unbound server is running, otherwise we'll
 # up with a system with an unusable internet connection
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
     echo "Recursive DNS server not active"
     exit 1
 fi
@@ -420,14 +420,15 @@ cat conf/fail2ban/jails.conf \
 cp -f conf/fail2ban/filter.d/* /etc/fail2ban/filter.d/
 cp -f conf/fail2ban/jail.d/* /etc/fail2ban/jail.d/
 
-# Set php version for the snappymail filter
+# Set php version for the webmail filters
 sed -i.backup 's/REPLACE_WITH_PHP_VERSION/'$PHP_VER'/g' /etc/fail2ban/filter.d/snappymail-fpm-journal.conf
+sed -i.backup 's/REPLACE_WITH_PHP_VERSION/'$PHP_VER'/g' /etc/fail2ban/filter.d/tachyonmail-fpm-journal.conf
 
 # If SSH port is not default, add the not default to the ssh jail
 if [ ! -z "$SSH_PORT" ]; then
 	# create backup copy
 	cp -f /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.miab_old
-	
+
 	if [ "$SSH_PORT" != "22" ]; then
 		# Add alternative SSH port
 		sed -i "s/port[ ]\+=[ ]\+ssh$/port = ssh,$SSH_PORT/g" /etc/fail2ban/jail.conf

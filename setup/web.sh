@@ -147,6 +147,26 @@ if [ -d /usr/local/share/snappymail/snappymail ]; then
 	management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf -c ';' \
 		user=snappymail_php \
 		listen=/run/php/php"$PHP_VER"-fpm-snappymail.sock
+else
+    rm -f /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf
+fi
+
+# Configure Tachyonmail
+if [ -d /usr/local/share/tachyonmail/tachyon ]; then
+	cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/pool.d/tachyonmail.conf
+
+	sed -i "s/\[www\]/\[tachyonmail\]/" /etc/php/"$PHP_VER"/fpm/pool.d/tachyonmail.conf
+
+	if [ ! id -u tachyonmail_php >/dev/null 2>&1 ]; then
+		adduser --system --disabled-login --shell /bin/false --no-create-home tachyonmail_php
+		usermod -a -G www-data tachyonmail_php
+	fi
+
+	management/editconf.py /etc/php/"$PHP_VER"/fpm/pool.d/tachyonmail.conf -c ';' \
+		user=tachyonmail_php \
+		listen=/run/php/php"$PHP_VER"-fpm-tachyonmail.sock
+else
+	rm -f /etc/php/"$PHP_VER"/fpm/pool.d/tachyonmail.conf
 fi
 
 # Configure Roundcube
