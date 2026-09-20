@@ -239,12 +239,6 @@ dd if=/dev/random of=/dev/urandom bs=1 count=32 2> /dev/null
 # This is supposedly sufficient. But because we're not sure if hardware entropy
 # is really any good on virtualized systems, we'll also seed from Ubuntu's
 # pollinate servers.
-#
-# 26.04 ships pollinate with an AppArmor profile and a systemd unit that runs
-# it as the pollinate user, which owns /var/cache/pollinate. Running it as root
-# fails its own writability check. Seeding is belt and braces on top of the dd
-# above, so a failure here must not stop setup.
-
 if [ -x /usr/bin/pollinate ]; then
 	if ! sudo -u pollinate /usr/bin/pollinate -q -r; then
 		echo "Note: could not seed from Ubuntu's entropy servers; continuing."
