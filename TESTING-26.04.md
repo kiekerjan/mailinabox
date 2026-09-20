@@ -32,6 +32,10 @@ folders, issuing a certificate, restoring a backup or rebooting.
       `dpkg -l systemd-timesyncd` → not installed;
       `chronyc tracking` shows a sane offset;
       `chronyc -N sources` shows the Ubuntu NTS pool.
+- [ ] Entropy seeding does not abort setup: `sudo -u pollinate /usr/bin/pollinate -q -r`
+      exits 0. 26.04 added an AppArmor profile for pollinate and a unit that
+      runs it as the pollinate user; as root it fails its own writability check
+      on /var/cache/pollinate. A failure here is now only a warning.
 - [ ] duplicity can import the distro-packaged SDKs:
       `python3 -c "import b2sdk, boto3; print(b2sdk.__version__, boto3.__version__)"`
 - [ ] Actually run a backup to B2 and to S3 from the admin panel, not just the
