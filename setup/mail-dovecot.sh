@@ -71,7 +71,7 @@ management/editconf.py /etc/dovecot/conf.d/10-mail.conf \
 
 # The package ships an active mbox config; mail_inbox_path would still point
 # INBOX at /var/mail, so clear it.
-management/editconf.py -e /etc/dovecot/conf.d/10-mail.conf \
+management/editconf.py /etc/dovecot/conf.d/10-mail.conf -e \
 	mail_inbox_path=
 
 # Create, subscribe, and mark as special folders: INBOX, Drafts, Sent, Trash, Spam and Archive.
