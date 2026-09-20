@@ -109,9 +109,6 @@ fi
 # come from there and minimal Ubuntu installs may have it turned off.
 hide_output add-apt-repository -y universe
 
-# PHP 8.5 is the stock PHP in Ubuntu 26.04 (php8.5 8.5.4-0ubuntu1, main),
-# so no third-party PHP repository is required.
-
 # ### Minimize installations
 cat > /etc/apt/apt.conf.d/90norecommends <<EOF;
 APT::Install-Recommends "false";

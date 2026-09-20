@@ -23,10 +23,10 @@ Functionality changes and additions
 * If you want this box to handle the DNS entries, that's also possible.
   Edit settings.yaml under the user-data folder to configure.
 * Add some munin plugins
-* Update nextcloud to 33.0.5
+* Update nextcloud to 34
   And updated calendar and contacts apps
 * Add nextcloud notes app
-* Update roundcube to 1.6.16
+* Update roundcube to 1.7
 * Add roundcube context menu plugin
 * Add roundcube two factor authentication plugin
 * Option to use shorter TTL values in the DNS server  

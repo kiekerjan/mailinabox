@@ -35,8 +35,7 @@ if [ ! -f /etc/geoiplookup.conf ]; then
     cp -f conf/geoiplookup.conf /etc/
 fi
 
-# Add sshd entries for hosts.deny and hosts.allow. No package ships these
-# files on 26.04, and the sed below would abort setup if they are missing.
+# Add sshd entries for hosts.deny and hosts.allow
 touch /etc/hosts.allow /etc/hosts.deny
 
 if grep -Fxq "sshd: ALL" /etc/hosts.deny

@@ -53,9 +53,8 @@ management/editconf.py /etc/dovecot/conf.d/10-master.conf \
 # The inotify `max_user_instances` default is 128, which constrains
 # the total number of watched (IMAP IDLE push) folders by open connections.
 # See http://www.dovecot.org/pipermail/dovecot/2013-March/088834.html.
-# Ubuntu 26.04 no longer ships /etc/sysctl.conf, so we drop our setting into
-# /etc/sysctl.d/ instead, and apply it right away rather than at the next
-# boot. Test with `cat /proc/sys/fs/inotify/max_user_instances`.
+# Drop our setting into /etc/sysctl.d/, and apply it right away rather than
+# at the next boot. Test with `cat /proc/sys/fs/inotify/max_user_instances`.
 cat > /etc/sysctl.d/60-mailinabox.conf << EOF;
 fs.inotify.max_user_instances=1024
 EOF
@@ -78,17 +77,13 @@ management/editconf.py -e /etc/dovecot/conf.d/10-mail.conf \
 # Create, subscribe, and mark as special folders: INBOX, Drafts, Sent, Trash, Spam and Archive.
 cp conf/dovecot-mailboxes.conf /etc/dovecot/conf.d/15-mailboxes.conf
 
-# Quota. 2.4 dropped plugin {}: a quota root is a named filter and the
-# quota-status replies are global. Keep the Maildir++ driver -- the management
-# daemon reads maildirsize to report usage. Per-user limits arrive from the
-# userdb as userdb_quota_storage_size (setup/mail-users.sh).
+# Configure quota support
 cat > /etc/dovecot/conf.d/99-local-quota.conf << EOF;
 quota miab {
   driver = maildir
 }
 
-# Let a single delivery exceed the quota by this much. Dovecot 2.4 only
-# accepts an absolute size here; in 2.3 this was quota_grace = 10%%.
+# Let a single delivery exceed the quota by this much.
 quota_storage_grace = 100 M
 
 quota_status_success = DUNNO
@@ -131,10 +126,6 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 # are made available (IMAPS on port 993; POP3S on port 995).
 sed -i "s/#port = 143/port = 0/" /etc/dovecot/conf.d/10-master.conf
 sed -i "s/#port = 110/port = 0/" /etc/dovecot/conf.d/10-master.conf
-
-# 2.4 ships no conf.d/20-{imap,pop3,lmtp}.conf; those settings moved to
-# 99-local.conf below. pop3_uidl_format is dropped: it used the removed
-# one-letter %variables, and 2.4 already defaults to UIDVALIDITY/UID.
 
 # ### LDA (LMTP)
 

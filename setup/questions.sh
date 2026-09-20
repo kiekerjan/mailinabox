@@ -14,9 +14,6 @@ if [ -z "${NONINTERACTIVE:-}" ]; then
 			python3-email-validator python3-dnspython || exit 1
 	fi
 
-	# email_validator and dnspython come from the distro here; setup/management.sh
-	# installs its own copies inside the virtualenv.
-
 	message_box "Mail-in-a-Box Installation" \
 		"Hello and thanks for deploying a Mail-in-a-Box!
 		\n\nI'm going to ask you a few questions.
