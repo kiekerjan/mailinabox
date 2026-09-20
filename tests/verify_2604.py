@@ -729,6 +729,25 @@ def c_geoip_ssh():
     return (FAIL if problems else PASS), "; ".join(problems) or "hosts.allow + libwrap ok"
 
 
+@check(8, "postfix-tlspol built, running and reachable")
+def c_tlspol():
+    problems = []
+    if not os.path.exists("/usr/bin/postfix-tlspol"):
+        problems.append("binary missing (Go build did not run)")
+    rc, out = run("systemctl", "is-active", "postfix-tlspol.service")
+    if out.strip() != "active":
+        problems.append("service " + (out.strip() or "state unknown"))
+    if not port_open(8642, "127.0.0.1"):
+        problems.append("nothing listening on 127.0.0.1:8642")
+    rc, out = run("postconf", "-h", "smtp_tls_policy_maps")
+    maps = out.strip()
+    if "8642" not in maps:
+        problems.append("smtp_tls_policy_maps=" + (maps or "<empty>"))
+    elif problems:
+        problems.append("policy maps point at a dead socketmap, outbound mail will defer")
+    return (FAIL if problems else PASS), "; ".join(problems) or "socketmap on 127.0.0.1:8642"
+
+
 @check(8, "ucf-created /etc/default files exist")
 def c_etc_default():
     missing = [f for f in ("/etc/default/postgrey", "/etc/default/rkhunter")

@@ -325,6 +325,14 @@ looked like they would break do not (see the notes at the end).
 - [ ] dmarc-report-viewer service starts and the UI loads.
 - [ ] munin graphs render (munin 2.0.76, same series as 24.04).
 - [ ] smartmontools: `/etc/default/smartmontools` handling still applies.
+- [ ] postfix-tlspol is built and answering. The build needs the Go
+      toolchain (golang-go, now installed by mail-postfix.sh) and network
+      access to proxy.golang.org: go.mod pins toolchain go1.27.1 while 26.04
+      ships Go 1.26.0, so the build downloads its own toolchain. Check
+      `systemctl status postfix-tlspol`, `ss -lnt | grep 8642`, and
+      `postmap -q gmail.com socketmap:inet:127.0.0.1:8642:QUERY`. Then send
+      one outbound message: if the socketmap is dead, postfix defers
+      everything.
 
 ## Step 9 - full run
 
