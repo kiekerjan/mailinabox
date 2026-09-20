@@ -438,7 +438,7 @@ postmap /etc/postfix/helo_access
 # prioritizing DANE if it is present.
 
 # install the software
-git_clone https://github.com/Zuplu/postfix-tlspol v1.10.0 '' /tmp/postfix-tlspol
+git_clone https://github.com/Zuplu/postfix-tlspol v1.14.0 '' /tmp/postfix-tlspol
 (cd /tmp/postfix-tlspol; scripts/build.sh systemd;) || exit 0
 rm -rf /tmp/postfix-tlspol
 
