@@ -77,6 +77,11 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
 - [ ] `doveconf -n` runs clean — **no "unknown setting" and no deprecation
       warnings**. This is the single most important check of the whole port.
       Diff it against a saved copy after any later change.
+      Setup now runs `doveconf -n` itself after each dovecot restart in
+      mail-dovecot.sh and dovecot-fts-flatcurve.sh, so a config that does
+      not parse aborts the run at the script that caused it. If setup
+      completes the config at least parsed; everything below is about
+      whether it parsed into what we meant.
 - [ ] `journalctl -u dovecot -b` has no config complaints at startup.
 - [ ] Mail lands in the right place: send a message and confirm it appears in
       `$STORAGE_ROOT/mail/mailboxes/<domain>/<user>/new/`, and that
@@ -185,9 +190,18 @@ restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
 
 ## Step 5 - flatcurve full text search
 
-- [ ] `doveconf -n` shows `fts = yes` and `fts_flatcurve = yes` in the global
-      `mail_plugins` (these come from the package's own
-      conf.d/90-fts-flatcurve.conf, not from us).
+- [ ] **[unverified] The global plugin list is complete.** `doveconf -n` must
+      show **all three** of `quota`, `fts` and `fts_flatcurve` under the global
+      `mail_plugins`. Three files set that map: the flatcurve package's
+      90-fts-flatcurve.conf, our 99-local.conf and our 99-miab-plugins.conf.
+      conf.d is parsed in ASCII order and '-' sorts before '.', so
+      99-miab-plugins.conf is parsed last and restates the full list. That is
+      deliberate: it is not established whether 2.4 merges or replaces two
+      same-scope boolean maps, and restating makes it correct either way.
+      If only `quota` appears, maps do NOT merge, and the protocol-scoped maps
+      in step 4 need the same treatment.
+      Then prove it is not cosmetic: run a body search and get a hit, and
+      re-check quota enforcement from step 3.
 - [ ] Indexing actually runs: after setup, `doveadm index -A -q '*'` queues
       work and `/var/log/mail.log` shows indexer-worker activity. Index files
       appear under each mailbox.
