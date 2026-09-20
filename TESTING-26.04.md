@@ -304,10 +304,23 @@ looked like they would break do not (see the notes at the end).
 ## Step 9 - full run
 
 - [ ] `setup/start.sh` completes end to end with no manual intervention.
-- [ ] `management/status_checks.py` output is clean or only shows expected items.
-- [ ] Round trip: send mail in, read over IMAP, reply out, check DKIM/SPF/DMARC
-      pass at an external checker.
-- [ ] Reboot the box and confirm every service comes back.
+- [ ] **[unverified]** `vagrant up` works. The box name
+      `cloud-image/ubuntu-26.04` follows Canonical's current naming but could
+      not be checked from here (Vagrant Cloud is unreachable). If it 404s,
+      `vagrant box search ubuntu` for the right name.
+- [ ] Timezone: on first setup you are asked (interactive) or it is set to
+      Etc/UTC (NONINTERACTIVE), `timedatectl` agrees, and re-running
+      `mailinabox` does NOT ask again. tzdata deletes /etc/timezone on 26.04,
+      so that file is no longer the marker.
+- [ ] `management/status_checks.py` is clean, or only shows expected items.
+- [ ] Round trip: send mail in, read over IMAP, reply out, and check
+      DKIM/SPF/DMARC pass at an external checker.
+- [ ] Backup runs and, more importantly, a restore from it works.
+- [ ] Reboot and confirm every service comes back, including the ipset
+      blacklist (ipset-at-boot) and stunnel if used.
+- [ ] Re-run `setup/start.sh` on the finished box: it must be idempotent and
+      must not undo anything or ask questions again.
+- [ ] `tests/` suite: test_mail.py, test_dns.py, test_smtp_server.py.
 
 ---
 

@@ -16,7 +16,7 @@ Functionality changes and additions
   enable postfix filters, lengthen bantime and findtime
 * Add fail2ban jails for both above mentioned geoipblocking filters
 * Add fail2ban filters for web scanners and badbots
-* Add xapian full text searching to dovecot (from https://github.com/grosjo/fts-xapian)
+* Add full text searching to dovecot using flatcurve
 * Add rkhunter for malware scanning
 * Configure domain names for which only www will be hosted  
   Edit settings.yaml under the user-data folder to configure. The box will handle incoming traffic asking for these domain names. The DNS entries are entered in an external DNS provider!

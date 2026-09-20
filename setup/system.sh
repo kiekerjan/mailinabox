@@ -172,34 +172,23 @@ fi
 
 # ### Set the system timezone
 #
-# Some systems are missing /etc/timezone, which we cat into the configs for
-# Z-Push and ownCloud, so we need to set it to something. Daily cron tasks
-# like the system backup are run at a time tied to the system timezone, so
-# letting the user choose will help us identify the right time to do those
-# things (i.e. late at night in whatever timezone the user actually lives
-# in).
+# Daily cron tasks like the system backup run at a time tied to the system
+# timezone, so letting the user choose helps us pick a sensible hour.
 #
-# However, changing the timezone once it is set seems to confuse fail2ban
-# and requires restarting fail2ban (done below in the fail2ban
-# section) and syslog (see #328). There might be other issues, and it's
-# not likely the user will want to change this, so we only ask on first
-# setup.
-if [ -z "${NONINTERACTIVE:-}" ]; then
-	if [ ! -f /etc/timezone ] || [ -n "${FIRST_TIME_SETUP:-}" ]; then
-		# If the file is missing or this is the user's first time running
-		# Mail-in-a-Box setup, run the interactive timezone configuration
-		# tool.
+# Changing the timezone once it is set confuses fail2ban and syslog (see #328),
+# so we only ask on first setup.
+#
+# tzdata on 26.04 deletes /etc/timezone ("Removing now unused /etc/timezone"),
+# so it can no longer be used to detect whether a timezone has been chosen,
+# nor read back. timedatectl is the source of truth now.
+if [ -n "${FIRST_TIME_SETUP:-}" ]; then
+	if [ -z "${NONINTERACTIVE:-}" ]; then
 		dpkg-reconfigure tzdata
-		restart_service rsyslog
-	fi
-else
-	# This is a non-interactive setup so we can't ask the user.
-	# If /etc/timezone is missing, set it to UTC.
-	if [ ! -f /etc/timezone ]; then
+	else
 		echo "Setting timezone to UTC."
-		echo "Etc/UTC" > /etc/timezone
-		restart_service rsyslog
+		hide_output timedatectl set-timezone Etc/UTC
 	fi
+	restart_service rsyslog
 fi
 
 # ### Seed /dev/urandom
