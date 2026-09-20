@@ -264,3 +264,6 @@ ufw_allow sieve
 
 # Restart services.
 restart_service dovecot
+
+# Fail here rather than at first delivery if the config does not parse.
+hide_output doveconf -n

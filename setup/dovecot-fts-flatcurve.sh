@@ -53,10 +53,22 @@ service indexer-worker {
 }
 EOF
 
+# The package's 90-fts-flatcurve.conf and our 99-local.conf each set a
+# global mail_plugins map. Restate the complete list in a file that sorts
+# after both, so it holds whether 2.4 merges or replaces same-scope maps.
+cat > /etc/dovecot/conf.d/99-miab-plugins.conf << EOF;
+mail_plugins {
+  quota = yes
+  fts = yes
+  fts_flatcurve = yes
+}
+EOF
+
 # Install cronjobs to keep FTS up to date.
 hide_output install -m 755 conf/cron/miab_dovecot /etc/cron.daily/
 
 restart_service dovecot
+hide_output doveconf -n
 
 # Drop index entries for expunged mail, then queue indexing of everything that
 # is missing. -q hands the work to the indexer process in the background.
