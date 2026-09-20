@@ -235,6 +235,8 @@ imapsieve_from Junk {
 }
 EOF
 
+restart_service dovecot
+
 # Precompile: the mail process cannot write to /usr/lib/dovecot/sieve.
 sievec /usr/lib/dovecot/sieve/report-spam.sieve
 sievec /usr/lib/dovecot/sieve/report-ham.sieve

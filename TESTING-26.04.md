@@ -182,6 +182,12 @@ folders, issuing a certificate, restoring a backup or rebooting.
         learns as spam.
 - [ ] Roundcube's markasjunk button ends up doing the same thing as a manual
       drag to Spam.
+- [ ] Any setup script that writes Dovecot config and then runs `sievec` or
+      `doveadm` restarts Dovecot in between. 2.4 tools take their settings from
+      the running config service on `/run/dovecot/config` and only fall back to
+      reading `/etc/dovecot` when nothing is listening there, so a conf.d file
+      written moments earlier is invisible to them until Dovecot reloads.
+      `doveconf` reads the files directly and will happily disagree.
 - [ ] Compiled scripts exist and the mail process is not recompiling them on
       every run: `ls -l /usr/lib/dovecot/sieve/report-*.svbin`, and no
       "failed to compile" lines in `/var/log/mail.log`.
