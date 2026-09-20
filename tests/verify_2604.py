@@ -624,6 +624,37 @@ def c_php():
     return (FAIL if problems else PASS), "; ".join(problems) or f"php {ver} with OPcache"
 
 
+@check(6, "php-fpm pools are running and their users exist")
+def c_fpm_pools():
+    import glob
+    problems = []
+    pools = glob.glob("/etc/php/*/fpm/pool.d/*.conf")
+    if not pools:
+        return FAIL, "no pool.d/*.conf found"
+    names = []
+    for f in pools:
+        user = None
+        try:
+            for line in open(f, encoding="utf-8"):
+                line = line.strip()
+                if line.startswith("user") and "=" in line:
+                    user = line.split("=", 1)[1].strip()
+        except OSError as e:
+            problems.append(f"{os.path.basename(f)}: {e}")
+            continue
+        if not user:
+            problems.append(f"{os.path.basename(f)}: no user setting")
+        elif run("id", "-u", user)[0] != 0:
+            problems.append(f"{os.path.basename(f)}: user {user} does not exist")
+        else:
+            names.append(user)
+    ver = pools[0].split("/etc/php/", 1)[1].split("/", 1)[0]
+    rc, out = run("systemctl", "is-active", "php%s-fpm" % ver)
+    if out.strip() != "active":
+        problems.append("php-fpm " + (out.strip() or "state unknown"))
+    return (FAIL if problems else PASS), "; ".join(problems) or ", ".join(sorted(set(names)))
+
+
 @check(6, "Nextcloud 33 or newer, user_external enabled")
 def c_nextcloud():
     occ = "/usr/local/lib/nextcloud/cloud/occ"

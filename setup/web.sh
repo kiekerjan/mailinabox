@@ -124,7 +124,7 @@ cp -f /etc/php/"$PHP_VER"/fpm/pool.d/www.conf.unused /etc/php/"$PHP_VER"/fpm/poo
 
 sed -i "s/\[www\]/\[nextcloud\]/" /etc/php/"$PHP_VER"/fpm/pool.d/nextcloud.conf
 
-if [ ! id -u nextcloud_php >/dev/null 2>&1 ]; then
+if ! id -u nextcloud_php >/dev/null 2>&1; then
 	adduser --system --disabled-login --shell /bin/false --no-create-home nextcloud_php
 	usermod -a -G www-data nextcloud_php
 fi
@@ -139,7 +139,7 @@ if [ -d /usr/local/share/snappymail/snappymail ]; then
 
 	sed -i "s/\[www\]/\[snappymail\]/" /etc/php/"$PHP_VER"/fpm/pool.d/snappymail.conf
 
-	if [ ! id -u snappymail_php >/dev/null 2>&1 ]; then
+	if ! id -u snappymail_php >/dev/null 2>&1; then
 		adduser --system --disabled-login --shell /bin/false --no-create-home snappymail_php
 		usermod -a -G www-data snappymail_php
 	fi
@@ -157,7 +157,7 @@ if [ -d /usr/local/share/tachyonmail/tachyon ]; then
 
 	sed -i "s/\[www\]/\[tachyonmail\]/" /etc/php/"$PHP_VER"/fpm/pool.d/tachyonmail.conf
 
-	if [ ! id -u tachyonmail_php >/dev/null 2>&1 ]; then
+	if ! id -u tachyonmail_php >/dev/null 2>&1; then
 		adduser --system --disabled-login --shell /bin/false --no-create-home tachyonmail_php
 		usermod -a -G www-data tachyonmail_php
 	fi
