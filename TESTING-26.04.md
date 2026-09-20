@@ -8,6 +8,13 @@ anything but documentation while porting — check these first.
 Suggested order: run the whole checklist top to bottom on a fresh box, then
 restore a backup from the 24.04 box and run the mail/quota/sieve sections again.
 
+Run `sudo python3 tests/verify_2604.py` first. It automates about forty of the
+checks below and is read-only -- it sends no mail, writes no config and
+restarts nothing. `-v` shows detail for passing checks, `--step N` limits it to
+one step. Exit status is 1 if anything FAILs. Work through the items it cannot
+do by hand: anything involving delivering mail, moving messages between
+folders, issuing a certificate, restoring a backup or rebooting.
+
 ---
 
 ## Step 1 — base plumbing
