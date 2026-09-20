@@ -153,38 +153,40 @@ fi
 # to the Internet. We need these when we want to have services bind only to
 # the public network interfaces (not loopback, not tunnel interfaces).
 if [ -z "${PRIVATE_IP:-}" ]; then
-	PRIVATE_IP=$(get_default_privateip 4)
-	
-	# No private IP? Use the default if configured
-	if [[ -z "$PRIVATE_IP" ]]; then
-		if [[ -n "${DEFAULT_PRIVATE_IP:-}" ]]; then
-			PRIVATE_IP="$DEFAULT_PRIVATE_IP"
-		fi	
-	# If the found IP is different from the configured IP, ask the user
-	elif [[ "${DEFAULT_PRIVATE_IP:-}" != "$PRIVATE_IP" ]]; then
+	DETECTED_PRIVATE_IP=$(get_default_privateip 4)
+
+	if [[ -z "$DETECTED_PRIVATE_IP" ]]; then
+		# Nothing detected, fall back to what the last run stored.
+		PRIVATE_IP="${DEFAULT_PRIVATE_IP:-}"
+	elif [[ -n "${DEFAULT_PRIVATE_IP:-}" && "${DEFAULT_PRIVATE_IP}" != "$DETECTED_PRIVATE_IP" ]]; then
+		# Only ask when a previous run stored an address and it disagrees.
 		input_box "Private IPv4 Address" \
-			"Enter the private IPv4 address of this machine.
+			"The detected private IPv4 address of this machine differs from the
+			one stored by the previous run (${DEFAULT_PRIVATE_IP}).
 			\n\nPrivate IPv4 address:" \
-			"${DEFAULT_PRIVATE_IP:-}" \
+			"$DETECTED_PRIVATE_IP" \
 			PRIVATE_IP
+		PRIVATE_IP="${PRIVATE_IP:-$DETECTED_PRIVATE_IP}"
+	else
+		PRIVATE_IP="$DETECTED_PRIVATE_IP"
 	fi
 fi
 
 if [ -z "${PRIVATE_IPV6:-}" ]; then
-	PRIVATE_IPV6=$(get_default_privateip 6)
-	
-	# No private IP found? Use the default if configured
-	if [[ -z "$PRIVATE_IPV6" ]]; then
-		if [[ -n "${DEFAULT_PRIVATE_IPV6:-}" ]]; then
-			PRIVATE_IP="$DEFAULT_PRIVATE_IPV6"
-		fi	
-	# If the found IP is different from the configured IP, ask the user
-	elif [[ "${DEFAULT_PRIVATE_IPV6:-}" != "$PRIVATE_IPV6" ]]; then
+	DETECTED_PRIVATE_IPV6=$(get_default_privateip 6)
+
+	if [[ -z "$DETECTED_PRIVATE_IPV6" ]]; then
+		PRIVATE_IPV6="${DEFAULT_PRIVATE_IPV6:-}"
+	elif [[ -n "${DEFAULT_PRIVATE_IPV6:-}" && "${DEFAULT_PRIVATE_IPV6}" != "$DETECTED_PRIVATE_IPV6" ]]; then
 		input_box "Private IPv6 Address" \
-			"Enter the private IPv6 address of this machine.
+			"The detected private IPv6 address of this machine differs from the
+			one stored by the previous run (${DEFAULT_PRIVATE_IPV6}).
 			\n\nPrivate IPv6 address:" \
-			"${DEFAULT_PRIVATE_IPV6:-}" \
+			"$DETECTED_PRIVATE_IPV6" \
 			PRIVATE_IPV6
+		PRIVATE_IPV6="${PRIVATE_IPV6:-$DETECTED_PRIVATE_IPV6}"
+	else
+		PRIVATE_IPV6="$DETECTED_PRIVATE_IPV6"
 	fi
 fi
 
@@ -193,10 +195,11 @@ if [[ -z "$PRIVATE_IP" && -z "$PRIVATE_IPV6" ]]; then
 	echo "I could not determine the IP or IPv6 address of the network interface"
 	echo "for connecting to the Internet. Setup must stop."
 	echo
-	hostname -I
-	route
+	ip -br addr || true
+	ip route || true
+	ip -6 route || true
 	echo
-	exit
+	exit 1
 fi
 
 # Automatic configuration, e.g. as used in our Vagrant configuration.
