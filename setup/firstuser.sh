@@ -58,7 +58,15 @@ if [ -z "$(management/cli.py user)" ]; then
 	
 	# Since this is the first admin user, it'll also be used as receiver for DMARC and SMTP TLS Reports.
 	# Configure the dmarc report viewer as such
-	management/editconf.py /etc/default/dmarc_report IMAP_USER=$EMAIL_ADDR
-	
-	systemd-creds --name=dmarc_report_imap_password encrypt - /etc/default/dmarc_report_password <<< $EMAIL_PW
+	management/editconf.py /etc/default/dmarc_report "IMAP_USER=$EMAIL_ADDR"
+
+	if [ -n "${EMAIL_PW:-}" ]; then
+		systemd-creds --name=dmarc_report_imap_password encrypt - /etc/default/dmarc_report_password <<< "$EMAIL_PW"
+	else
+		echo
+		echo "No IMAP password stored for the DMARC report viewer. It will not start"
+		echo "until you run:"
+		echo "  systemd-creds --name=dmarc_report_imap_password encrypt - /etc/default/dmarc_report_password"
+		echo
+	fi
 fi
