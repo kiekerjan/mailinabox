@@ -18,6 +18,9 @@ fi
 
 # update the ipset
 /usr/local/lib/ipset-blacklist/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf
+ret=$?
 
 # Clean up
-rm /tmp/abuseipdb*
+rm -f /tmp/abuseipdbv4.txt /tmp/abuseipdbv6.txt
+
+exit $ret
