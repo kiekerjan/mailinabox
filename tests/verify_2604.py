@@ -447,13 +447,13 @@ def c_quota_enforced():
         limit = ""
         for line in out.splitlines():
             parts = line.split()
-            if len(parts) >= 4 and parts[0] == "User" and parts[1] == "quota":
+            if len(parts) >= 4 and parts[1] == "STORAGE":
                 limit = parts[3]
         if limit in ("", "-", "0"):
             bad.append(f"{email}: db quota={quota} but dovecot limit={limit or 'none'}")
     if bad:
         return FAIL, ("; ".join(bad) +
-                      " -- userdb_quota_storage_size is not taking effect")
+                      " -- the userdb quota_storage_size field is not taking effect")
     return PASS, f"{len(users[:5])} user(s) checked, limits present"
 
 

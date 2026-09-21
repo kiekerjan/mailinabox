@@ -107,16 +107,27 @@ folders, issuing a certificate, restoring a backup or rebooting.
       confirm the negotiated cipher is acceptable to you
       (`openssl s_client -connect $HOST:993 </dev/null 2>/dev/null | grep Cipher`).
 - [ ] Cleartext auth refused before STARTTLS (`auth_allow_cleartext = no`).
-- [ ] **[unverified] Quota — the highest-risk item.** `quota_rule` no longer
-      exists in 2.4; limits now come back from the userdb as
-      `userdb_quota_storage_size`. If this is wrong, quotas silently stop being
-      enforced rather than erroring.
+- [ ] **Quota.** `quota_rule` no longer exists in 2.4; limits come back from
+      the userdb as `quota_storage_size`. Note there is no `userdb_` prefix: in
+      a `userdb sql {}` block the returned field name *is* the setting name, and
+      `userdb_quota_storage_size` is accepted, shown by `doveadm user`, and
+      silently ignored. Quotas then stop being enforced without any error.
       - `doveadm quota get -u user@domain` shows the limit from `users.sqlite`.
       - Change the quota in the admin panel, `doveadm quota recalc -u ...`,
         re-check that `doveadm quota get` reflects the new value.
       - Set a tiny quota (e.g. 1M), deliver mail until it's exceeded, confirm
         the sender gets `522 5.2.2 Mailbox is full` and not a silent accept.
-      - A user with quota `0` is unlimited.
+      - A user with quota `0` is unlimited (`Limit` shows `-`).
+      - The admin panel Used column shows a percentage, not `Error`. It divides
+        by the limit in the user's `maildirsize` header, which is `0S` whenever
+        Dovecot has no limit for that user, so `Error` there means enforcement
+        is broken rather than the panel being broken.
+      - Roundcube shows the quota widget at the foot of the folder column. It
+        is still in the 1.7.4 elastic skin (`skins/elastic/templates/mail.html`)
+        but renders only when the server reports a limit, so a missing widget is
+        the same symptom.
+      - After changing how limits are supplied, run `doveadm quota recalc -A`
+        so existing `maildirsize` headers are rewritten.
 - [ ] **[unverified]** quota-status service answers Postfix on 127.0.0.1:12340
       (`nc -vz 127.0.0.1 12340`), and `quota_status_*` being global rather than
       inside `service quota-status {}` actually takes effect — the over-quota
@@ -397,8 +408,9 @@ exist. /etc/rsyslog.d/20-ufw.conf still ships with ufw.
 
 ## Known unknowns carried into testing
 
-1. **Quota userdb field name.** `userdb_quota_storage_size` is from the 2.4
-   docs, not from a running server. Verify before trusting quota enforcement.
+1. ~~**Quota userdb field name.**~~ Resolved on 2.4.2: the field is
+   `quota_storage_size`, with no `userdb_` prefix. Verified against a running
+   server — the prefixed form is accepted and ignored.
 2. **`quota_storage_grace = 100 M`.** 2.4 dropped percentage grace values, so
    the old `quota_grace = 10%` had no direct translation.
 3. **`sieve_script` execution order** is documented as config order; confirm.

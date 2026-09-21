@@ -43,7 +43,7 @@ passdb sql {
   query = SELECT email AS user, password FROM users WHERE email='%{user}';
 }
 userdb sql {
-  query = SELECT email AS user, 'mail' AS uid, 'mail' AS gid, '$STORAGE_ROOT/mail/mailboxes/%{user|domain}/%{user|username}' AS home, quota AS userdb_quota_storage_size FROM users WHERE email='%{user}';
+  query = SELECT email AS user, 'mail' AS uid, 'mail' AS gid, '$STORAGE_ROOT/mail/mailboxes/%{user|domain}/%{user|username}' AS home, quota AS quota_storage_size FROM users WHERE email='%{user}';
   iterate_query = SELECT email AS user FROM users;
 }
 EOF
