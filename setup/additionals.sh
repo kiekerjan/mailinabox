@@ -67,7 +67,7 @@ cp -f conf/fail2ban/action.d/iptables-allports.local /etc/fail2ban/action.d/
 cp -f conf/fail2ban/action.d/iptables-multiport.local /etc/fail2ban/action.d/
 
 # ### DMARC Report Viewer
-wget_verify "https://github.com/cry-inc/dmarc-report-viewer/releases/download/2.2.1/linux-x86_64.zip" 126c2341a5df475c3b9f1ac0b3b9c5680c38c6fb /tmp/dmarc.zip
+wget_verify "https://github.com/cry-inc/dmarc-report-viewer/releases/download/2.6.0/linux-x86_64.zip" 4de094b53387994e842be3432ef26e995b96bdd3 /tmp/dmarc.zip
 unzip -q /tmp/dmarc.zip -d /tmp/dmarc
 hide_output install -m 755 /tmp/dmarc/linux-x86_64/dmarc-report-viewer /usr/local/bin/
 rm -f /tmp/dmarc.zip
