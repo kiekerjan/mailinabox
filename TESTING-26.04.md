@@ -107,6 +107,18 @@ folders, issuing a certificate, restoring a backup or rebooting.
       confirm the negotiated cipher is acceptable to you
       (`openssl s_client -connect $HOST:993 </dev/null 2>/dev/null | grep Cipher`).
 - [ ] Cleartext auth refused before STARTTLS (`auth_allow_cleartext = no`).
+- [ ] Mail from outside is actually delivered. The package ships
+      `conf.d/20-lmtp.conf` with `auth_username_format = %{user | username |
+      lower}` inside `protocol lmtp {}`, which strips the domain before the
+      userdb lookup. Every delivery then fails with
+      `550 5.1.1 <addr> User doesn't exist` while IMAP login and SMTP AUTH keep
+      working, because those use the global format. 99-local.conf overrides it:
+      `doveconf -n` must show `auth_username_format = %{user | lower}` inside
+      the `protocol lmtp` block.
+- [ ] Cipher preference is the server's, as on 24.04. 2.4 renamed
+      `ssl_prefer_server_ciphers = yes` to `ssl_server_prefer_ciphers`, whose
+      values are `server`/`client` — `client` silently inverts the policy.
+      `doveconf ssl_server_prefer_ciphers` must say `server`.
 - [ ] **Quota.** `quota_rule` no longer exists in 2.4; limits come back from
       the userdb as `quota_storage_size`. Note there is no `userdb_` prefix: in
       a `userdb sql {}` block the returned field name *is* the setting name, and

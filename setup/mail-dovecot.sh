@@ -118,7 +118,7 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 	"ssl_min_protocol=TLSv1.2" \
 	"ssl_cipher_list=ALL:!kRSA:!SRP:!kDHd:!DSS:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK:!RC4:!ADH:!CAMELLIA:!ARIA:!CBC:!AESCCM:!LOW@STRENGTH" \
 	"ssl_curve_list=X25519:prime256v1:secp384r1" \
-	"ssl_server_prefer_ciphers=client" \
+	"ssl_server_prefer_ciphers=server" \
 	"ssl_server_dh_file=$STORAGE_ROOT/ssl/dh4096.pem"
 
 # Disable in-the-clear IMAP/POP because there is no reason for a user to transmit
@@ -185,6 +185,8 @@ protocol lmtp {
   mail_plugins {
     sieve = yes
   }
+
+  auth_username_format = %{user | lower}
 }
 EOF
 

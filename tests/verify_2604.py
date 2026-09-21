@@ -134,6 +134,31 @@ def dc_setting(name):
     return None
 
 
+def dc_effective(name):
+    # Effective value including defaults; `doveconf -n` only prints settings
+    # that differ from the default, and nests some of them.
+    rc, out = run("doveconf", name)
+    if rc != 0:
+        return None
+    line = out.strip().splitlines()[0] if out.strip() else ""
+    if "=" not in line:
+        return None
+    return line.split("=", 1)[1].strip()
+
+
+def dpkg_matching(pattern):
+    # Packages matching the glob that are actually installed. dpkg-query -W
+    # also lists names it merely knows about, in state "un" or "rc".
+    rc, out = run("bash", "-c",
+                  "dpkg-query -W -f '${db:Status-Abbrev} ${Package}\\n' '%s' 2>/dev/null" % pattern)
+    names = []
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and len(parts[0]) >= 2 and parts[0][1] == "i":
+            names.append(parts[1])
+    return names
+
+
 def dpkg_installed(pkg):
     rc, out = run("dpkg-query", "-W", "-f", "${Status}", pkg)
     return rc == 0 and "install ok installed" in out
@@ -277,8 +302,7 @@ def c_rc_plugins():
 
 @check(2, "php-imap not installed")
 def c_no_php_imap():
-    rc, out = run("bash", "-c", "dpkg-query -W -f '${Package}\\n' 'php*-imap' 2>/dev/null")
-    hits = [l for l in out.split() if l]
+    hits = dpkg_matching("php*-imap")
     return (FAIL if hits else PASS), ", ".join(hits) or "absent"
 
 
@@ -385,17 +409,66 @@ def c_dovecot_ssl():
     wanted = {
         "ssl": "required",
         "ssl_min_protocol": "TLSv1.2",
+        "ssl_server_prefer_ciphers": "server",
     }
     problems = []
     for k, v in wanted.items():
-        got = dc_setting(k)
+        got = dc_effective(k)
         if got != v:
             problems.append(f"{k}={got}")
     for k in ("ssl_server_cert_file", "ssl_server_key_file", "ssl_server_dh_file"):
-        got = dc_setting(k)
+        got = dc_effective(k)
         if not got or not os.path.exists(got):
             problems.append(f"{k}={got}")
     return (FAIL if problems else PASS), "; ".join(problems) or "cert/key/dh present, ssl=required"
+
+
+@check(3, "LMTP accepts a real recipient")
+def c_lmtp_rcpt():
+    # The package's 20-lmtp.conf sets auth_username_format to the local part
+    # only, which makes every virtual-domain delivery fail with
+    # "User doesn't exist". RCPT without DATA delivers nothing.
+    import socket
+    users = [e for e, _q in mail_users()]
+    if not users:
+        return SKIP, "no mail users"
+    try:
+        sock = socket.create_connection(("127.0.0.1", 10026), 5)
+    except OSError as e:
+        return FAIL, f"connect 127.0.0.1:10026: {e}"
+
+    def reply(f):
+        last = ""
+        while True:
+            line = f.readline().decode(errors="replace").strip()
+            if not line:
+                return last
+            last = line
+            if len(line) >= 4 and line[3] == "-":
+                continue
+            return line
+
+    try:
+        sock.settimeout(5)
+        f = sock.makefile("rwb")
+        reply(f)
+        for line in ("LHLO verify_2604", "MAIL FROM:<>"):
+            f.write((line + "\r\n").encode())
+            f.flush()
+            reply(f)
+        f.write(f"RCPT TO:<{users[0]}>\r\n".encode())
+        f.flush()
+        got = reply(f)
+        f.write(b"QUIT\r\n")
+        f.flush()
+    except OSError as e:
+        return FAIL, f"lmtp conversation failed: {e}"
+    finally:
+        sock.close()
+
+    if not got.startswith("2"):
+        return FAIL, f"RCPT {users[0]} -> {got}"
+    return PASS, f"RCPT {users[0]} -> {got}"
 
 
 @check(3, "Cleartext auth disabled")
@@ -678,9 +751,8 @@ def c_nextcloud():
 
 @check(6, "No php8.0 leftovers or apt holds")
 def c_no_php80():
-    rc, out = run("bash", "-c", "dpkg-query -W -f '${Package}\\n' 'php8.0*' 2>/dev/null")
     holds_rc, holds = run("apt-mark", "showhold")
-    problems = [l for l in out.split() if l]
+    problems = dpkg_matching("php8.0*")
     if holds.strip():
         problems.append("held: " + holds.strip().replace("\n", " "))
     return (WARN if problems else PASS), "; ".join(problems) or "clean"
