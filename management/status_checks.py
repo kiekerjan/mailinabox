@@ -40,7 +40,7 @@ def get_services():
 		{ "name": "Mail Filters (Sieve/dovecot)", "port": 4190, "public": True, },
 		{ "name": "HTTP Web (nginx)", "port": 80, "public": True, },
 		{ "name": "HTTPS Web (nginx)", "port": 443, "public": True, },
-		{ "name": "DMARC Report Viewer", "port": 12321, "public": False, },
+		{ "name": "DMARC Report Viewer", "port": 12321, "public": False, "health_path": "/health", },
 	]
 
 def run_checks(rounded_values, env, output, pool, domains_to_check=None):
@@ -136,11 +136,29 @@ def check_service(i, service, env):
 	else:
 		output.print_error("%s is not running (port %d)." % (service['name'], service['port']))
 
+	# Some services answer on their port before they are actually usable, so
+	# ask for a health endpoint where the service offers one.
+	if running and service.get("health_path"):
+		if not check_http_health("127.0.0.1", service["port"], service["health_path"]):
+			output.print_error("%s is listening on port %d but its health check failed." % (service['name'], service['port']))
+			running = False
+
 	# Flag if local DNS is not running.
 	if not running and service["port"] == 53 and service["public"] is False:
 		fatal = True
 
 	return (i, running, fatal, output)
+
+
+def check_http_health(ip, port, path):
+	# Ask a service for its health endpoint. True only on HTTP 200.
+	import urllib.request, urllib.error
+	opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+	try:
+		with opener.open("http://%s:%d%s" % (ip, port, path), timeout=5) as response:
+			return response.status == 200
+	except (urllib.error.URLError, OSError):
+		return False
 
 
 # Helper function to make a connection to the service, since we try

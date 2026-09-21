@@ -328,7 +328,19 @@ looked like they would break do not (see the notes at the end).
       seds against 50-default.conf and 20-ufw.conf took effect.
 - [ ] stunnel relay, if you use it: `systemctl status stunnel@miabrelay`,
       and the daily cert-combining cron job.
-- [ ] dmarc-report-viewer service starts and the UI loads.
+- [ ] dmarc-report-viewer 2.6.0 starts and the UI loads. `/health` must answer
+      200 without credentials (`curl -s -o /dev/null -w '%{http_code}'
+      http://127.0.0.1:12321/health`) while `/` answers 401 when
+      HTTP_SERVER_PASSWORD is set -- the status page now fails the service on
+      anything but 200.
+- [ ] The `/dmarc-reports` rewrite in conf/nginx-primaryonly.conf is probably
+      obsolete. It works around absolute links that broke behind a reverse
+      proxy, fixed upstream in 2.4.1. Comment it out, reload nginx, then click
+      through dashboard -> a DMARC report -> a source IP. If nothing 404s,
+      delete the rewrite and its "Mistake in dmarc_report_viewer?" comment.
+- [ ] DNS_SERVER=127.0.0.1:53 is in effect: source IPs in the reports UI still
+      resolve to hostnames, and tcpdump shows no port 53 traffic leaving the
+      box to 1.1.1.1 while the reports page is open.
 - [ ] munin graphs render (munin 2.0.76, same series as 24.04).
 - [ ] smartmontools: `/etc/default/smartmontools` handling still applies.
 - [ ] postfix-tlspol is built and answering. The build needs the Go
