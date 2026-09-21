@@ -80,11 +80,12 @@ if [ ! -f /etc/default/dmarc_report ]; then
         
         cp conf/dmarc_report_viewer.service /etc/systemd/system
         systemctl daemon-reload
-        
-        systemctl start dmarc_report_viewer.service
-else
-	systemctl restart dmarc_report_viewer.service
+        hide_output systemctl enable dmarc_report_viewer.service
 fi
+
+management/editconf.py /etc/default/dmarc_report DNS_SERVER=127.0.0.1:53
+
+restart_service dmarc_report_viewer
 
 # ### rkhunter configuration
 
