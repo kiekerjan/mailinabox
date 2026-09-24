@@ -115,10 +115,9 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 	ssl=required \
 	"ssl_server_cert_file=$STORAGE_ROOT/ssl/ssl_certificate.pem" \
 	"ssl_server_key_file=$STORAGE_ROOT/ssl/ssl_private_key.pem" \
-	"ssl_min_protocol=TLSv1.2" \
-	"ssl_cipher_list=ALL:!kRSA:!SRP:!kDHd:!DSS:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK:!RC4:!ADH:!CAMELLIA:!ARIA:!CBC:!AESCCM:!LOW@STRENGTH" \
-	"ssl_curve_list=X25519:prime256v1:secp384r1" \
-	"ssl_server_prefer_ciphers=server" \
+	"ssl_min_protocol=TLSv1.3" \
+	"ssl_curve_list=X25519MLKEM768:X25519:prime256v1:secp384r1" \
+	"ssl_server_prefer_ciphers=client" \
 	"ssl_server_dh_file=$STORAGE_ROOT/ssl/dh4096.pem"
 
 # Disable in-the-clear IMAP/POP because there is no reason for a user to transmit

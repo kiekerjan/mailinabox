@@ -150,10 +150,10 @@ management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_cert_file="$STORAGE_ROOT/ssl/ssl_certificate.pem" \
 	smtpd_tls_key_file="$STORAGE_ROOT/ssl/ssl_private_key.pem" \
 	smtpd_tls_dh1024_param_file="$STORAGE_ROOT/ssl/dh4096.pem" \
-	smtpd_tls_protocols=">=TLSv1" \
+	smtpd_tls_protocols=">=TLSv1.2" \
 	smtpd_tls_ciphers=medium \
 	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, ARIAGCM" \
-	tls_preempt_cipherlist=yes \
+	tls_preempt_cipherlist=no \
 	smtpd_tls_received_header=yes \
 	smtpd_tls_loglevel=1
 
@@ -162,6 +162,13 @@ management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_mandatory_protocols=">=TLSv1.2" \
 	smtpd_tls_mandatory_ciphers=high \
 	smtpd_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA"
+
+# tls settings
+management/editconf.py /etc/postfix/main.cf -e \
+    tls_preempt_cipherlist=no \
+    tls_eecdh_auto_curves="X25519MLKEM768 X25519 prime256v1 secp384r1" \
+    tls_ffdhe_auto_groups=\
+    tls_medium_cipherlist="ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
 
 # Add block_root_external to block mail send to root@PRIMARY_HOSTNAME. This mail address is only supposed to be used for local
 # mail delivery (cron etc)
@@ -208,7 +215,7 @@ management/editconf.py /etc/postfix/main.cf \
 # even if we don't know if it's to the right party, than to not encrypt at all. Instead we'll
 # now see notices about trusted certs. The CA file is provided by the package `ca-certificates`.
 management/editconf.py /etc/postfix/main.cf \
-	smtp_tls_protocols=">=TLSv1" \
+	smtp_tls_protocols=">=TLSv1.2" \
 	smtp_tls_ciphers=medium \
 	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, ARIAGCM" \
 	smtp_tls_security_level=dane \
@@ -279,13 +286,13 @@ CONF_SMTPD_RECIPIENT_RESTRICTIONS=$(cat <<-END
         reject_rhsbl_sender              $DBL_QUERY=127.0.1.[2..99],
         reject_rhsbl_helo                $DBL_QUERY=127.0.1.[2..99],
         reject_rhsbl_reverse_client      $DBL_QUERY=127.0.1.[2..99],
-        warn_if_reject reject_rbl_client $ZEN_QUERY=127.255.255.[1..255],        
+        warn_if_reject reject_rbl_client $ZEN_QUERY=127.255.255.[1..255],
 END
 )
 
 	# Cleanup dnsbl reply mapping, potentially set when DQS was enabled previously
 	management/editconf.py /etc/postfix/main.cf -e rbl_reply_maps=
-	
+
 	rm -rf /etc/postfix/dnsbl-reply-map
 else
         # Use Data Query Service for blocklist query URLs
@@ -346,7 +353,7 @@ management/editconf.py /etc/postfix/main.cf -w \
 if [ ! -f "/etc/postfix/sender_access" ]; then
 	cp -f conf/postfix/sender_access /etc/postfix
 fi
-	
+
 if [ ! -f "/etc/postfix/recipient_access" ]; then
 	cp -f conf/postfix/recipient_access /etc/postfix
 fi
@@ -417,7 +424,7 @@ chmod +x /etc/cron.daily/mailinabox-postgrey-whitelist
 management/editconf.py /etc/postfix/main.cf \
 	message_size_limit=134217728
 
-## Hardening by rejecting bad HELO 
+## Hardening by rejecting bad HELO
 management/editconf.py /etc/postfix/main.cf -w \
         smtpd_delay_reject=yes \
         smtpd_helo_required=yes \
@@ -434,7 +441,7 @@ EOF
 postmap /etc/postfix/helo_access
 
 ## Install TLS Policy server
-# https://github.com/Zuplu/postfix-tlspol is used so postfix can conform to a remote TLS policy while still 
+# https://github.com/Zuplu/postfix-tlspol is used so postfix can conform to a remote TLS policy while still
 # prioritizing DANE if it is present.
 
 # install the software
@@ -450,7 +457,7 @@ hide_output install -m 644 conf/postfix-tlspol.yaml /etc/postfix-tlspol/config.y
 management/editconf.py /etc/postfix/main.cf -w \
 	smtp_tls_dane_insecure_mx_policy=dane \
 	smtp_tls_policy_maps=socketmap:inet:127.0.0.1:8642:QUERY
-  
+
 ## Allow the two SMTP ports in the firewall.
 
 ufw_allow smtp
