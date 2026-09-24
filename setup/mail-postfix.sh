@@ -138,22 +138,15 @@ sed -i "s/PUBLIC_IP/$PUBLIC_IP/" /etc/postfix/outgoing_mail_header_filters
 # encryption. On ports 465 and 587 it is mandatory (see above). Shared and non-shared settings are
 # given here. Shared settings include:
 # * Require TLS before a user is allowed to authenticate.
-# * Set the path to the server TLS certificate and 4096-bit DH parameters for old DH ciphers.
-# For port 25 only:
-# * Disable extremely old versions of TLS and extremely unsafe ciphers, but some mail servers out in
-#   the world are very far behind and if we disable too much, they may not be able to use TLS and
-#   won't fall back to cleartext. So we don't disable too much. smtpd_tls_exclude_ciphers applies to
-#   both port 25 and port 587, but because we override the cipher list for both, it probably isn't used.
+# * Set the path to the server TLS certificate.
+# * The cipher list comes from tls_medium_cipherlist below, which both the
+#   opportunistic and the mandatory grades resolve to.
 management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_security_level=may\
 	smtpd_tls_auth_only=yes \
 	smtpd_tls_cert_file="$STORAGE_ROOT/ssl/ssl_certificate.pem" \
 	smtpd_tls_key_file="$STORAGE_ROOT/ssl/ssl_private_key.pem" \
-	smtpd_tls_dh1024_param_file="$STORAGE_ROOT/ssl/dh4096.pem" \
 	smtpd_tls_protocols=">=TLSv1.2" \
-	smtpd_tls_ciphers=medium \
-	smtpd_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, ARIAGCM" \
-	tls_preempt_cipherlist=no \
 	smtpd_tls_received_header=yes \
 	smtpd_tls_loglevel=1
 
@@ -161,14 +154,23 @@ management/editconf.py /etc/postfix/main.cf \
 management/editconf.py /etc/postfix/main.cf \
 	smtpd_tls_mandatory_protocols=">=TLSv1.2" \
 	smtpd_tls_mandatory_ciphers=high \
-	smtpd_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA"
+    smtpd_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA"
 
 # tls settings
+management/editconf.py /etc/postfix/main.cf \
+	tls_preempt_cipherlist=no \
+	tls_eecdh_auto_curves="X25519MLKEM768 X25519 prime256v1 secp384r1" \
+	tls_ffdhe_auto_groups= \
+	tls_medium_cipherlist="ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
+
 management/editconf.py /etc/postfix/main.cf -e \
-    tls_preempt_cipherlist=no \
-    tls_eecdh_auto_curves="X25519MLKEM768 X25519 prime256v1 secp384r1" \
-    tls_ffdhe_auto_groups=\
-    tls_medium_cipherlist="ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
+	smtpd_tls_ciphers= \
+	smtpd_tls_exclude_ciphers= \
+	smtpd_tls_dh1024_param_file= \
+	smtp_tls_ciphers= \
+	smtp_tls_exclude_ciphers= \
+	smtp_tls_mandatory_ciphers= \
+	smtp_tls_mandatory_exclude_ciphers=
 
 # Add block_root_external to block mail send to root@PRIMARY_HOSTNAME. This mail address is only supposed to be used for local
 # mail delivery (cron etc)
@@ -216,13 +218,11 @@ management/editconf.py /etc/postfix/main.cf \
 # now see notices about trusted certs. The CA file is provided by the package `ca-certificates`.
 management/editconf.py /etc/postfix/main.cf \
 	smtp_tls_protocols=">=TLSv1.2" \
-	smtp_tls_ciphers=medium \
-	smtp_tls_exclude_ciphers="MD5, DES, ADH, RC4, PSD, SRP, 3DES, eNULL, aNULL, ARIAGCM" \
 	smtp_tls_security_level=dane \
 	smtp_dns_support_level=dnssec \
 	smtp_tls_mandatory_protocols=">=TLSv1.2" \
 	smtp_tls_mandatory_ciphers=high \
-	smtp_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
+    smtp_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt \
 	smtp_tls_loglevel=1 \
 	smtp_tls_note_starttls_offer=yes
