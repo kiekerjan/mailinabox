@@ -1,0 +1,11 @@
+# OpenSSL settings for Postfix, selected by tls_config_name in main.cf.
+postfix = postfix_init
+
+[postfix_init]
+ssl_conf = postfix_ssl_conf
+
+[postfix_ssl_conf]
+system_default = postfix_tls_defaults
+
+[postfix_tls_defaults]
+SignatureAlgorithms = ecdsa_secp256r1_sha256:ecdsa_secp384r1_sha384:ecdsa_secp521r1_sha512:rsa_pss_pss_sha256:rsa_pss_pss_sha384:rsa_pss_pss_sha512:rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha256:rsa_pkcs1_sha384:rsa_pkcs1_sha512

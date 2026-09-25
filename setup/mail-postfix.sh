@@ -157,7 +157,11 @@ management/editconf.py /etc/postfix/main.cf \
     smtpd_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA"
 
 # tls settings
+cp -f conf/postfix-tls.cnf /etc/postfix/tls.cnf
+
 management/editconf.py /etc/postfix/main.cf \
+	tls_config_file=/etc/postfix/tls.cnf \
+	tls_config_name=postfix \
 	tls_preempt_cipherlist=no \
 	tls_eecdh_auto_curves="X25519MLKEM768 X25519 prime256v1 secp384r1" \
 	tls_ffdhe_auto_groups= \
@@ -222,7 +226,7 @@ management/editconf.py /etc/postfix/main.cf \
 	smtp_dns_support_level=dnssec \
 	smtp_tls_mandatory_protocols=">=TLSv1.2" \
 	smtp_tls_mandatory_ciphers=high \
-    smtp_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
+	smtp_tls_mandatory_exclude_ciphers="CAMELLIA, kRSA, AESCCM, DHE-RSA-AES128-SHA, DHE-RSA-AES256-SHA" \
 	smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt \
 	smtp_tls_loglevel=1 \
 	smtp_tls_note_starttls_offer=yes
