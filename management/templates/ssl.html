@@ -42,6 +42,8 @@
 
 <p>If you don't want to use our automatic Let's Encrypt integration, you can give any other certificate provider a try. You can generate the needed CSR below.</p>
 
+<p>This box publishes a CAA record for each domain that permits only Let&rsquo;s Encrypt to issue certificates for it. Another provider will refuse to issue a certificate until you add a CAA record for them to the domain&rsquo;s zone on the Custom DNS page, for example <code>0 issue "sectigo.com"</code>. CAA records are additive, so adding one does not affect the certificates this box provisions itself.</p>
+
 <p>Which domain are you getting a certificate for?</p>
 
 <p><select id="ssldomain" onchange="show_csr()" class="form-control" style="width: auto"></select></p>

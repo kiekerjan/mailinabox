@@ -201,7 +201,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 		secondary_ns_list = get_secondary_dns(additional_records, mode="NS")
 
 		# Need at least two nameservers in the secondary dns list to enable DNS hidden master
-		use_hidden_master = config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1
+		use_hidden_master = (config.get("dns") or {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1
 
 		# If hidden master is used, no NS records will be produced indicating the MiaB box as nameserver
 		if not use_hidden_master:
@@ -295,6 +295,12 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 	# Don't pin the list of records that has_rec checks against anymore.
 	has_rec_base = records
 
+	# Restrict certificate issuance for this domain to the CA the box uses. CAA
+	# records are additive, so any CAA record the user sets is published next to
+	# this one. Set 'dns: caa: false' in settings.yaml to not publish it at all.
+	if is_zone and (config.get("dns") or {}).get("caa", True) and not has_rec(None, "CAA", prefix='0 issue "letsencrypt.org'):
+		records.append((None, "CAA", '0 issue "letsencrypt.org"', "Recommended. Restricts the issuance of TLS certificates for %s and its subdomains to Let's Encrypt, which is the certificate provider this box uses. Certificates from another provider need a CAA record of their own." % domain))
+
 	if domain_properties[domain]["mail"]:
 		# The MX record says where email for the domain should be delivered: Here!
 		if not has_rec(None, "MX", prefix="10 "):
@@ -371,7 +377,7 @@ def build_zone(domain, domain_properties, additional_records, env, is_zone=True)
 	if domain_properties[domain]["mail"] \
 	  and domain_properties[env["PRIMARY_HOSTNAME"]]["certificate-is-valid"] \
 	  and is_domain_cert_signed_and_valid("mta-sts." + domain, env):
-		if config.get("dns", {}).get("ttl", "default").lower() == "short":
+		if (config.get("dns") or {}).get("ttl", "default").lower() == "short":
 			shutil.copy("/var/lib/mailinabox/mta-sts-short.txt", "/var/lib/mailinabox/mta-sts.txt")
 		else:
 			shutil.copy("/var/lib/mailinabox/mta-sts-long.txt", "/var/lib/mailinabox/mta-sts.txt")
@@ -601,7 +607,7 @@ $TTL {defttl}          ; default time to live
 	config = load_settings(env)
 
 	# Shorten dns ttl if file exists. Use before moving domains, changing secondary dns servers etc
-	if config.get("dns", {}).get("ttl", "default").lower() == "short":
+	if (config.get("dns") or {}).get("ttl", "default").lower() == "short":
 		# Override the ttl values
 		p_defttl = "5m"
 		p_refresh = "30m"
@@ -615,7 +621,7 @@ $TTL {defttl}          ; default time to live
 	secondary_ns_list = get_secondary_ns_list(env)
 
 	# For DNS hidden master, take the first secondary nameserver as primary dns
-	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1:
+	if (config.get("dns") or {}).get("hiddenmaster", False) and len(secondary_ns_list) > 1:
 		primary_dns = secondary_ns_list[0]
 
 	# Replace replacement strings.

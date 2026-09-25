@@ -725,7 +725,7 @@ def check_dns_zone(domain, env, output, dns_zonefiles):
 	# Take hidden master dns into account, the mail-in-a-box is not known as nameserver in that case
 	config = load_settings(env)
 
-	if config.get("dns", {}).get("hiddenmaster", False) and len(secondary_ns) > 1:
+	if (config.get("dns") or {}).get("hiddenmaster", False) and len(secondary_ns) > 1:
 		correct_ns = "; ".join(sorted(secondary_ns))
 
 	ip = query_dns(domain, "A")
@@ -963,7 +963,7 @@ def check_mail_domain(domain, env, output):
 			config = load_settings(env)
 			if policy[1].get("mx") == [env['PRIMARY_HOSTNAME']] and policy[1].get("mode") == "enforce": # policy[0] is the policyid
 				output.print_ok("MTA-STS policy is present.")
-			elif policy[1].get("mx") == [env['PRIMARY_HOSTNAME']] and policy[1].get("mode") == "testing" and config.get("dns", {}).get("ttl", "default") == "short":
+			elif policy[1].get("mx") == [env['PRIMARY_HOSTNAME']] and policy[1].get("mode") == "testing" and (config.get("dns") or {}).get("ttl", "default") == "short":
 				output.print_warning("MTA-STS policy is present, set to testing. See Custom DNS to disable testing mode: remove checkmark for Enable short TTL.")
 			else:
 				output.print_error(f"MTA-STS policy is present but has unexpected settings. [{policy[1]}]")
