@@ -193,7 +193,7 @@ fi
 # /dev/urandom is used by various components for generating random bytes for
 # encryption keys and passwords:
 #
-# * TLS private key (see `ssl.sh`, which calls `openssl genrsa`)
+# * TLS private key (see `ssl.sh`, which calls `openssl ecparam`)
 # * DNSSEC signing keys (see `dns.sh`)
 # * our management server's API key (via Python's os.urandom method)
 # * Roundcube's SECRET_KEY (`webmail.sh`)
@@ -206,9 +206,8 @@ fi
 # to worry about /dev/urandom being seeded properly (which is also an issue
 # for /dev/random), but after that /dev/urandom is superior to /dev/random
 # because it's faster and doesn't block indefinitely to wait for hardware
-# entropy. Note that `openssl genrsa` even uses `/dev/urandom`, and if it's
-# good enough for generating an RSA private key, it's good enough for anything
-# else we may need.
+# entropy. Note that `openssl` even uses `/dev/urandom` for key generation, and
+# if it's good enough for that, it's good enough for anything else we may need.
 #
 # Now about that seeding issue....
 #

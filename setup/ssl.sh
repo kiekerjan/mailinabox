@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# RSA private key, SSL certificate, Diffie-Hellman bits files
+# Private key, SSL certificate, Diffie-Hellman bits files
 # -------------------------------------------
 
-# Create an RSA private key, a self-signed SSL certificate, and some
+# Create a private key, a self-signed SSL certificate, and some
 # Diffie-Hellman cipher bits, if they have not yet been created.
 #
-# The RSA private key and certificate are used for:
+# The private key and certificate are used for:
 #
 #  * DNSSEC DANE TLSA records
 #  * IMAP
@@ -43,30 +43,15 @@ mkdir -p "$STORAGE_ROOT/ssl"
 # make directory readable
 chmod 755 $STORAGE_ROOT/ssl
 
-# Generate a new private key.
+# Generate a new private key. Every certificate this box ever gets is issued
+# against this one key, and the DANE TLSA record is its public key's hash.
 #
-# The key is only as good as the entropy available to openssl so that it
-# can generate a random key. "OpenSSL’s built-in RSA key generator ....
-# is seeded on first use with (on Linux) 32 bytes read from /dev/urandom,
-# the process ID, user ID, and the current time in seconds. [During key
-# generation OpenSSL] mixes into the entropy pool the current time in seconds,
-# the process ID, and the possibly uninitialized contents of a ... buffer
-# ... dozens to hundreds of times."
-#
-# A perfect storm of issues can cause the generated key to be not very random:
-#
-#   * improperly seeded /dev/urandom, but see system.sh for how we mitigate this
-#   * the user ID of this process is always the same (we're root), so that seed is useless
-#   * zero'd memory (plausible on embedded systems, cloud VMs?)
-#   * a predictable process ID (likely on an embedded/virtualized system)
-#   * a system clock reset to a fixed time on boot
-#
-# Since we properly seed /dev/urandom in system.sh we should be fine, but I leave
-# in the rest of the notes in case that ever changes.
+# The key is only as good as the entropy available to openssl; see system.sh
+# for how /dev/urandom is seeded before this runs.
 if [ ! -f "$STORAGE_ROOT/ssl/ssl_private_key.pem" ]; then
 	# Set the umask so the key file is never world-readable.
 	(umask 077; hide_output \
-		openssl genrsa -out "$STORAGE_ROOT/ssl/ssl_private_key.pem" 4096)
+		openssl ecparam -name prime256v1 -genkey -noout -out "$STORAGE_ROOT/ssl/ssl_private_key.pem")
 fi
 
 # Generate a self-signed SSL certificate because things like nginx, dovecot,
