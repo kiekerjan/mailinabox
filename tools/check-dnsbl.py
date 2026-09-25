@@ -307,11 +307,11 @@ def parse_args(*a):
         l = logging.getLogger() # root logger
         l.setLevel(logging.INFO)
 
-    if len(args.dqs_key) > 0:
+    if args.dqs_key:
         if len(args.dqs_key) == 26 and args.dqs_key.isalnum():
             # Look for spamhaus servers and insert dqs key
             args.bls = [(args.dqs_key + '.zen.dq.spamhaus.net', e[1], e[2]) if e[0] == 'zen.spamhaus.org' else e for e in args.bls]
-            args.dbls = [(args.dqs_key + '.dbl.dq.spamhaus.net', e[1], e[2]) if e[0] == 'dbl.spamhaus.org' else e for e in args.bls]
+            args.dbls = [(args.dqs_key + '.dbl.dq.spamhaus.net', e[1], e[2]) if e[0] == 'dbl.spamhaus.org' else e for e in args.dbls]
         else:
             raise RuntimeError('Invalid dqs key: ' + args.dqs_key)
 
@@ -557,7 +557,6 @@ if __name__ == '__main__':
         except Exception as e:
             log.error(e)
             sys.exit(1)
-
 
 
 
