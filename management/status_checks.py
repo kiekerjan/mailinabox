@@ -212,7 +212,6 @@ def run_system_checks(rounded_values, env, output):
 	check_free_memory(rounded_values, env, output)
 	check_backup(rounded_values, env, output)
 	check_certificate_key_strength(env, output)
-	check_inbound_tls_failures(env, output)
 
 def check_certificate_key_strength(env, output):
 	# NCSC 3.3.2 grades the leaf and every intermediate. Let's Encrypt signs RSA
@@ -275,51 +274,6 @@ def check_certificate_key_strength(env, output):
 		+ ", provision certificates again from the control panel, and run 'management/dns_update.py'.")
 	output.print_line("5. Once mail is flowing, delete the extra TLSA record and remove the 'ttl' setting.")
 
-def check_inbound_tls_failures(env, output):
-	# Peers that offered STARTTLS and failed the handshake. A sender whose policy
-	# requires TLS does not fall back to cleartext; it defers and then bounces.
-	log_file = "/var/log/mail.log"
-	limit = 8 * 1024 * 1024
-	if not os.path.exists(log_file):
-		return
-	try:
-		with open(log_file, "rb") as f:
-			f.seek(0, os.SEEK_END)
-			size = f.tell()
-			f.seek(max(0, size - limit))
-			data = f.read()
-	except OSError as e:
-		output.print_error(f"Could not read {log_file}: {e}")
-		return
-
-	text = data.decode("utf-8", errors="replace")
-	if size > limit:
-		text = text.split("\n", 1)[-1]
-
-	re_fail = re.compile(r"SSL_accept error from ([^\[]+)\[([^\]]+)\]")
-	re_ok = re.compile(r"TLS connection established from ([^\[]+)\[([^\]]+)\]")
-	failed = {}
-	succeeded = set()
-	for line in text.splitlines():
-		m = re_ok.search(line)
-		if m:
-			succeeded.add(m.group(2))
-			continue
-		m = re_fail.search(line)
-		if m:
-			failed[m.group(2)] = (m.group(1).strip(), failed.get(m.group(2), (None, 0))[1] + 1)
-
-	stuck = {ip: v for ip, v in failed.items() if ip not in succeeded}
-	if not stuck:
-		output.print_ok("No inbound TLS handshake failures in the recent mail log.")
-		return
-
-	worst = sorted(stuck.items(), key=lambda kv: -kv[1][1])[:5]
-	output.print_warning("{} host(s) failed the inbound TLS handshake and never connected"
-		" successfully: {}. If any of them require TLS, their mail to you is being deferred"
-		" and will bounce. Check whether your cipher list or minimum TLS version is too narrow"
-		" for them: grep 'TLS library problem' {}".format(
-			len(stuck), ", ".join(f"{host} [{ip}] x{n}" for ip, (host, n) in worst), log_file))
 
 def check_ufw(env, output):
 	if not os.path.isfile('/usr/sbin/ufw'):
