@@ -1,0 +1,11 @@
+# Additional rkhunter settings for Mail-in-a-Box, read after /etc/rkhunter.conf.
+
+# POSIX semaphore created by haveged.
+ALLOWDEVFILE=/dev/shm/sem.haveged_sem
+
+# Written by systemd-update-done.service.
+ALLOWHIDDENFILE=/etc/.updated
+
+# Left behind when systemd-resolved took over /etc/resolv.conf, which this box
+# replaces with its own.
+ALLOWHIDDENFILE=/etc/.resolv.conf.systemd-resolved.bak

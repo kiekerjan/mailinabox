@@ -111,6 +111,8 @@ if ! grep -Fxq "SCRIPTWHITELIST=/usr/local/bin/mail" /etc/rkhunter.conf > /dev/n
 	echo "SCRIPTWHITELIST=/usr/local/bin/mail" >> /etc/rkhunter.conf
 fi
 
+cp -f conf/rkhunter.conf.local /etc/rkhunter.conf.local
+
 management/editconf.py /etc/default/rkhunter \
         CRON_DAILY_RUN='"true"' \
         CRON_DB_UPDATE='"true"' \
