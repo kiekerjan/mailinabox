@@ -555,7 +555,7 @@ if __name__ == '__main__':
         try:
             sys.exit(main())
         except Exception as e:
-            log.error(e)
+            log.error(e, exc_info=log.isEnabledFor(logging.DEBUG))
             sys.exit(1)
 
 
