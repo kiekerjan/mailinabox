@@ -17,7 +17,7 @@ source setup/functions.sh
 if [ "$(date "+%u")" -eq 1 ]; then
     management/mail_log.py -t week -r -s -l -g -b | management/email_administrator.py "Mail-in-a-Box Usage Report"
 
-    /usr/bin/pflogsumm -u 5 -h 5 --problems_first /var/log/mail.log.1 | management/email_administrator.py "Postfix log analysis summary"
+    /usr/bin/pflogsumm -u 5 -h 5 --problems-first /var/log/mail.log.1 | management/email_administrator.py "Postfix log analysis summary"
 fi
 
 # Take a backup (ignoring informational output from duplicity for some backends).
