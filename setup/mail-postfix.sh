@@ -459,8 +459,7 @@ mkdir -p /etc/postfix-tlspol
 hide_output install -m 644 conf/postfix-tlspol.yaml /etc/postfix-tlspol/config.yaml
 
 management/editconf.py /etc/postfix/main.cf -w \
-	smtp_tls_dane_insecure_mx_policy=dane \
-	smtp_tls_policy_maps=socketmap:inet:127.0.0.1:8642:QUERY
+	smtp_tls_policy_maps=socketmap:inet:127.0.0.1:8642:QUERYwithTLSRPT
 
 ## Allow the two SMTP ports in the firewall.
 
