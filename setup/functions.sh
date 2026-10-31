@@ -191,14 +191,19 @@ function wget_verify {
 	HASH=$2
 	DEST=$3
 	CHECKSUM="$HASH  $DEST"
+	if [ ${#HASH} -eq 64 ]; then
+		HASH_CMD=sha256sum
+	else
+		HASH_CMD=sha1sum
+	fi
 	rm -f "$DEST"
 	hide_output wget -O "$DEST" "$URL"
 	
-	if ! echo "$CHECKSUM" | sha1sum --check --strict > /dev/null; then
+	if ! echo "$CHECKSUM" | "$HASH_CMD" --check --strict > /dev/null; then
 		echo "------------------------------------------------------------"
 		echo "Download of $URL did not match expected checksum."
 		echo "Found:"
-		sha1sum "$DEST"
+		"$HASH_CMD" "$DEST"
 		echo
 		echo "Expected:"
 		echo "$CHECKSUM"
@@ -215,14 +220,19 @@ function wget_verify_log_progress {
 	HASH=$2
 	DEST=$3
 	CHECKSUM="$HASH  $DEST"
+	if [ ${#HASH} -eq 64 ]; then
+		HASH_CMD=sha256sum
+	else
+		HASH_CMD=sha1sum
+	fi
 	rm -f "$DEST"
 	wget -q --show-progress --progress=dot:giga -O "$DEST" "$URL"
 	
-	if ! echo "$CHECKSUM" | sha1sum --check --strict > /dev/null; then
+	if ! echo "$CHECKSUM" | "$HASH_CMD" --check --strict > /dev/null; then
 		echo "------------------------------------------------------------"
 		echo "Download of $URL did not match expected checksum."
 		echo "Found:"
-		sha1sum "$DEST"
+		"$HASH_CMD" "$DEST"
 		echo
 		echo "Expected:"
 		echo "$CHECKSUM"
