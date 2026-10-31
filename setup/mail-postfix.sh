@@ -450,9 +450,10 @@ postmap /etc/postfix/helo_access
 
 # install the software
 apt_get_quiet install --no-install-recommends golang-go
-git_clone https://github.com/Zuplu/postfix-tlspol v1.14.0 '' /tmp/postfix-tlspol
-hide_output bash -c "cd /tmp/postfix-tlspol && NOTEST=1 scripts/build.sh systemd"
-rm -rf /tmp/postfix-tlspol
+TLSPOL_TMP=$(mktemp -d) || exit 1
+git_clone https://github.com/Zuplu/postfix-tlspol v1.14.0 '' "$TLSPOL_TMP/postfix-tlspol"
+hide_output bash -c "cd '$TLSPOL_TMP/postfix-tlspol' && NOTEST=1 scripts/build.sh systemd"
+rm -rf "$TLSPOL_TMP"
 
 # Configuration
 mkdir -p /etc/postfix-tlspol

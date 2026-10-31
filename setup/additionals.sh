@@ -67,11 +67,11 @@ cp -f conf/fail2ban/action.d/iptables-allports.local /etc/fail2ban/action.d/
 cp -f conf/fail2ban/action.d/iptables-multiport.local /etc/fail2ban/action.d/
 
 # ### DMARC Report Viewer
-wget_verify "https://github.com/cry-inc/dmarc-report-viewer/releases/download/2.6.0/linux-x86_64.zip" 4de094b53387994e842be3432ef26e995b96bdd3 /tmp/dmarc.zip
-unzip -q /tmp/dmarc.zip -d /tmp/dmarc
-hide_output install -m 755 /tmp/dmarc/linux-x86_64/dmarc-report-viewer /usr/local/bin/
-rm -f /tmp/dmarc.zip
-rm -rf /tmp/dmarc
+DMARC_TMP=$(mktemp -d) || exit 1
+wget_verify "https://github.com/cry-inc/dmarc-report-viewer/releases/download/2.6.0/linux-x86_64.zip" 4de094b53387994e842be3432ef26e995b96bdd3 "$DMARC_TMP/dmarc.zip"
+unzip -q "$DMARC_TMP/dmarc.zip" -d "$DMARC_TMP/dmarc"
+hide_output install -m 755 "$DMARC_TMP/dmarc/linux-x86_64/dmarc-report-viewer" /usr/local/bin/
+rm -rf "$DMARC_TMP"
 
 # On first installation,create configuration
 if [ ! -f /etc/default/dmarc_report ]; then

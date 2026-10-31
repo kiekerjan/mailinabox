@@ -90,11 +90,20 @@ def is_dcv_address(email):
 	email = email.lower()
 	return any(email.startswith((localpart + "@", localpart + "+")) for localpart in ("admin", "administrator", "postmaster", "hostmaster", "webmaster", "abuse", "dmarc-reports", "tls-reports"))
 
+class _ClosingCursor(sqlite3.Cursor):
+	# Closes the connection when the cursor is freed, and rolls back an
+	# uncommitted transaction with it.
+	def __del__(self):
+		try:
+			self.connection.close()
+		except Exception:
+			pass
+
 def open_database(env, with_connection=False):
 	conn = sqlite3.connect(env["STORAGE_ROOT"] + "/mail/users.sqlite")
 	if not with_connection:
-		return conn.cursor()
-	return conn, conn.cursor()
+		return conn.cursor(_ClosingCursor)
+	return conn, conn.cursor(_ClosingCursor)
 
 def get_mail_users(env):
 	# Returns a flat, sorted list of all user accounts.

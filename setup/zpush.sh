@@ -33,13 +33,14 @@ elif [[ $VERSION != $(cat /usr/local/lib/z-push/version) ]]; then
 fi
 if [ $needs_update == 1 ]; then
 	# Download
-	wget_verify "https://github.com/Z-Hub/Z-Push/archive/refs/tags/$VERSION.zip" $TARGETHASH /tmp/z-push.zip
+	ZPUSH_TMP=$(mktemp -d) || exit 1
+	wget_verify "https://github.com/Z-Hub/Z-Push/archive/refs/tags/$VERSION.zip" $TARGETHASH "$ZPUSH_TMP/z-push.zip"
 
 	# Extract into place.
-	rm -rf /usr/local/lib/z-push /tmp/z-push
-	unzip -q /tmp/z-push.zip -d /tmp/z-push
-	mv /tmp/z-push/*/src /usr/local/lib/z-push
-	rm -rf /tmp/z-push.zip /tmp/z-push
+	rm -rf /usr/local/lib/z-push
+	unzip -q "$ZPUSH_TMP/z-push.zip" -d "$ZPUSH_TMP/z-push"
+	mv "$ZPUSH_TMP"/z-push/*/src /usr/local/lib/z-push
+	rm -rf "$ZPUSH_TMP"
 
 	# Create admin and top scripts with PHP_VER  
 	rm -f /usr/sbin/z-push-{admin,top}

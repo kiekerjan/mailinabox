@@ -251,12 +251,12 @@ function git_clone {
 	TREEISH=$2
 	SUBDIR=$3
 	TARGETPATH=$4
-	TMPPATH=/tmp/git-clone-$$
-	rm -rf $TMPPATH "$TARGETPATH"
-	git clone -q "$REPO" $TMPPATH || exit 1
-	(cd $TMPPATH; git checkout -q "$TREEISH";) || exit 1
-	mv $TMPPATH/"$SUBDIR" "$TARGETPATH"
-	rm -rf $TMPPATH
+	TMPPATH=$(mktemp -d) || exit 1
+	rm -rf "$TARGETPATH"
+	git clone -q "$REPO" "$TMPPATH/repo" || exit 1
+	(cd "$TMPPATH/repo"; git checkout -q "$TREEISH";) || exit 1
+	mv "$TMPPATH/repo/$SUBDIR" "$TARGETPATH"
+	rm -rf "$TMPPATH"
 }
 
 function get_miab_setting {
