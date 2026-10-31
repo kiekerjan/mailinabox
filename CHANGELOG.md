@@ -2,6 +2,22 @@ CHANGELOG
 =========
 (note: this changelog follows the upstream changelog, it does not contain all repository specific changes)
 
+Version 78 (October 22, 2026)
+-----------------------------
+
+This is a security update. Although the main security issue this week
+is in upstream PHP and is fixed simply by `apt-get update && apt-get upgrade`,
+updating to the latest Mail-in-a-Box will do that for you. Roundcube
+separately released security fixes in the updated version in this release.
+
+* Roundcube updated to 1.6.20.
+
+Version 77 (September 26, 2026)
+-------------------------------
+
+* Roundcube updated to version 1.6.19, fixing numerous security issues.
+* Nextcloud updated to version 27.1.11, and install failure fixed.
+
 Version 76 (May 24, 2026)
 -------------------------
 
