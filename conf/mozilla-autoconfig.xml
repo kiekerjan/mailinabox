@@ -15,14 +15,6 @@
          <authentication>password-cleartext</authentication>
       </incomingServer>
 
-      <incomingServer type="pop3">
-         <hostname>PRIMARY_HOSTNAME</hostname>
-         <port>995</port>
-         <socketType>SSL</socketType>
-         <username>%EMAILADDRESS%</username>
-         <authentication>password-cleartext</authentication>
-      </incomingServer>
-
       <outgoingServer type="smtp">
          <hostname>PRIMARY_HOSTNAME</hostname>
          <port>465</port>

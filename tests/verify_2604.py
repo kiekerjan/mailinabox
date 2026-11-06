@@ -530,13 +530,13 @@ def c_quota_enforced():
     return PASS, f"{len(users[:5])} user(s) checked, limits present"
 
 
-@check(3, "IMAPS/POP3S up, cleartext only on loopback")
+@check(3, "IMAPS up, POP3 off, cleartext only on loopback")
 def c_dovecot_ports():
     problems = []
     if not port_open(993):
         problems.append("993 not listening")
-    if not port_open(995):
-        problems.append("995 not listening")
+    if port_open(995):
+        problems.append("995 (POP3S) is listening")
     ext143 = [h for h, p in listening() if p == "143" and h not in ("127.0.0.1", "::1")]
     if ext143:
         problems.append("143 listening on " + ", ".join(ext143))
@@ -544,7 +544,7 @@ def c_dovecot_ports():
         problems.append("143 not on 127.0.0.1 (Nextcloud login needs it)")
     if port_open(110):
         problems.append("110 is listening")
-    return (FAIL if problems else PASS), "; ".join(problems) or "993+995 public, 143 loopback only, 110 closed"
+    return (FAIL if problems else PASS), "; ".join(problems) or "993 public, 143 loopback only, 110 and 995 closed"
 
 
 @check(3, "inotify max_user_instances raised")

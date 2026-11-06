@@ -2,6 +2,9 @@ CHANGELOG
 =========
 (note: this changelog follows the upstream changelog, it does not contain all repository specific changes)
 
+
+* POP3 access has been removed.
+
 Version 76 (May 24, 2026)
 -------------------------
 

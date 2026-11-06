@@ -25,11 +25,12 @@ source /etc/mailinabox.conf # load global vars
 
 echo "Installing Dovecot (IMAP server)..."
 apt_install \
-	dovecot-core dovecot-imapd dovecot-pop3d dovecot-lmtpd dovecot-sqlite sqlite3 \
+	dovecot-core dovecot-imapd dovecot-lmtpd dovecot-sqlite sqlite3 \
 	dovecot-sieve dovecot-managesieved
 
-# The `dovecot-imapd`, `dovecot-pop3d`, and `dovecot-lmtpd` packages automatically
-# enable IMAP, POP and LMTP protocols.
+# The `dovecot-imapd` and `dovecot-lmtpd` packages automatically enable the
+# IMAP and LMTP protocols. POP3 is not offered; purge it from boxes that had it.
+apt-get purge -qq -y dovecot-pop3d
 
 # Set basic daemon options.
 
@@ -120,11 +121,10 @@ management/editconf.py /etc/dovecot/conf.d/10-ssl.conf \
 	"ssl_server_prefer_ciphers=client" \
 	"ssl_server_dh_file=$STORAGE_ROOT/ssl/dh4096.pem"
 
-# Disable in-the-clear IMAP/POP because there is no reason for a user to transmit
-# login credentials outside of an encrypted connection. Only the over-TLS versions
-# are made available (IMAPS on port 993; POP3S on port 995).
+# Disable in-the-clear IMAP because there is no reason for a user to transmit
+# login credentials outside of an encrypted connection. Only IMAPS on port 993
+# is made available.
 sed -i "s/#port = 143/port = 0/" /etc/dovecot/conf.d/10-master.conf
-sed -i "s/#port = 110/port = 0/" /etc/dovecot/conf.d/10-master.conf
 
 # ### LDA (LMTP)
 
@@ -256,9 +256,9 @@ mkdir -p "$STORAGE_ROOT/mail/sieve/global_before"
 mkdir -p "$STORAGE_ROOT/mail/sieve/global_after"
 chown -R mail:mail "$STORAGE_ROOT/mail/sieve"
 
-# Allow the IMAP/POP ports in the firewall.
+# Allow the IMAPS port in the firewall and close POP3S on boxes that had it open.
 ufw_allow imaps
-ufw_allow pop3s
+ufw_delete pop3s
 
 # Allow the Sieve port in the firewall.
 ufw_allow sieve

@@ -3,7 +3,7 @@
 """
 Smoke test for this Mail-in-a-Box fork on Ubuntu 26.04 -- python3 stdlib only.
 
-Drives a box from outside over IMAP, POP3, submission, ManageSieve, SMTP, HTTP
+Drives a box from outside over IMAP, submission, ManageSieve, SMTP, HTTP
 and DNS and prints a PASS/FAIL/SKIP table plus a JSON report. It complements
 tests/verify_2604.py, which inspects the configuration on the box itself.
 
@@ -25,7 +25,7 @@ Typical run from a workstation that can reach the box:
     tests/smoke.py --host 203.0.113.10 --hostname box.example.com --provision
 
 What needs what
-  * Everything needs the box reachable on 443, 993, 995, 465, 587, 4190 and
+  * Everything needs the box reachable on 443, 993, 465, 587, 4190 and
     53, plus TEST_USER_PW and an admin account.
   * --provision creates alice@<domain>, bob@<seed2>, carol@<domain>, the
     aliases info@, team@ (permitted sender alice), the catch-all @<seed2> and
@@ -56,7 +56,6 @@ import http.client
 import imaplib
 import json
 import os
-import poplib
 import random
 import re
 import shlex
@@ -165,7 +164,7 @@ def ssl_ctx():
     return c
 
 class Net:
-    PORTS = [443, 25, 465, 587, 993, 995, 4190, 53]
+    PORTS = [443, 25, 465, 587, 993, 4190, 53]
 
     def __init__(self, host, hostname, jump=None):
         self.host = host
@@ -196,7 +195,7 @@ class Net:
                 err = self.proc.stderr.read().decode(errors="replace")
                 raise RuntimeError("ssh tunnel via %s exited: %s" % (self.jump, err.strip()))
             try:
-                # probe the HTTPS forward only: a bare connect on 993/995/4190
+                # probe the HTTPS forward only: a bare connect on 993/4190
                 # would be logged as "no auth attempts" and feed fail2ban
                 socket.create_connection(self.map[443], 2).close()
                 return
@@ -219,10 +218,6 @@ class Net:
     def imap(self, timeout=30):
         h, p = self.addr(993)
         return imaplib.IMAP4_SSL(h, p, ssl_context=ssl_ctx(), timeout=timeout)
-
-    def pop3(self, timeout=30):
-        h, p = self.addr(995)
-        return poplib.POP3_SSL(h, p, context=ssl_ctx(), timeout=timeout)
 
     def smtp_ssl(self, timeout=60):
         h, p = self.addr(465)
@@ -580,19 +575,6 @@ def uid_search(M, folder, *criteria, readonly=True):
         return []
     return data[0].split()
 
-def pop3_uidls(ctx, user):
-    P = ctx.net.pop3()
-    try:
-        P.user(user)
-        P.pass_(ctx.user_pw)
-        _resp, lines, _ = P.uidl()
-        return [l.decode().split(None, 1)[1] for l in lines]
-    finally:
-        try:
-            P.quit()
-        except Exception:
-            pass
-
 MSGID_RE = re.compile(r"<([^<>\s]+)>")
 
 def parse_mail(raw):
@@ -649,10 +631,6 @@ def c_imap_login(ctx):
         raise Fail("SELECT INBOX failed")
     return "login ok; caps incl. MOVE=%s QUOTA=%s" % ("MOVE" in caps, "QUOTA" in caps)
 
-def c_pop3_login(ctx):
-    u = pop3_uidls(ctx, ctx.alice)
-    return "login ok, %d messages in INBOX" % len(u)
-
 def c_sub465(ctx):
     s = ctx.net.smtp_ssl()
     try:
@@ -705,7 +683,7 @@ def c_services_enabled(ctx):
 
 def c_mail_log_logins(ctx):
     # The usage report (management/mail_log.py, run weekly by daily_tasks.sh) must
-    # count the IMAP and POP3 logins just made (Dovecot 2.4 logs "Logged in:").
+    # count the IMAP logins just made (Dovecot 2.4 logs "Logged in:").
     rc, miab, _err = ctx.remote.run("awk '$1 == \"cd\" { print $2; exit }' /usr/local/bin/mailinabox")
     miab = miab.strip()
     if rc != 0 or not miab:
@@ -714,11 +692,11 @@ def c_mail_log_logins(ctx):
     rc, out, err = ctx.remote.run("bash -c %s" % shlex.quote(cmd), sudo=True, timeout=300)
     if rc != 0:
         raise Fail("mail_log.py rc=%d: %s" % (rc, (err or out).strip()[-200:]))
-    counts = {p: sum(int(n) for n in re.findall(r"\b%s \S+: (\d+) times" % p, out)) for p in ("imap", "pop3")}
+    counts = {p: sum(int(n) for n in re.findall(r"\b%s \S+: (\d+) times" % p, out)) for p in ("imap",)}
     missing = [p for p, n in counts.items() if not n]
     if missing:
         raise Fail("no %s logins of %s in the last hour counted" % ("/".join(missing), ctx.alice))
-    return "logins of the last hour: imap %d, pop3 %d" % (counts["imap"], counts["pop3"])
+    return "logins of the last hour: imap %d" % counts["imap"]
 
 def c_provision(ctx):
     done = []
@@ -1866,7 +1844,6 @@ def main():
     if want("login"):
         print("== login")
         run_check("imaps-993-login", c_imap_login, ctx)
-        run_check("pop3s-995-login", c_pop3_login, ctx)
         run_check("submission-465-login", c_sub465, ctx)
         run_check("submission-587-login", c_sub587, ctx)
         run_check("managesieve-4190-login", c_sieve_login, ctx)

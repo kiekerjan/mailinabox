@@ -142,6 +142,12 @@ function ufw_allow {
 	fi
 }
 
+function ufw_delete {
+	if [ -z "${DISABLE_FIREWALL:-}" ]; then
+		ufw delete allow "$1" > /dev/null 2>&1 || true
+	fi
+}
+
 function ufw_limit {
 	if [ -z "${DISABLE_FIREWALL:-}" ]; then
 		# ufw has completely unhelpful output

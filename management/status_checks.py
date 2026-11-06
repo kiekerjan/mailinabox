@@ -328,14 +328,13 @@ def check_mail_port_exposure(env, output):
 		problems.append("unencrypted IMAP (143) listens on " + ", ".join(exposed))
 	if not any(port == 143 and ip == "127.0.0.1" for ip, port in listening):
 		problems.append("IMAP is not listening on 127.0.0.1:143, which Nextcloud needs")
-	if any(port == 110 for _ip, port in listening):
-		problems.append("unencrypted POP3 (110) is listening")
-	if not any(port == 995 for _ip, port in listening):
-		problems.append("POP3S (995) is not listening")
+	pop3 = sorted({port for _ip, port in listening if port in (110, 995)})
+	if pop3:
+		problems.append("POP3 is listening on port " + ", ".join(map(str, pop3)))
 	if problems:
 		output.print_error("Mail ports are not set up as expected: " + "; ".join(problems) + ".")
 	else:
-		output.print_ok("Unencrypted IMAP/POP3 are not exposed.")
+		output.print_ok("Unencrypted IMAP is not exposed and POP3 is off.")
 
 def report_result_file(output, path, what, show_detail, log=None):
 	import json, time

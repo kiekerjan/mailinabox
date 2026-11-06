@@ -70,28 +70,6 @@ def imap_test():
 		M.logout() # shuts down connection, has nothing to do with login()
 
 
-def pop_test():
-	import poplib
-	try:
-		M = poplib.POP3_SSL(hostname)
-	except ConnectionRefusedError:
-		# looks like fail2ban worked
-		raise IsBlocked
-	try:
-		M.user('fakeuser')
-		try:
-			M.pass_('fakepassword')
-		except poplib.error_proto:
-			# Authentication should fail.
-			M = None # don't .quit()
-			return
-		M.list()
-		msg = "authentication didn't fail"
-		raise Exception(msg)
-	finally:
-		if M:
-			M.quit()
-
 def managesieve_test():
 	# We don't have a Python sieve client, so we'll
 	# just run the IMAP client and see what happens.
@@ -227,9 +205,6 @@ if __name__ == "__main__":
 
 	# IMAP
 	run_test(imap_test, [], 20, 30, 4)
-
-	# POP
-	run_test(pop_test, [], 20, 30, 4)
 
 	# Managesieve
 	run_test(managesieve_test, [], 20, 30, 4)

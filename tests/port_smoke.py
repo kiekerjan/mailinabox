@@ -12,7 +12,7 @@ SRC = sys.argv[1]
 HEAD_DOC = '''
 Smoke test for this Mail-in-a-Box fork on Ubuntu 26.04 -- python3 stdlib only.
 
-Drives a box from outside over IMAP, POP3, submission, ManageSieve, SMTP, HTTP
+Drives a box from outside over IMAP, submission, ManageSieve, SMTP, HTTP
 and DNS and prints a PASS/FAIL/SKIP table plus a JSON report. It complements
 tests/verify_2604.py, which inspects the configuration on the box itself.
 
@@ -34,7 +34,7 @@ Typical run from a workstation that can reach the box:
     tests/smoke.py --host 203.0.113.10 --hostname box.example.com --provision
 
 What needs what
-  * Everything needs the box reachable on 443, 993, 995, 465, 587, 4190 and
+  * Everything needs the box reachable on 443, 993, 465, 587, 4190 and
     53, plus TEST_USER_PW and an admin account.
   * --provision creates alice@<domain>, bob@<seed2>, carol@<domain>, the
     aliases info@, team@ (permitted sender alice), the catch-all @<seed2> and
@@ -58,7 +58,7 @@ Message-ID @smoketest.invalid, and the cleanup check removes them again
 (--no-cleanup keeps them).
 '''
 
-KEEP = """c_provision c_imap_login c_pop3_login c_sub465 c_sub587 c_sieve_login c_services_enabled
+KEEP = """c_provision c_imap_login c_sub465 c_sub587 c_sieve_login c_services_enabled
 c_mail_log_logins c_admin_login c_admin_tmp_user_alias c_backup_status
 c_dnssec c_mx_dkim c_dns_custom_roundtrip
 c_nc_status c_nc_dav c_nc_dav_proxy c_roundcube c_mail_config_path
@@ -170,7 +170,6 @@ def main():
     if want("login"):
         print("== login")
         run_check("imaps-993-login", c_imap_login, ctx)
-        run_check("pop3s-995-login", c_pop3_login, ctx)
         run_check("submission-465-login", c_sub465, ctx)
         run_check("submission-587-login", c_sub587, ctx)
         run_check("managesieve-4190-login", c_sieve_login, ctx)

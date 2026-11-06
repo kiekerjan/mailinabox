@@ -159,6 +159,3 @@ sslyze(["--http_get", "--chrome_sha1", "--hsts"], 443, MOZILLA_CIPHERS_INTERMEDI
 
 # IMAP
 sslyze([], 993, MOZILLA_CIPHERS_MODERN)
-
-# POP3
-sslyze([], 995, MOZILLA_CIPHERS_MODERN)
