@@ -212,31 +212,162 @@ def run_system_checks(rounded_values, env, output):
 	check_free_memory(rounded_values, env, output)
 	check_backup(rounded_values, env, output)
 	check_certificate_key_strength(env, output)
+	check_tls_policy_service(env, output)
+	check_ssh_geoip_filter(env, output)
+	check_imapsieve_learning(env, output)
+	check_logs_written(env, output)
+	check_ipset_blacklist(env, output)
+	check_dovecot_config(env, output)
+	check_mail_port_exposure(env, output)
 	check_mail_roundtrip(env, output)
+	check_daily_maintenance(env, output)
 
-def check_mail_roundtrip(env, output):
+def _cmd(*cmd, timeout=30):
+	import subprocess
+	try:
+		p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+			env={"PATH": "/sbin:/bin:/usr/sbin:/usr/bin", "LC_ALL": "C"})
+		return p.returncode, (p.stdout or "") + (p.stderr or "")
+	except FileNotFoundError:
+		return 127, f"{cmd[0]}: not found"
+	except subprocess.TimeoutExpired:
+		return 124, f"{cmd[0]}: timed out"
+
+def check_tls_policy_service(env, output):
+	problems = []
+	if not os.path.exists("/usr/bin/postfix-tlspol"):
+		problems.append("the postfix-tlspol binary is missing")
+	_rc, state = _cmd("systemctl", "is-active", "postfix-tlspol.service")
+	state = (state.strip().splitlines() or ["unknown"])[0]
+	if state != "active":
+		problems.append(f"the service is {state}")
+	if not try_connect("127.0.0.1", 8642):
+		problems.append("nothing answers on 127.0.0.1:8642")
+	_rc, maps = _cmd("postconf", "-h", "smtp_tls_policy_maps")
+	if "8642" not in maps:
+		problems.append(f"smtp_tls_policy_maps is '{maps.strip()}'")
+	if problems:
+		output.print_error("The outbound TLS policy service (postfix-tlspol) is not working, so outbound mail may be deferred: "
+			+ "; ".join(problems) + ".")
+	else:
+		output.print_ok("The outbound TLS policy service (postfix-tlspol) is running.")
+
+def check_ssh_geoip_filter(env, output):
+	problems = []
+	try:
+		with open("/etc/hosts.deny", encoding="utf-8") as f:
+			if "sshd: ALL" not in f.read():
+				problems.append("/etc/hosts.deny has no 'sshd: ALL' line")
+		with open("/etc/hosts.allow", encoding="utf-8") as f:
+			if "geoipfilter.sh" not in f.read():
+				problems.append("/etc/hosts.allow does not call geoipfilter.sh")
+	except OSError as e:
+		problems.append(str(e))
+	binary = "/usr/lib/openssh/sshd-session" if os.path.exists("/usr/lib/openssh/sshd-session") else "/usr/sbin/sshd"
+	_rc, out = _cmd("ldd", binary)
+	if "libwrap" not in out:
+		problems.append(f"{binary} is not linked against libwrap, so hosts.allow is ignored")
+	if problems:
+		output.print_error("The SSH geo-filter is not active: " + "; ".join(problems) + ".")
+	else:
+		output.print_ok("The SSH geo-filter is active.")
+
+def check_imapsieve_learning(env, output):
+	problems = []
+	for f in ("/usr/lib/dovecot/sieve/report-spam.sieve", "/usr/lib/dovecot/sieve/report-ham.sieve"):
+		if not os.path.isfile(f):
+			problems.append(f"{f} is missing")
+		elif not os.path.isfile(f.replace(".sieve", ".svbin")):
+			problems.append(f"{os.path.basename(f)} is not compiled")
+	for f in ("/usr/lib/dovecot/sieve-pipe/sa-learn-spam.sh", "/usr/lib/dovecot/sieve-pipe/sa-learn-ham.sh"):
+		if not os.access(f, os.X_OK):
+			problems.append(f"{f} is not executable")
+	if problems:
+		output.print_error("Spam/ham learning from moving mail in and out of Spam is broken: " + "; ".join(problems) + ".")
+	else:
+		output.print_ok("Spam/ham learning scripts are in place.")
+
+def check_logs_written(env, output):
+	import time
+	problems = []
+	for f in ("/var/log/mail.log", "/var/log/syslog"):
+		if not os.path.exists(f):
+			problems.append(f"{f} is missing")
+		elif time.time() - os.stat(f).st_mtime > 86400:
+			problems.append(f"{f} has not been written in over 24 hours")
+	if problems:
+		output.print_error("System logging is not working, so fail2ban and the mail reports may be blind: " + "; ".join(problems) + ".")
+	else:
+		output.print_ok("Mail and system logs are being written.")
+
+def check_ipset_blacklist(env, output):
+	rc, out = _cmd("ipset", "list", "-n")
+	if rc != 0:
+		output.print_error("The IP blacklist can't be listed: ipset failed.")
+	elif not out.split():
+		output.print_warning("No IP blacklist is loaded (ipset has no sets).")
+	else:
+		output.print_ok("The IP blacklist is loaded.")
+
+def check_dovecot_config(env, output):
+	rc, out = _cmd("doveconf", "-n")
+	if rc != 0:
+		output.print_error("The Dovecot configuration does not parse: " + (out.strip().splitlines() or ["doveconf failed"])[-1])
+		return
+	warns = [l.strip() for l in out.splitlines() if "Warning" in l or "Deprecated" in l]
+	if warns:
+		output.print_warning("The Dovecot configuration has warnings: " + warns[0])
+	else:
+		output.print_ok("The Dovecot configuration parses without warnings.")
+
+def check_mail_port_exposure(env, output):
+	listening = {(c.laddr.ip, c.laddr.port) for c in psutil.net_connections(kind="tcp") if c.status == psutil.CONN_LISTEN}
+	problems = []
+	exposed = sorted(ip for ip, port in listening if port == 143 and ip not in ("127.0.0.1", "::1"))
+	if exposed:
+		problems.append("unencrypted IMAP (143) listens on " + ", ".join(exposed))
+	if not any(port == 143 and ip == "127.0.0.1" for ip, port in listening):
+		problems.append("IMAP is not listening on 127.0.0.1:143, which Nextcloud needs")
+	if any(port == 110 for _ip, port in listening):
+		problems.append("unencrypted POP3 (110) is listening")
+	if not any(port == 995 for _ip, port in listening):
+		problems.append("POP3S (995) is not listening")
+	if problems:
+		output.print_error("Mail ports are not set up as expected: " + "; ".join(problems) + ".")
+	else:
+		output.print_ok("Unencrypted IMAP/POP3 are not exposed.")
+
+def report_result_file(output, path, what, show_detail, log=None):
 	import json, time
 	try:
-		with open('/var/lib/mailinabox/mail_roundtrip.json', encoding='utf-8') as f:
+		with open(path, encoding='utf-8') as f:
 			st = json.load(f)
 	except FileNotFoundError:
-		output.print_warning("The nightly mail round-trip test has not run yet.")
+		output.print_warning(f"The {what} has not run yet.")
 		return
 	except (OSError, ValueError) as e:
-		output.print_error(f"The nightly mail round-trip result can't be read: {e}")
+		output.print_error(f"The {what} result can't be read: {e}")
 		return
 	if time.time() - st.get('finished', 0) > 26 * 3600:
-		output.print_error("The nightly mail round-trip test hasn't completed in over 26 hours.")
+		output.print_error(f"The {what} hasn't completed in over 26 hours.")
 	elif st.get('failed'):
-		output.print_error("The nightly mail round-trip test failed:")
+		output.print_error(f"The {what} failed:")
 		for r in st.get('results', []):
 			if not r['ok']:
-				output.print_line(r['check'])
+				output.print_line(f"{r['check']}: {r['detail']}" if show_detail and r.get('detail') else r['check'])
 		if any(f.startswith('test run crashed') for f in st['failed']):
 			output.print_line("the test run crashed")
-		output.print_line("Details: /var/log/mailinabox-mail-roundtrip.log")
+		if log:
+			output.print_line(f"Details: {log}")
 	else:
-		output.print_ok("The nightly mail round-trip test passed.")
+		output.print_ok(f"The {what} passed.")
+
+def check_mail_roundtrip(env, output):
+	report_result_file(output, '/var/lib/mailinabox/mail_roundtrip.json', "nightly mail round-trip test",
+		show_detail=False, log="/var/log/mailinabox-mail-roundtrip.log")
+
+def check_daily_maintenance(env, output):
+	report_result_file(output, '/var/lib/mailinabox/daily_checks.json', "daily maintenance check", show_detail=True)
 
 def check_certificate_key_strength(env, output):
 	# NCSC 3.3.2 grades the leaf and every intermediate. Let's Encrypt signs RSA
