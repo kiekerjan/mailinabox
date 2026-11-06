@@ -35,6 +35,9 @@ hide_output apt-get -qq -y upgrade
 # Daily maintenance tasks
 management/daily_maintenance.py
 
+# End-to-end mail test after the upgrade above; status_checks below reports the result.
+management/mail_roundtrip.py > /var/log/mailinabox-mail-roundtrip.log 2>&1
+
 # Run status checks and email the administrator if anything changed.
 management/status_checks.py --show-changes  2>&1 | management/email_administrator.py "Status Checks Change Notice"
 

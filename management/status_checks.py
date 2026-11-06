@@ -212,6 +212,31 @@ def run_system_checks(rounded_values, env, output):
 	check_free_memory(rounded_values, env, output)
 	check_backup(rounded_values, env, output)
 	check_certificate_key_strength(env, output)
+	check_mail_roundtrip(env, output)
+
+def check_mail_roundtrip(env, output):
+	import json, time
+	try:
+		with open('/var/lib/mailinabox/mail_roundtrip.json', encoding='utf-8') as f:
+			st = json.load(f)
+	except FileNotFoundError:
+		output.print_warning("The nightly mail round-trip test has not run yet.")
+		return
+	except (OSError, ValueError) as e:
+		output.print_error(f"The nightly mail round-trip result can't be read: {e}")
+		return
+	if time.time() - st.get('finished', 0) > 26 * 3600:
+		output.print_error("The nightly mail round-trip test hasn't completed in over 26 hours.")
+	elif st.get('failed'):
+		output.print_error("The nightly mail round-trip test failed:")
+		for r in st.get('results', []):
+			if not r['ok']:
+				output.print_line(r['check'])
+		if any(f.startswith('test run crashed') for f in st['failed']):
+			output.print_line("the test run crashed")
+		output.print_line("Details: /var/log/mailinabox-mail-roundtrip.log")
+	else:
+		output.print_ok("The nightly mail round-trip test passed.")
 
 def check_certificate_key_strength(env, output):
 	# NCSC 3.3.2 grades the leaf and every intermediate. Let's Encrypt signs RSA
