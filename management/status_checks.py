@@ -602,7 +602,7 @@ def run_network_checks(env, output):
 	# Stop if we cannot make an outbound connection on port 25. Many residential
 	# networks block outbound port 25 to prevent their network from sending spam.
 	# See if we can reach one of Google's MTAs with a 5-second timeout.
-	ret = subprocess.run("/usr/bin/nc -z -w5 aspmx.l.google.com 25", shell=True, capture_output=True)
+	ret = subprocess.run("/usr/bin/nc -z -w5 -4 aspmx.l.google.com 25", shell=True, capture_output=True)
 	if ret.returncode == 0:
 		output.print_ok("Outbound mail (SMTP port 25) is not blocked.")
 	else:
@@ -610,6 +610,15 @@ def run_network_checks(env, output):
 			will not be able to send any mail. Many residential networks block port 25 to prevent hijacked
 			machines from being able to send spam. A quick connection test to Google's mail server on port 25
 			failed.""")
+
+	if env.get("PUBLIC_IPV6"):
+		ret = subprocess.run("/usr/bin/nc -z -w5 -6 aspmx.l.google.com 25", shell=True, capture_output=True)
+		if ret.returncode == 0:
+			output.print_ok("Outbound mail over IPv6 (SMTP port 25) is not blocked.")
+		else:
+			output.print_warning("""Outbound mail over IPv6 (SMTP port 25) seems to be blocked: a connection test to
+				Google's mail server over IPv6 failed. Mail still goes out over IPv4, but Postfix picks IPv4 or IPv6 at random,
+				so deliveries to mail servers with an IPv6 address may wait for a connection timeout before falling back.""")
 
 	# Stop if the IPv4 address is listed in the ZEN Spamhaus Block List.
 	# The user might have ended up on an IP address that was previously in use
@@ -802,6 +811,16 @@ def check_primary_hostname_dns(domain, env, output, dns_domains, dns_zonefiles):
 		output.print_error("""Nameserver glue records are incorrect. The ns1.{} and ns2.{} nameservers must be configured at your domain name
 			registrar as having the IP address {}. They currently report addresses of {}. It may take several hours for
 			public DNS to update after a change.""".format(env['PRIMARY_HOSTNAME'], env['PRIMARY_HOSTNAME'], env['PUBLIC_IP'], ns_ips))
+
+	if env.get("PUBLIC_IPV6") and ns_ips == env['PUBLIC_IP'] + '/' + env['PUBLIC_IP']:
+		want6 = normalize_ip(env['PUBLIC_IPV6'])
+		ns_ips6 = query_dns("ns1." + domain, "AAAA") + '/' + query_dns("ns2." + domain, "AAAA")
+		if ns_ips6 == want6 + '/' + want6:
+			output.print_ok("Nameserver IPv6 glue records are correct at registrar. [ns1/ns2.{} ↦ {}]".format(env['PRIMARY_HOSTNAME'], want6))
+		else:
+			output.print_error("""Nameserver IPv6 glue records are incorrect. The ns1.{} and ns2.{} nameservers must be configured at your
+				domain name registrar as having the IPv6 address {}. They currently report addresses of {}. It may take several hours for
+				public DNS to update after a change.""".format(env['PRIMARY_HOSTNAME'], env['PRIMARY_HOSTNAME'], want6, ns_ips6))
 
 	# Check that PRIMARY_HOSTNAME resolves to PUBLIC_IP[V6] in public DNS.
 	ipv6 = query_dns(domain, "AAAA") if env.get("PUBLIC_IPV6") else None
