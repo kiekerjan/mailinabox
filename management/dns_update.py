@@ -1057,7 +1057,7 @@ def set_custom_dns_record(qname, rtype, value, action, env):
 			if not re.search(DOMAIN_RE, value):
 				msg = "Invalid value."
 				raise ValueError(msg)
-		elif rtype in {"CNAME", "TXT", "SRV", "MX", "SSHFP", "CAA"}:
+		elif rtype in {"TXT", "SRV", "MX", "SSHFP", "CAA"}:
 			# anything goes
 			pass
 		else:
